@@ -1,90 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>RCEM Admin Dashboard</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>RCEM System</title>
+  <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
-<div class="layout">
+  <div class="home-container">
+    <h1>Rajshahi Catering & Event Management</h1>
+    <p class="subtitle">Management System</p>
 
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
-    <h2>RCEM</h2>
-    <a href="#">Dashboard</a>
-    <a href="#">Assignments</a>
-    <a href="#">Staff</a>
-    <a href="#">Venues</a>
-    <a href="#">Monthly Accounts</a>
-    <button class="logout-btn" onclick="logout()">Logout</button>
-  </aside>
+    <div class="login-cards">
 
-  <!-- MAIN -->
-  <main class="content">
-    <header class="topbar">
-      <h1>Admin Dashboard</h1>
-      <span id="adminEmail">Loading...</span>
-    </header>
+      <a href="admin.html" class="login-card admin">
+        <h2>Admin Login</h2>
+        <p>Manage assignments, staff & accounts</p>
+      </a>
 
-    <section class="cards">
-      <div class="card">
-        <h3>Total Assignments</h3>
-        <p>12</p>
-      </div>
+      <a href="staff.html" class="login-card staff">
+        <h2>Staff Login</h2>
+        <p>View duty & work details</p>
+      </a>
 
-      <div class="card">
-        <h3>Total Staff</h3>
-        <p>85</p>
-      </div>
+      <a href="customer.html" class="login-card customer">
+        <h2>Customer Login</h2>
+        <p>View booking & event status</p>
+      </a>
 
-      <div class="card">
-        <h3>This Month Income</h3>
-        <p>৳ 1,25,000</p>
-      </div>
-
-      <div class="card success">
-        <h3>Profit</h3>
-        <p>৳ 32,000</p>
-      </div>
-    </section>
-  </main>
-
-</div>
-
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-
-<script>
-const firebaseConfig = {
-  apiKey: "AIzaSyDK3dqXZuWaH3gctxURdOZc_Q1UfioesaA",
-  authDomain: "rcem-system.firebaseapp.com",
-  projectId: "rcem-system",
-  storageBucket: "rcem-system.appspot.com",
-  messagingSenderId: "569730845486",
-  appId: "1:569730845486:web:93e6c14ea47fdc6c89c8bf"
-};
-
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-
-/* PROTECTION */
-auth.onAuthStateChanged(user => {
-  if (!user) {
-    window.location.replace("index.html");
-  } else {
-    document.getElementById("adminEmail").innerText = user.email;
-  }
-});
-
-function logout() {
-  auth.signOut().then(() => {
-    window.location.replace("index.html");
-  });
-}
-</script>
+    </div>
+  </div>
 
 </body>
 </html>
