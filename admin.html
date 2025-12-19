@@ -1,15 +1,28 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
   <title>Admin Login - RCEM</title>
   <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
 
-  <h2>Admin Login</h2>
-  <p>Admin panel will be here.</p>
+  <div class="container">
+    <h2>Admin Login</h2>
 
-  <a href="index.html">← Back to Home</a>
+    <input type="email" id="email" placeholder="Admin Email">
+    <input type="password" id="password" placeholder="Password">
+
+    <button onclick="adminLogin()">Login</button>
+
+    <p id="message"></p>
+
+    <a href="index.html">← Back to Home</a>
+  </div>
+
+  <!-- Firebase logic -->
+  <script type="module" src="app.js"></script>
 
 </body>
 </html>
