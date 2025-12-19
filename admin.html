@@ -1,20 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RCEM Admin Dashboard</title>
 
   <style>
     * {
-      box-sizing: border-box;
       margin: 0;
       padding: 0;
+      box-sizing: border-box;
       font-family: Arial, sans-serif;
     }
 
     body {
-      background: #f4f6f8;
+      background: #f4f6f9;
       min-height: 100vh;
     }
 
@@ -33,15 +33,15 @@
       font-size: 20px;
     }
 
-    .header .user {
+    .user-info {
       font-size: 14px;
       margin-top: 5px;
     }
 
     .logout-btn {
       background: #d32f2f;
-      color: #fff;
       border: none;
+      color: #fff;
       padding: 8px 14px;
       border-radius: 5px;
       cursor: pointer;
@@ -139,7 +139,7 @@
   <div class="header">
     <h1>RCEM Admin Dashboard</h1>
     <div>
-      <div class="user">
+      <div class="user-info">
         Logged in as: <span id="adminEmail">Loading...</span>
       </div>
       <button class="logout-btn" onclick="logout()">Logout</button>
@@ -195,18 +195,26 @@
       apiKey: "AIzaSyDK3dqXZuWaH3gctxURdOZc_Q1UfioesaA",
       authDomain: "rcem-system.firebaseapp.com",
       projectId: "rcem-system",
-      storageBucket: "rcem-system.firebasestorage.app",
+      storageBucket: "rcem-system.appspot.com",
       messagingSenderId: "569730845486",
       appId: "1:569730845486:web:93e6c14ea47fdc6c89c8bf"
     };
 
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
+    // 🔒 SAFE INIT (no double init)
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
 
-    // Protect page
+    const auth = firebase.auth();
+    let checked = false;
+
+    // ✅ STABLE AUTH CHECK (no auto logout)
     auth.onAuthStateChanged(user => {
+      if (checked) return;
+      checked = true;
+
       if (!user) {
-        window.location.href = "index.html";
+        window.location.replace("index.html");
       } else {
         document.getElementById("adminEmail").innerText = user.email;
       }
@@ -214,7 +222,7 @@
 
     function logout() {
       auth.signOut().then(() => {
-        window.location.href = "index.html";
+        window.location.replace("index.html");
       });
     }
   </script>
