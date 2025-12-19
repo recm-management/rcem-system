@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,41 +7,41 @@
 
 <style>
 body{margin:0;font-family:Arial;background:#f4f6f9}
-header{background:#0d47a1;color:#fff;padding:15px;display:flex;justify-content:space-between}
-button{padding:8px 12px;border:none;border-radius:5px;cursor:pointer}
-.add{background:#2e7d32;color:#fff}
-.edit{background:#1976d2;color:#fff}
+.header{background:#0d47a1;color:#fff;padding:15px;display:flex;justify-content:space-between;align-items:center}
+.container{padding:15px}
+.btn{padding:8px 12px;border:none;border-radius:5px;color:#fff;cursor:pointer}
+.add{background:#2e7d32}
+.edit{background:#1976d2}
 .toggle{background:#f9a825;color:#000}
-.delete{background:#d32f2f;color:#fff}
-.card{background:#fff;margin:15px;padding:15px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.1)}
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;justify-content:center;align-items:center}
-.box{background:#fff;padding:20px;border-radius:10px;width:90%;max-width:400px}
-input{width:100%;padding:10px;margin:8px 0}
+.delete{background:#d32f2f}
+.card{background:#fff;padding:15px;border-radius:10px;margin-bottom:12px;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center}
+.modal-box{background:#fff;padding:20px;border-radius:10px;width:90%;max-width:400px}
+.modal-box input{width:100%;padding:10px;margin-bottom:10px}
 </style>
 </head>
 
 <body>
 
-<header>
-  <h3>RCEM – Venues</h3>
-  <button onclick="logout()">Logout</button>
-</header>
-
-<div style="padding:15px">
-  <button class="add" onclick="openAdd()">+ Add Venue</button>
+<div class="header">
+  <h2>RCEM – Venues</h2>
+  <button class="btn delete" onclick="logout()">Logout</button>
 </div>
 
-<div id="list"></div>
+<div class="container">
+  <button class="btn add" onclick="openModal()">+ Add Venue</button>
+  <div id="venueList">Loading...</div>
+</div>
 
-<!-- Modal -->
+<!-- MODAL -->
 <div class="modal" id="modal">
-  <div class="box">
-    <h3 id="title">Add Venue</h3>
-    <input id="name" placeholder="Venue Name">
-    <input id="location" placeholder="Location">
-    <input id="contact" placeholder="Contact">
-    <button class="edit" onclick="save()">Save</button>
-    <button onclick="closeModal()">Cancel</button>
+  <div class="modal-box">
+    <h3>Add / Edit Venue</h3>
+    <input id="vname" placeholder="Venue Name">
+    <input id="vlocation" placeholder="Location">
+    <input id="vcontact" placeholder="Contact">
+    <button class="btn edit" onclick="saveVenue()">Save</button>
+    <p style="text-align:center;cursor:pointer" onclick="closeModal()">Cancel</p>
   </div>
 </div>
 
@@ -50,83 +50,82 @@ input{width:100%;padding:10px;margin:8px 0}
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
-firebase.initializeApp({
-  apiKey: "AIzaSyDK3dqXZuWaH3gctxURdOZc_Q1UfioesaA",
-  authDomain: "rcem-system.firebaseapp.com",
-  projectId: "rcem-system"
-});
+const firebaseConfig={
+  apiKey:"AIzaSyDK3dqXZuWaH3gctxURdOZc_Q1UfioesaA",
+  authDomain:"rcem-system.firebaseapp.com",
+  projectId:"rcem-system",
+  storageBucket:"rcem-system.appspot.com",
+  messagingSenderId:"569730845486",
+  appId:"1:569730845486:web:93e6c14ea47fdc6c89c8bf"
+};
 
+firebase.initializeApp(firebaseConfig);
 const auth=firebase.auth();
 const db=firebase.firestore();
 let editId=null;
 
-auth.onAuthStateChanged(u=>{if(!u)location="index.html";});
+auth.onAuthStateChanged(u=>{ if(!u) location.href="index.html"; });
 
-function logout(){auth.signOut().then(()=>location="index.html");}
-
-function openAdd(){
-  editId=null;
-  document.getElementById("title").innerText="Add Venue";
-  document.getElementById("modal").style.display="flex";
-  name.value=location.value=contact.value="";
+function logout(){
+  auth.signOut().then(()=>location.href="index.html");
 }
 
-function openEdit(id,v){
+function openModal(id=null,data=null){
   editId=id;
-  title.innerText="Edit Venue";
-  name.value=v.venue_name||"";
-  location.value=v.location||"";
-  contact.value=v.contact||"";
-  modal.style.display="flex";
+  document.getElementById("modal").style.display="flex";
+  document.getElementById("vname").value=data?.venue_name||"";
+  document.getElementById("vlocation").value=data?.location||"";
+  document.getElementById("vcontact").value=data?.contact||"";
 }
 
-function closeModal(){modal.style.display="none";}
+function closeModal(){
+  document.getElementById("modal").style.display="none";
+}
 
-function save(){
+function saveVenue(){
+  const name=vname.value.trim();
+  if(!name){alert("Name required");return;}
+
   const data={
-    venue_name:name.value,
-    location:location.value,
-    contact:contact.value,
+    venue_name:name,
+    location:vlocation.value,
+    contact:vcontact.value,
     active:true
   };
+
   if(editId){
     db.collection("venues").doc(editId).update(data);
   }else{
     db.collection("venues").add(data);
   }
-  closeModal();load();
+
+  closeModal();
 }
 
-function toggle(id,a){db.collection("venues").doc(id).update({active:!a});}
+function toggle(id,val){
+  db.collection("venues").doc(id).update({active:!val});
+}
 
 function del(id){
-  if(confirm("Delete?"))db.collection("venues").doc(id).delete();
+  if(confirm("Delete venue?"))
+    db.collection("venues").doc(id).delete();
 }
 
-function load(){
-  db.collection("venues").onSnapshot(s=>{
-    list.innerHTML="";
-    s.forEach(d=>{
-      const v=d.data();
-      list.innerHTML+=`
+db.collection("venues").onSnapshot(snap=>{
+  const list=document.getElementById("venueList");
+  list.innerHTML="";
+  snap.forEach(d=>{
+    const v=d.data();
+    list.innerHTML+=`
       <div class="card">
-        <b>${v.venue_name||"Unnamed Venue"}</b><br>
+        <b>${v.venue_name}</b><br>
         Status: ${v.active?"Active":"Inactive"}<br><br>
-        <button class="edit" onclick='openEdit("${d.id}",${JSON.stringify(v)})'>Edit</button>
-        <button class="toggle" onclick="toggle('${d.id}',${v.active})">Toggle</button>
-        <button class="delete" onclick="del('${d.id}')">Delete</button>
+        <button class="btn edit" onclick='openModal("${d.id}",${JSON.stringify(v)})'>Edit</button>
+        <button class="btn toggle" onclick='toggle("${d.id}",${v.active})'>Toggle</button>
+        <button class="btn delete" onclick='del("${d.id}")'>Delete</button>
       </div>`;
-    });
   });
-}
-load();
-</script>
-</body>
-</html>
-/* LOGOUT */
-function logout(){
-  auth.signOut().then(()=>location.href="index.html");
-}
+});
 </script>
 
 </body>
