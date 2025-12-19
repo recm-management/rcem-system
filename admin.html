@@ -4,91 +4,113 @@
   <meta charset="UTF-8">
   <title>Admin Login - RCEM</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f5f5f5;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
+      background: #f4f6f8;
+      margin: 0;
+      padding: 0;
     }
-    .card {
+
+    .login-box {
+      max-width: 400px;
+      margin: 80px auto;
       background: #fff;
       padding: 30px;
-      width: 100%;
-      max-width: 400px;
       border-radius: 8px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    }
-    h2 {
       text-align: center;
     }
+
+    h2 {
+      margin-bottom: 20px;
+    }
+
     input {
       width: 100%;
-      padding: 10px;
+      padding: 12px;
       margin: 10px 0;
+      font-size: 16px;
     }
+
     button {
       width: 100%;
       padding: 12px;
-      background: #0d47a1;
+      background: #0b3d91;
       color: #fff;
       border: none;
-      cursor: pointer;
       font-size: 16px;
+      cursor: pointer;
+      margin-top: 10px;
     }
-    a {
+
+    button:hover {
+      background: #092f6f;
+    }
+
+    .back {
       display: block;
       margin-top: 15px;
-      text-align: center;
+      color: #6a1b9a;
+      text-decoration: none;
     }
   </style>
 </head>
 <body>
 
-<div class="card">
-  <h2>Admin Login</h2>
+  <div class="login-box">
+    <h2>Admin Login</h2>
 
-  <input type="email" id="email" placeholder="Admin Email">
-  <input type="password" id="password" placeholder="Password">
+    <input type="email" id="email" placeholder="Admin Email">
+    <input type="password" id="password" placeholder="Password">
 
-  <button id="loginBtn">Login</button>
+    <button onclick="adminLogin()">Login</button>
 
-  <a href="index.html">← Back to Home</a>
-</div>
+    <a class="back" href="index.html">← Back to Home</a>
+  </div>
 
-<!-- 🔥 Firebase Logic -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-  import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyDK3dqXZUwAH3gctxURd0Zc_Q1UfioesaA",
-    authDomain: "rcem-system.firebaseapp.com",
-    projectId: "rcem-system",
-    storageBucket: "rcem-system.firebasestorage.app",
-    messagingSenderId: "569730845486",
-    appId: "1:569730845486:web:93e6c14ea47fdc6c89c8bf"
-  };
+  <script>
+    // ✅ CORRECT Firebase Config (Fixed)
+    const firebaseConfig = {
+      apiKey: "AIzaSyDK3dqXZuWaH3gctxURdOZc_Q1UfioesaA",
+      authDomain: "rcem-system.firebaseapp.com",
+      projectId: "rcem-system",
+      storageBucket: "rcem-system.appspot.com",
+      messagingSenderId: "569730845486",
+      appId: "1:569730845486:web:93e6c14ea47fdc6c89c8bf",
+      measurementId: "G-94QVMRXQWK"
+    };
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
 
-  document.getElementById("loginBtn").addEventListener("click", () => {
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
+    // ✅ Admin Login Function
+    function adminLogin() {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
 
-    signInWithEmailAndPassword(auth, email, password)
-      .then(() => {
-        alert("✅ Admin Login Successful");
-        // window.location.href = "admin-dashboard.html";
-      })
-      .catch((error) => {
-        alert("❌ Login Failed: " + error.message);
-      });
-  });
-</script>
+      if (!email || !password) {
+        alert("Email এবং Password দিন");
+        return;
+      }
+
+      auth.signInWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+          alert("✅ Login Successful");
+          // future admin dashboard
+          // window.location.href = "admin-dashboard.html";
+        })
+        .catch((error) => {
+          alert("❌ Login Failed: " + error.message);
+        });
+    }
+  </script>
 
 </body>
 </html>
