@@ -73,6 +73,7 @@
       text-decoration: none;
       padding: 10px 0;
       font-size: 15px;
+      cursor: pointer;
     }
 
     .sidebar a:hover {
@@ -109,6 +110,20 @@
       font-size: 22px;
       font-weight: bold;
       color: #0d47a1;
+    }
+
+    /* Venues */
+    #venuesSection {
+      margin-top: 30px;
+      display: none;
+    }
+
+    .venue-item {
+      background: #fff;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
 
     /* Mobile */
@@ -152,43 +167,54 @@
     <!-- Sidebar -->
     <div class="sidebar">
       <h2>Menu</h2>
-      <a href="#">Dashboard</a>
-      <a href="#">Assignments</a>
-      <a href="#">Staff</a>
-      <a href="#">Venues</a>
-      <a href="#">Monthly Accounts</a>
+      <a onclick="showDashboard()">Dashboard</a>
+      <a>Assignments</a>
+      <a>Staff</a>
+      <a onclick="showVenues()">Venues</a>
+      <a>Monthly Accounts</a>
     </div>
 
     <!-- Main -->
     <div class="main">
-      <div class="cards">
-        <div class="card">
-          <h3>Total Assignments</h3>
-          <p>12</p>
-        </div>
 
-        <div class="card">
-          <h3>Total Staff</h3>
-          <p>85</p>
-        </div>
+      <!-- Dashboard Cards -->
+      <div id="dashboardSection">
+        <div class="cards">
+          <div class="card">
+            <h3>Total Assignments</h3>
+            <p>12</p>
+          </div>
 
-        <div class="card">
-          <h3>This Month Income</h3>
-          <p>৳ 1,25,000</p>
-        </div>
+          <div class="card">
+            <h3>Total Staff</h3>
+            <p>85</p>
+          </div>
 
-        <div class="card">
-          <h3>Profit</h3>
-          <p>৳ 32,000</p>
+          <div class="card">
+            <h3>This Month Income</h3>
+            <p>৳ 1,25,000</p>
+          </div>
+
+          <div class="card">
+            <h3>Profit</h3>
+            <p>৳ 32,000</p>
+          </div>
         </div>
       </div>
-    </div>
 
+      <!-- Venues Section -->
+      <div id="venuesSection">
+        <h2>Venues</h2>
+        <div id="venuesList">Loading...</div>
+      </div>
+
+    </div>
   </div>
 
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
   <script>
     const firebaseConfig = {
@@ -200,15 +226,14 @@
       appId: "1:569730845486:web:93e6c14ea47fdc6c89c8bf"
     };
 
-    // 🔒 SAFE INIT (no double init)
     if (!firebase.apps.length) {
       firebase.initializeApp(firebaseConfig);
     }
 
     const auth = firebase.auth();
-    let checked = false;
+    const db = firebase.firestore();
 
-    // ✅ STABLE AUTH CHECK (no auto logout)
+    let checked = false;
     auth.onAuthStateChanged(user => {
       if (checked) return;
       checked = true;
@@ -223,6 +248,42 @@
     function logout() {
       auth.signOut().then(() => {
         window.location.replace("index.html");
+      });
+    }
+
+    function showDashboard() {
+      document.getElementById("dashboardSection").style.display = "block";
+      document.getElementById("venuesSection").style.display = "none";
+    }
+
+    function showVenues() {
+      document.getElementById("dashboardSection").style.display = "none";
+      document.getElementById("venuesSection").style.display = "block";
+      loadVenues();
+    }
+
+    function loadVenues() {
+      const list = document.getElementById("venuesList");
+      list.innerHTML = "Loading venues...";
+
+      db.collection("venues").get().then(snapshot => {
+        list.innerHTML = "";
+
+        if (snapshot.empty) {
+          list.innerHTML = "<p>No venues found</p>";
+          return;
+        }
+
+        snapshot.forEach(doc => {
+          const v = doc.data();
+          const div = document.createElement("div");
+          div.className = "venue-item";
+          div.innerHTML = `
+            <b>${v.venue_name || "Unnamed Venue"}</b><br>
+            Status: ${v.active ? "Active" : "Inactive"}
+          `;
+          list.appendChild(div);
+        });
       });
     }
   </script>
