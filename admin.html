@@ -112,20 +112,6 @@
       color: #0d47a1;
     }
 
-    /* Venues */
-    #venuesSection {
-      margin-top: 30px;
-      display: none;
-    }
-
-    .venue-item {
-      background: #fff;
-      padding: 15px;
-      border-radius: 8px;
-      margin-bottom: 10px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-
     /* Mobile */
     @media (max-width: 768px) {
       .container {
@@ -148,6 +134,7 @@
     }
   </style>
 </head>
+
 <body>
 
   <!-- Header -->
@@ -170,14 +157,12 @@
       <a onclick="showDashboard()">Dashboard</a>
       <a>Assignments</a>
       <a>Staff</a>
-      <a onclick="showVenues()">Venues</a>
+      <a href="venues.html">Venues</a>
       <a>Monthly Accounts</a>
     </div>
 
     <!-- Main -->
     <div class="main">
-
-      <!-- Dashboard Cards -->
       <div id="dashboardSection">
         <div class="cards">
           <div class="card">
@@ -201,20 +186,13 @@
           </div>
         </div>
       </div>
-
-      <!-- Venues Section -->
-      <div id="venuesSection">
-        <h2>Venues</h2>
-        <div id="venuesList">Loading...</div>
-      </div>
-
     </div>
+
   </div>
 
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
   <script>
     const firebaseConfig = {
@@ -231,9 +209,8 @@
     }
 
     const auth = firebase.auth();
-    const db = firebase.firestore();
-
     let checked = false;
+
     auth.onAuthStateChanged(user => {
       if (checked) return;
       checked = true;
@@ -253,38 +230,6 @@
 
     function showDashboard() {
       document.getElementById("dashboardSection").style.display = "block";
-      document.getElementById("venuesSection").style.display = "none";
-    }
-
-    function showVenues() {
-      document.getElementById("dashboardSection").style.display = "none";
-      document.getElementById("venuesSection").style.display = "block";
-      loadVenues();
-    }
-
-    function loadVenues() {
-      const list = document.getElementById("venuesList");
-      list.innerHTML = "Loading venues...";
-
-      db.collection("venues").get().then(snapshot => {
-        list.innerHTML = "";
-
-        if (snapshot.empty) {
-          list.innerHTML = "<p>No venues found</p>";
-          return;
-        }
-
-        snapshot.forEach(doc => {
-          const v = doc.data();
-          const div = document.createElement("div");
-          div.className = "venue-item";
-          div.innerHTML = `
-            <b>${v.venue_name || "Unnamed Venue"}</b><br>
-            Status: ${v.active ? "Active" : "Inactive"}
-          `;
-          list.appendChild(div);
-        });
-      });
     }
   </script>
 
