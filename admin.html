@@ -1,134 +1,53 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
   <title>RCEM Admin Dashboard</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f4f6f8;
-    }
-    .sidebar {
-      position: fixed;
-      left: 0;
-      top: 0;
-      width: 220px;
-      height: 100vh;
-      background: #0d47a1;
-      color: white;
-      padding: 20px;
-    }
-    .sidebar h2 {
-      margin-top: 0;
-    }
-    .sidebar a {
-      display: block;
-      color: white;
-      text-decoration: none;
-      margin: 15px 0;
-      font-size: 16px;
-    }
-    .content {
-      margin-left: 240px;
-      padding: 20px;
-    }
-    .card {
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      margin-bottom: 20px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-    .logout {
-      background: #d32f2f;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
-  <div class="sidebar">
-    <h2>RCEM</h2>
-    <a href="#">Dashboard</a>
-    <a href="#">Assignments</a>
-    <a href="#">Staff</a>
-    <a href="#">Venues</a>
-    <a href="#">Monthly Accounts</a>
-    <a href="#" onclick="logout()">Logout</a>
-  </div>
+<h1>RCEM Admin Dashboard</h1>
 
-  <div class="content">
-    <h1>Admin Dashboard</h1>
+<p>
+  Logged in as:
+  <b id="adminEmail">Loading...</b>
+</p>
 
-    <div class="card">
-      <p><strong>Logged in as:</strong></p>
-      <p id="adminEmail">Loading...</p>
-    </div>
+<button onclick="logout()">Logout</button>
 
-    <div class="card">
-      <h3>Total Assignments</h3>
-      <h2>12</h2>
-    </div>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
-    <div class="card">
-      <h3>Total Staff</h3>
-      <h2>85</h2>
-    </div>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyDK3dqXZuWaH3gctxURdOZc_Q1UfioesaA",
+  authDomain: "rcem-system.firebaseapp.com",
+  projectId: "rcem-system",
+  storageBucket: "rcem-system.appspot.com",
+  messagingSenderId: "569730845486",
+  appId: "1:569730845486:web:93e6c14ea47fdc6c89c8bf"
+};
 
-    <div class="card">
-      <h3>This Month Income</h3>
-      <h2>৳ 1,25,000</h2>
-    </div>
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
 
-    <div class="card" style="background:#e8f5e9">
-      <h3>Profit</h3>
-      <h2>৳ 32,000</h2>
-    </div>
-  </div>
-
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyDK3dqXZuWaH3gctxURdOZc_Q1UfioesaA",
-      authDomain: "rcem-system.firebaseapp.com",
-      projectId: "rcem-system",
-      storageBucket: "rcem-system.firebasestorage.app",
-      messagingSenderId: "569730845486",
-      appId: "1:569730845486:web:93e6c14ea47fdc6c89c8bf"
-    };
-
-    // 🔒 Prevent double init
-    if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig);
+/* 🔐 PAGE PROTECTION (SAFE VERSION) */
+setTimeout(() => {
+  auth.onAuthStateChanged(user => {
+    if (!user) {
+      window.location.replace("index.html");
+    } else {
+      document.getElementById("adminEmail").innerText = user.email;
     }
+  });
+}, 300);
 
-    const auth = firebase.auth();
-
-    auth.onAuthStateChanged(user => {
-      if (user) {
-        document.getElementById("adminEmail").innerText = user.email;
-      } else {
-        window.location.href = "index.html";
-      }
-    });
-
-    function logout() {
-      auth.signOut().then(() => {
-        window.location.href = "index.html";
-      });
-    }
-  </script>
+function logout() {
+  auth.signOut().then(() => {
+    window.location.replace("index.html");
+  });
+}
+</script>
 
 </body>
 </html>
