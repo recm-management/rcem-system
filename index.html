@@ -1,37 +1,45 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>Rajshahi Catering & Event Management</title>
-
-  <!-- CSS -->
+  <title>RCEM Admin Login</title>
   <link rel="stylesheet" href="style.css">
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
 
-  <div class="container">
-    <h1>Rajshahi Catering & Event Management</h1>
-    <p>Welcome to RCEM System</p>
+<h2>Admin Login</h2>
 
-    <div class="buttons">
-      <a href="admin.html">
-        <button>Admin Login</button>
-      </a>
+<input type="email" id="email" placeholder="Admin Email"><br><br>
+<input type="password" id="password" placeholder="Password"><br><br>
 
-      <a href="staff.html">
-        <button>Staff Login</button>
-      </a>
+<button onclick="login()">Login</button>
 
-      <a href="customer.html">
-        <button>Customer Login</button>
-      </a>
-    </div>
-  </div>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
-  <!-- Firebase App -->
-  <script type="module" src="app.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyDK3dqXZuWaH3gctxURdOZc_Q1UfioesaA",
+  authDomain: "rcem-system.firebaseapp.com",
+  projectId: "rcem-system",
+  storageBucket: "rcem-system.appspot.com",
+  messagingSenderId: "569730845486",
+  appId: "1:569730845486:web:93e6c14ea47fdc6c89c8bf"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+
+function login() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  auth.signInWithEmailAndPassword(email, password)
+    .then(() => {
+      window.location.href = "admin.html";
+    })
+    .catch(error => alert(error.message));
+}
+</script>
 
 </body>
 </html>
