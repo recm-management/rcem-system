@@ -1,45 +1,36 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>RCEM Admin Login</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>RCEM System</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<h2>Admin Login</h2>
+  <div class="home-container">
+    <h1>Rajshahi Catering & Event Management</h1>
+    <p class="subtitle">Management System</p>
 
-<input type="email" id="email" placeholder="Admin Email"><br><br>
-<input type="password" id="password" placeholder="Password"><br><br>
+    <div class="login-cards">
 
-<button onclick="login()">Login</button>
+      <a href="admin.html" class="login-card admin">
+        <h2>Admin Login</h2>
+        <p>Manage assignments, staff & accounts</p>
+      </a>
 
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+      <a href="staff.html" class="login-card staff">
+        <h2>Staff Login</h2>
+        <p>View duty & work details</p>
+      </a>
 
-<script>
-const firebaseConfig = {
-  apiKey: "AIzaSyDK3dqXZuWaH3gctxURdOZc_Q1UfioesaA",
-  authDomain: "rcem-system.firebaseapp.com",
-  projectId: "rcem-system",
-  storageBucket: "rcem-system.appspot.com",
-  messagingSenderId: "569730845486",
-  appId: "1:569730845486:web:93e6c14ea47fdc6c89c8bf"
-};
+      <a href="customer.html" class="login-card customer">
+        <h2>Customer Login</h2>
+        <p>View booking & event status</p>
+      </a>
 
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-
-function login() {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-
-  auth.signInWithEmailAndPassword(email, password)
-    .then(() => {
-      window.location.href = "admin.html";
-    })
-    .catch(error => alert(error.message));
-}
-</script>
+    </div>
+  </div>
 
 </body>
 </html>
