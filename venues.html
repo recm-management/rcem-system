@@ -6,54 +6,95 @@
 <title>RCEM – Venues</title>
 
 <style>
-body{margin:0;font-family:Arial;background:#f4f6f9}
-.header{background:#0d47a1;color:#fff;padding:15px;display:flex;justify-content:space-between;align-items:center}
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:Arial;
+  background:#f4f6f9
+}
+
+.header{
+  background:#0d47a1;
+  color:#fff;
+  padding:15px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center
+}
+
 .container{padding:15px}
 
 .btn{
-  padding:10px 16px;
+  padding:10px 18px;
   border:none;
   border-radius:22px;
   color:#fff;
   cursor:pointer;
-  font-size:14px;
+  font-size:14px
 }
+
 .add{background:linear-gradient(45deg,#2e7d32,#43a047)}
-.edit{background:linear-gradient(45deg,#1976d2,#42a5f5)}
 .toggle{background:linear-gradient(45deg,#f9a825,#fbc02d);color:#000}
+.logout{background:#d32f2f}
 
 .card{
   background:#fff;
-  padding:15px;
-  border-radius:16px;
+  padding:16px;
+  border-radius:18px;
   margin-bottom:16px;
   box-shadow:0 10px 25px rgba(0,0,0,.12)
 }
 
 /* STATUS */
-.status-row{display:flex;align-items:center;gap:8px;margin:6px 0;font-weight:bold}
-.dot{width:12px;height:12px;border-radius:50%}
-.active{background:#2e7d32;box-shadow:0 0 6px #2e7d32}
-.inactive{background:#d32f2f;box-shadow:0 0 6px #d32f2f}
+.status-row{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin:6px 0;
+  font-weight:bold
+}
 
-.meta{font-size:14px;color:#555;margin:4px 0}
+.dot{
+  width:12px;
+  height:12px;
+  border-radius:50%
+}
+
+.active{
+  background:#2e7d32;
+  box-shadow:0 0 6px #2e7d32
+}
+
+.inactive{
+  background:#d32f2f;
+  box-shadow:0 0 6px #d32f2f
+}
+
+.meta{
+  font-size:14px;
+  color:#555;
+  margin:4px 0
+}
+
 .highlight{background:yellow}
 
-/* SEARCH + FILTER */
+/* SEARCH */
 .search-box{
   width:100%;
-  padding:12px;
+  padding:12px 16px;
   margin:15px 0;
   border-radius:25px;
   border:1px solid #ccc;
-  font-size:15px;
+  font-size:15px
 }
+
 .filter{
   display:flex;
   align-items:center;
   gap:8px;
   margin-bottom:15px;
-  font-weight:bold;
+  font-weight:bold
 }
 
 /* DASHBOARD */
@@ -61,8 +102,9 @@ body{margin:0;font-family:Arial;background:#f4f6f9}
   display:grid;
   grid-template-columns:repeat(3,1fr);
   gap:10px;
-  margin:15px 0;
+  margin:15px 0
 }
+
 .stat{
   background:#fff;
   padding:12px;
@@ -70,23 +112,35 @@ body{margin:0;font-family:Arial;background:#f4f6f9}
   text-align:center;
   box-shadow:0 6px 15px rgba(0,0,0,.12)
 }
+
 .stat b{font-size:20px}
 
 /* MODAL */
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center}
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.6);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:12px
+}
+
 .modal-box{
   background:#fff;
-  padding:20px;
-  border-radius:16px;
-  width:92%;
+  padding:18px;
+  border-radius:18px;
+  width:100%;
   max-width:420px
 }
+
 .modal-box input{
   width:100%;
   padding:12px;
   margin-bottom:12px;
-  border-radius:10px;
+  border-radius:12px;
   border:1px solid #ccc;
+  font-size:15px
 }
 </style>
 </head>
@@ -95,7 +149,7 @@ body{margin:0;font-family:Arial;background:#f4f6f9}
 
 <div class="header">
   <h2>RCEM – Venues</h2>
-  <button class="btn edit" onclick="logout()">Logout</button>
+  <button class="btn logout" onclick="logout()">Logout</button>
 </div>
 
 <div class="container">
@@ -109,7 +163,9 @@ body{margin:0;font-family:Arial;background:#f4f6f9}
 
   <button class="btn add" onclick="openModal()">+ Add Venue</button>
 
-  <input class="search-box" id="search" placeholder="🔍 Search venue, mobile or address" oninput="render()">
+  <input class="search-box" id="search"
+    placeholder="🔍 Search venue, mobile or address"
+    oninput="render()">
 
   <div class="filter">
     <input type="checkbox" id="onlyActive" onchange="render()">
@@ -122,12 +178,12 @@ body{margin:0;font-family:Arial;background:#f4f6f9}
 <!-- MODAL -->
 <div class="modal" id="modal">
   <div class="modal-box">
-    <h3>Add / Edit Venue</h3>
+    <h3>Add Venue</h3>
     <input id="vname" placeholder="Venue Name">
     <input id="vlocation" placeholder="Address">
     <input id="vcontact" placeholder="Mobile">
-    <button class="btn edit" style="width:100%" onclick="save()">Save</button>
-    <p style="text-align:center;cursor:pointer" onclick="closeModal()">Cancel</p>
+    <button class="btn add" style="width:100%" onclick="save()">Save</button>
+    <p style="text-align:center;cursor:pointer;margin-top:10px" onclick="closeModal()">Cancel</p>
   </div>
 </div>
 
@@ -144,59 +200,67 @@ firebase.initializeApp({
 
 const auth=firebase.auth();
 const db=firebase.firestore();
+let data=[];
 
-let data=[],editId=null;
+auth.onAuthStateChanged(u=>{
+  if(!u) location.href="index.html";
+});
 
-auth.onAuthStateChanged(u=>{ if(!u) location.href="index.html"; });
-function logout(){auth.signOut().then(()=>location.href="index.html");}
-
-function openModal(id=null,d=null){
-  editId=id;
-  modal.style.display="flex";
-  vname.value=d?.venue_name||"";
-  vlocation.value=d?.location||"";
-  vcontact.value=d?.contact||"";
+function logout(){
+  auth.signOut().then(()=>location.href="index.html");
 }
-function closeModal(){modal.style.display="none";}
+
+function openModal(){
+  modal.style.display="flex";
+  vname.value=""; vlocation.value=""; vcontact.value="";
+}
+
+function closeModal(){ modal.style.display="none"; }
+
 function save(){
-  const obj={venue_name:vname.value,location:vlocation.value,contact:vcontact.value,active:true};
-  editId?db.collection("venues").doc(editId).update(obj):db.collection("venues").add(obj);
+  if(!vname.value.trim()){ alert("Venue name required"); return; }
+  db.collection("venues").add({
+    venue_name:vname.value,
+    location:vlocation.value,
+    contact:vcontact.value,
+    active:true
+  });
   closeModal();
 }
-function toggle(id,val){db.collection("venues").doc(id).update({active:!val});}
 
-function highlight(text,key){
-  if(!key) return text;
-  return text.replace(new RegExp(key,"gi"),m=>`<span class="highlight">${m}</span>`);
+function toggle(id,val){
+  db.collection("venues").doc(id).update({active:!val});
+}
+
+function highlight(t,k){
+  if(!k) return t;
+  return t.replace(new RegExp(k,"gi"),m=>`<span class="highlight">${m}</span>`);
 }
 
 function render(){
-  const key=search.value.toLowerCase();
+  const k=search.value.toLowerCase();
   const only=onlyActive.checked;
   venueList.innerHTML="";
-
   let t=0,a=0,i=0;
 
   data.forEach(v=>{
     t++; v.active?a++:i++;
     if(only && !v.active) return;
-
     if(
-      !v.venue_name.toLowerCase().includes(key) &&
-      !(v.contact||"").includes(key) &&
-      !(v.location||"").toLowerCase().includes(key)
+      !v.venue_name.toLowerCase().includes(k) &&
+      !(v.contact||"").includes(k) &&
+      !(v.location||"").toLowerCase().includes(k)
     ) return;
 
     venueList.innerHTML+=`
       <div class="card">
-        <b>${highlight(v.venue_name,key)}</b>
+        <b>${highlight(v.venue_name,k)}</b>
         <div class="status-row">
           <div class="dot ${v.active?"active":"inactive"}"></div>
           ${v.active?"Active":"Inactive"}
         </div>
-        <div class="meta">📞 ${highlight(v.contact||"",key)}</div>
-        <div class="meta">📍 ${highlight(v.location||"",key)}</div><br>
-        <button class="btn edit" onclick='openModal("${v.id}",${JSON.stringify(v)})'>Edit</button>
+        <div class="meta">📞 ${highlight(v.contact||"",k)}</div>
+        <div class="meta">📍 ${highlight(v.location||"",k)}</div><br>
         <button class="btn toggle" onclick='toggle("${v.id}",${v.active})'>Toggle</button>
       </div>`;
   });
