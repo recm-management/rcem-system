@@ -1,20 +1,59 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>RCEM Admin Dashboard</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<title>RCEM Admin Dashboard</title>
+<link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-<h1>RCEM Admin Dashboard</h1>
+<div class="layout">
 
-<p>
-  Logged in as:
-  <b id="adminEmail">Loading...</b>
-</p>
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <h2>RCEM</h2>
+    <a href="#">Dashboard</a>
+    <a href="#">Assignments</a>
+    <a href="#">Staff</a>
+    <a href="#">Venues</a>
+    <a href="#">Monthly Accounts</a>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+  </aside>
 
-<button onclick="logout()">Logout</button>
+  <!-- MAIN -->
+  <main class="content">
+    <header class="topbar">
+      <h1>Admin Dashboard</h1>
+      <span id="adminEmail">Loading...</span>
+    </header>
 
+    <section class="cards">
+      <div class="card">
+        <h3>Total Assignments</h3>
+        <p>12</p>
+      </div>
+
+      <div class="card">
+        <h3>Total Staff</h3>
+        <p>85</p>
+      </div>
+
+      <div class="card">
+        <h3>This Month Income</h3>
+        <p>৳ 1,25,000</p>
+      </div>
+
+      <div class="card success">
+        <h3>Profit</h3>
+        <p>৳ 32,000</p>
+      </div>
+    </section>
+  </main>
+
+</div>
+
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
@@ -31,16 +70,14 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 
-/* 🔐 PAGE PROTECTION (SAFE VERSION) */
-setTimeout(() => {
-  auth.onAuthStateChanged(user => {
-    if (!user) {
-      window.location.replace("index.html");
-    } else {
-      document.getElementById("adminEmail").innerText = user.email;
-    }
-  });
-}, 300);
+/* PROTECTION */
+auth.onAuthStateChanged(user => {
+  if (!user) {
+    window.location.replace("index.html");
+  } else {
+    document.getElementById("adminEmail").innerText = user.email;
+  }
+});
 
 function logout() {
   auth.signOut().then(() => {
