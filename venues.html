@@ -1,147 +1,90 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RCEM – Manage Venues</title>
+<title>RCEM – Venues</title>
 
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
-body{background:#f4f6f9}
-.header{
-  background:#0d47a1;color:#fff;padding:15px;
-  display:flex;justify-content:space-between;align-items:center
-}
-.header h1{font-size:18px}
-.logout{background:#d32f2f;border:none;color:#fff;padding:8px 12px;border-radius:5px}
-.container{padding:15px;max-width:900px;margin:auto}
-
-.add-btn{
-  background:#2e7d32;color:#fff;border:none;
-  padding:10px 15px;border-radius:6px;margin-bottom:15px
-}
-
-.card{
-  background:#fff;border-radius:10px;padding:15px;
-  margin-bottom:12px;box-shadow:0 4px 10px rgba(0,0,0,.1)
-}
-.card h3{margin-bottom:5px}
-.status{font-size:14px;margin-bottom:10px}
-.active{color:green}
-.inactive{color:red}
-
-.actions button{
-  margin-right:5px;margin-top:5px;
-  padding:6px 10px;border:none;border-radius:5px;font-size:13px
-}
+body{margin:0;font-family:Arial;background:#f4f6f9}
+header{background:#0d47a1;color:#fff;padding:15px;display:flex;justify-content:space-between}
+button{padding:8px 12px;border:none;border-radius:5px;cursor:pointer}
+.add{background:#2e7d32;color:#fff}
 .edit{background:#1976d2;color:#fff}
-.delete{background:#d32f2f;color:#fff}
 .toggle{background:#f9a825;color:#000}
-
-/* MODAL */
-.modal{
-  position:fixed;inset:0;background:rgba(0,0,0,.6);
-  display:none;justify-content:center;align-items:center
-}
-.modal-box{
-  background:#fff;width:100%;max-width:400px;
-  padding:20px;border-radius:10px
-}
-.modal-box h2{text-align:center;margin-bottom:10px}
-.modal-box input{
-  width:100%;padding:10px;margin:6px 0;border:1px solid #ccc;border-radius:6px
-}
-.modal-box button{
-  width:100%;padding:10px;margin-top:10px;
-  border:none;border-radius:6px;background:#0d47a1;color:#fff
-}
-.close{text-align:center;margin-top:8px;font-size:13px;color:#777;cursor:pointer}
+.delete{background:#d32f2f;color:#fff}
+.card{background:#fff;margin:15px;padding:15px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.1)}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;justify-content:center;align-items:center}
+.box{background:#fff;padding:20px;border-radius:10px;width:90%;max-width:400px}
+input{width:100%;padding:10px;margin:8px 0}
 </style>
 </head>
 
 <body>
 
-<div class="header">
-  <h1>RCEM – Venues</h1>
-  <button class="logout" onclick="logout()">Logout</button>
+<header>
+  <h3>RCEM – Venues</h3>
+  <button onclick="logout()">Logout</button>
+</header>
+
+<div style="padding:15px">
+  <button class="add" onclick="openAdd()">+ Add Venue</button>
 </div>
 
-<div class="container">
-  <button class="add-btn" onclick="openModal()">➕ Add Venue</button>
-  <div id="venueList">Loading...</div>
-</div>
+<div id="list"></div>
 
-<!-- ADD / EDIT MODAL -->
-<div class="modal" id="venueModal">
-  <div class="modal-box">
-    <h2 id="modalTitle">Add Venue</h2>
-    <input type="text" id="name" placeholder="Venue Name">
-    <input type="text" id="location" placeholder="Location">
-    <input type="text" id="contact" placeholder="Contact">
-    <button onclick="saveVenue()">Save</button>
-    <div class="close" onclick="closeModal()">Cancel</div>
+<!-- Modal -->
+<div class="modal" id="modal">
+  <div class="box">
+    <h3 id="title">Add Venue</h3>
+    <input id="name" placeholder="Venue Name">
+    <input id="location" placeholder="Location">
+    <input id="contact" placeholder="Contact">
+    <button class="edit" onclick="save()">Save</button>
+    <button onclick="closeModal()">Cancel</button>
   </div>
 </div>
 
-<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
-const firebaseConfig={
-  apiKey:"AIzaSyDK3dqXZuWaH3gctxURdOZc_Q1UfioesaA",
-  authDomain:"rcem-system.firebaseapp.com",
-  projectId:"rcem-system",
-  storageBucket:"rcem-system.appspot.com",
-  messagingSenderId:"569730845486",
-  appId:"1:569730845486:web:93e6c14ea47fdc6c89c8bf"
-};
-if(!firebase.apps.length){firebase.initializeApp(firebaseConfig)}
+firebase.initializeApp({
+  apiKey: "AIzaSyDK3dqXZuWaH3gctxURdOZc_Q1UfioesaA",
+  authDomain: "rcem-system.firebaseapp.com",
+  projectId: "rcem-system"
+});
+
 const auth=firebase.auth();
 const db=firebase.firestore();
-
 let editId=null;
 
-/* AUTH PROTECT */
-auth.onAuthStateChanged(u=>{
-  if(!u) location.href="index.html";
-});
+auth.onAuthStateChanged(u=>{if(!u)location="index.html";});
 
-/* LOAD VENUES */
-db.collection("venues").onSnapshot(snap=>{
-  const list=document.getElementById("venueList");
-  list.innerHTML="";
-  snap.forEach(doc=>{
-    const v=doc.data();
-    list.innerHTML+=`
-    <div class="card">
-      <h3>${v.name||"Unnamed Venue"}</h3>
-      <div class="status ${v.active?"active":"inactive"}">
-        Status: ${v.active?"Active":"Inactive"}
-      </div>
-      <div class="actions">
-        <button class="edit" onclick="editVenue('${doc.id}','${v.name}','${v.location}','${v.contact}')">Edit</button>
-        <button class="toggle" onclick="toggleVenue('${doc.id}',${v.active})">Toggle</button>
-        <button class="delete" onclick="deleteVenue('${doc.id}')">Delete</button>
-      </div>
-    </div>`;
-  });
-});
+function logout(){auth.signOut().then(()=>location="index.html");}
 
-/* MODAL */
-function openModal(){
+function openAdd(){
   editId=null;
-  modalTitle.innerText="Add Venue";
+  document.getElementById("title").innerText="Add Venue";
+  document.getElementById("modal").style.display="flex";
   name.value=location.value=contact.value="";
-  venueModal.style.display="flex";
 }
-function closeModal(){venueModal.style.display="none"}
 
-/* SAVE */
-function saveVenue(){
+function openEdit(id,v){
+  editId=id;
+  title.innerText="Edit Venue";
+  name.value=v.venue_name||"";
+  location.value=v.location||"";
+  contact.value=v.contact||"";
+  modal.style.display="flex";
+}
+
+function closeModal(){modal.style.display="none";}
+
+function save(){
   const data={
-    name:name.value,
+    venue_name:name.value,
     location:location.value,
     contact:contact.value,
     active:true
@@ -151,29 +94,35 @@ function saveVenue(){
   }else{
     db.collection("venues").add(data);
   }
-  closeModal();
+  closeModal();load();
 }
 
-/* EDIT */
-function editVenue(id,n,l,c){
-  editId=id;
-  modalTitle.innerText="Edit Venue";
-  name.value=n;location.value=l;contact.value=c;
-  venueModal.style.display="flex";
+function toggle(id,a){db.collection("venues").doc(id).update({active:!a});}
+
+function del(id){
+  if(confirm("Delete?"))db.collection("venues").doc(id).delete();
 }
 
-/* DELETE */
-function deleteVenue(id){
-  if(confirm("Delete this venue?")){
-    db.collection("venues").doc(id).delete();
-  }
+function load(){
+  db.collection("venues").onSnapshot(s=>{
+    list.innerHTML="";
+    s.forEach(d=>{
+      const v=d.data();
+      list.innerHTML+=`
+      <div class="card">
+        <b>${v.venue_name||"Unnamed Venue"}</b><br>
+        Status: ${v.active?"Active":"Inactive"}<br><br>
+        <button class="edit" onclick='openEdit("${d.id}",${JSON.stringify(v)})'>Edit</button>
+        <button class="toggle" onclick="toggle('${d.id}',${v.active})">Toggle</button>
+        <button class="delete" onclick="del('${d.id}')">Delete</button>
+      </div>`;
+    });
+  });
 }
-
-/* TOGGLE */
-function toggleVenue(id,state){
-  db.collection("venues").doc(id).update({active:!state});
-}
-
+load();
+</script>
+</body>
+</html>
 /* LOGOUT */
 function logout(){
   auth.signOut().then(()=>location.href="index.html");
