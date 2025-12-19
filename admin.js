@@ -12,18 +12,24 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 
-// Protect page (login না থাকলে ঢুকতে দেবে না)
+// Prevent instant redirect
+let authChecked = false;
+
 auth.onAuthStateChanged(user => {
-  if (!user) {
-    window.location.href = "index.html";
-  } else {
-    document.getElementById("adminEmail").innerText = user.email;
+  if (!authChecked) {
+    authChecked = true;
+
+    if (!user) {
+      window.location.replace("index.html");
+    } else {
+      document.getElementById("adminEmail").innerText = user.email;
+    }
   }
 });
 
 // Logout
 function logout() {
   auth.signOut().then(() => {
-    window.location.href = "index.html";
+    window.location.replace("index.html");
   });
 }
