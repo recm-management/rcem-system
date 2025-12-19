@@ -6,148 +6,141 @@
 <title>RCEM – Venues</title>
 
 <style>
+*{box-sizing:border-box}
+
 body{
   margin:0;
-  font-family:Arial, sans-serif;
-  background:#f4f6f9;
+  font-family:Arial;
+  background:#f4f6f9
 }
 
-/* HEADER */
 .header{
-  background:linear-gradient(135deg,#0d47a1,#1976d2);
+  background:#0d47a1;
   color:#fff;
   padding:15px;
   display:flex;
   justify-content:space-between;
-  align-items:center;
-}
-.header h2{margin:0;font-size:18px}
-.logout{
-  background:#e53935;
-  border:none;
-  color:#fff;
-  padding:8px 14px;
-  border-radius:20px;
-  cursor:pointer;
+  align-items:center
 }
 
-/* CONTAINER */
 .container{padding:15px}
 
-/* BUTTONS */
 .btn{
-  padding:10px 16px;
+  padding:10px 18px;
   border:none;
-  border-radius:25px;
-  font-size:14px;
-  cursor:pointer;
-}
-.add{
-  background:linear-gradient(135deg,#2e7d32,#43a047);
+  border-radius:22px;
   color:#fff;
-}
-.toggle{
-  background:linear-gradient(135deg,#f9a825,#fbc02d);
-  color:#000;
-  margin-top:10px;
+  cursor:pointer;
+  font-size:14px
 }
 
-/* SEARCH */
-.search{
-  width:100%;
-  padding:12px 40px;
-  border-radius:25px;
-  border:1px solid #ccc;
-  margin:15px 0;
-  font-size:14px;
-  box-sizing:border-box;
-}
-.search-icon{
-  position:relative;
-}
-.search-icon span{
-  position:absolute;
-  left:14px;
-  top:50%;
-  transform:translateY(-50%);
-  color:#777;
-}
+.add{background:linear-gradient(45deg,#2e7d32,#43a047)}
+.toggle{background:linear-gradient(45deg,#f9a825,#fbc02d);color:#000}
+.logout{background:#d32f2f}
 
-/* CARD */
 .card{
   background:#fff;
-  padding:15px;
-  border-radius:15px;
-  margin-bottom:15px;
-  box-shadow:0 4px 12px rgba(0,0,0,.12);
-}
-.card h3{
-  margin:0 0 6px;
-  font-size:17px;
+  padding:16px;
+  border-radius:18px;
+  margin-bottom:16px;
+  box-shadow:0 10px 25px rgba(0,0,0,.12)
 }
 
 /* STATUS */
-.status{
+.status-row{
   display:flex;
   align-items:center;
   gap:8px;
-  font-weight:bold;
+  margin:6px 0;
+  font-weight:bold
 }
+
 .dot{
   width:12px;
   height:12px;
-  border-radius:50%;
+  border-radius:50%
 }
-.active{background:#2e7d32}
-.inactive{background:#d32f2f}
 
-/* INFO */
-.info{
-  margin-top:8px;
+.active{
+  background:#2e7d32;
+  box-shadow:0 0 6px #2e7d32
+}
+
+.inactive{
+  background:#d32f2f;
+  box-shadow:0 0 6px #d32f2f
+}
+
+.meta{
   font-size:14px;
+  color:#555;
+  margin:4px 0
+}
+
+.highlight{background:yellow}
+
+/* SEARCH */
+.search-box{
+  width:100%;
+  padding:12px 16px;
+  margin:15px 0;
+  border-radius:25px;
+  border:1px solid #ccc;
+  font-size:15px
+}
+
+.filter{
   display:flex;
   align-items:center;
   gap:8px;
+  margin-bottom:15px;
+  font-weight:bold
 }
-.info a{
-  color:#1976d2;
-  text-decoration:none;
-  word-break:break-word;
+
+/* DASHBOARD */
+.stats{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+  margin:15px 0
 }
+
+.stat{
+  background:#fff;
+  padding:12px;
+  border-radius:14px;
+  text-align:center;
+  box-shadow:0 6px 15px rgba(0,0,0,.12)
+}
+
+.stat b{font-size:20px}
 
 /* MODAL */
 .modal{
   position:fixed;
   inset:0;
-  background:rgba(0,0,0,.5);
+  background:rgba(0,0,0,.6);
   display:none;
   align-items:center;
   justify-content:center;
+  padding:12px
 }
+
 .modal-box{
   background:#fff;
-  padding:20px;
-  border-radius:15px;
-  width:90%;
-  max-width:420px;
+  padding:18px;
+  border-radius:18px;
+  width:100%;
+  max-width:420px
 }
+
 .modal-box input{
   width:100%;
   padding:12px;
-  margin-bottom:10px;
-  border-radius:10px;
+  margin-bottom:12px;
+  border-radius:12px;
   border:1px solid #ccc;
-  box-sizing:border-box;
-}
-.modal-actions{
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-}
-.cancel{
-  text-align:center;
-  color:#777;
-  cursor:pointer;
+  font-size:15px
 }
 </style>
 </head>
@@ -156,16 +149,27 @@ body{
 
 <div class="header">
   <h2>RCEM – Venues</h2>
-  <button class="logout" onclick="logout()">Logout</button>
+  <button class="btn logout" onclick="logout()">Logout</button>
 </div>
 
 <div class="container">
 
+  <!-- DASHBOARD -->
+  <div class="stats">
+    <div class="stat">Total<br><b id="total">0</b></div>
+    <div class="stat">Active<br><b id="active">0</b></div>
+    <div class="stat">Inactive<br><b id="inactive">0</b></div>
+  </div>
+
   <button class="btn add" onclick="openModal()">+ Add Venue</button>
 
-  <div class="search-icon">
-    <span>🔍</span>
-    <input class="search" id="search" placeholder="Search venue, mobile or address" oninput="render()">
+  <input class="search-box" id="search"
+    placeholder="🔍 Search venue, mobile or address"
+    oninput="render()">
+
+  <div class="filter">
+    <input type="checkbox" id="onlyActive" onchange="render()">
+    Show Active Only
   </div>
 
   <div id="venueList">Loading...</div>
@@ -176,12 +180,10 @@ body{
   <div class="modal-box">
     <h3>Add Venue</h3>
     <input id="vname" placeholder="Venue Name">
-    <input id="vcontact" placeholder="Mobile Number">
-    <input id="vlocation" placeholder="Address (Google Maps friendly)">
-    <div class="modal-actions">
-      <button class="btn add" onclick="saveVenue()">Save</button>
-      <div class="cancel" onclick="closeModal()">Cancel</div>
-    </div>
+    <input id="vlocation" placeholder="Address">
+    <input id="vcontact" placeholder="Mobile">
+    <button class="btn add" style="width:100%" onclick="save()">Save</button>
+    <p style="text-align:center;cursor:pointer;margin-top:10px" onclick="closeModal()">Cancel</p>
   </div>
 </div>
 
@@ -190,16 +192,15 @@ body{
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
-const firebaseConfig={
+firebase.initializeApp({
   apiKey:"AIzaSyDK3dqXZuWaH3gctxURdOZc_Q1UfioesaA",
   authDomain:"rcem-system.firebaseapp.com",
   projectId:"rcem-system"
-};
-firebase.initializeApp(firebaseConfig);
+});
+
 const auth=firebase.auth();
 const db=firebase.firestore();
-
-let venues=[];
+let data=[];
 
 auth.onAuthStateChanged(u=>{
   if(!u) location.href="index.html";
@@ -211,20 +212,17 @@ function logout(){
 
 function openModal(){
   modal.style.display="flex";
-  vname.value="";
-  vcontact.value="";
-  vlocation.value="";
-}
-function closeModal(){
-  modal.style.display="none";
+  vname.value=""; vlocation.value=""; vcontact.value="";
 }
 
-function saveVenue(){
-  if(!vname.value.trim()) return alert("Venue name required");
+function closeModal(){ modal.style.display="none"; }
+
+function save(){
+  if(!vname.value.trim()){ alert("Venue name required"); return; }
   db.collection("venues").add({
     venue_name:vname.value,
-    contact:vcontact.value,
     location:vlocation.value,
+    contact:vcontact.value,
     active:true
   });
   closeModal();
@@ -234,33 +232,59 @@ function toggle(id,val){
   db.collection("venues").doc(id).update({active:!val});
 }
 
+function highlight(t,k){
+  if(!k) return t;
+  return t.replace(new RegExp(k,"gi"),m=>`<span class="highlight">${m}</span>`);
+}
+
 function render(){
-  const q=search.value.toLowerCase();
+  const k=search.value.toLowerCase();
+  const only=onlyActive.checked;
   venueList.innerHTML="";
-  venues
-    .filter(v=>`${v.venue_name} ${v.contact} ${v.location}`.toLowerCase().includes(q))
-    .forEach(v=>{
-      const mapLink=`https://www.google.com/maps/search/?query=${encodeURIComponent(v.location)}`;
-      venueList.innerHTML+=`
-        <div class="card">
-          <h3>${v.venue_name}</h3>
-          <div class="status">
-            <div class="dot ${v.active?"active":"inactive"}"></div>
-            ${v.active?"Active":"Inactive"}
-          </div>
-          <div class="info">📞 ${v.contact||"-"}</div>
-          <div class="info">
-            📍 <a href="${mapLink}" target="_blank">${v.location||"-"}</a>
-          </div>
-          <button class="btn toggle" onclick='toggle("${v.id}",${v.active})'>Toggle</button>
+  let t=0,a=0,i=0;
+  let serial=1;
+
+  data.forEach(v=>{
+    t++; v.active?a++:i++;
+
+    if(only && !v.active) return;
+
+    if(
+      !v.venue_name.toLowerCase().includes(k) &&
+      !(v.contact||"").includes(k) &&
+      !(v.location||"").toLowerCase().includes(k)
+    ) return;
+
+    const mapLink = v.location
+      ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(v.location)}`
+      : "#";
+
+    venueList.innerHTML+=`
+      <div class="card">
+        <b>${serial}. ${highlight(v.venue_name,k)}</b>
+        <div class="status-row">
+          <div class="dot ${v.active?"active":"inactive"}"></div>
+          ${v.active?"Active":"Inactive"}
         </div>
-      `;
-    });
+        <div class="meta">📞 ${highlight(v.contact||"",k)}</div>
+        <div class="meta">
+          📍 <a href="${mapLink}" target="_blank" style="text-decoration:none;color:#0d47a1">
+            ${highlight(v.location||"",k)}
+          </a>
+        </div><br>
+        <button class="btn toggle" onclick='toggle("${v.id}",${v.active})'>Toggle</button>
+      </div>`;
+    serial++;
+  });
+
+  total.innerText=t;
+  active.innerText=a;
+  inactive.innerText=i;
 }
 
 db.collection("venues").onSnapshot(s=>{
-  venues=[];
-  s.forEach(d=>venues.push({id:d.id,...d.data()}));
+  data=[];
+  s.forEach(d=>data.push({id:d.id,...d.data()}));
   render();
 });
 </script>
