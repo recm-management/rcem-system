@@ -6,25 +6,14 @@
 <title>RCEM – Venues</title>
 
 <style>
-body{
-  margin:0;
-  font-family:Arial;
-  background:#f4f6f9
-}
-.header{
-  background:#0d47a1;
-  color:#fff;
-  padding:15px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center
-}
+body{margin:0;font-family:Arial;background:#f4f6f9}
+.header{background:#0d47a1;color:#fff;padding:15px;display:flex;justify-content:space-between;align-items:center}
 .container{padding:15px}
 
 .btn{
-  padding:9px 14px;
+  padding:10px 16px;
   border:none;
-  border-radius:20px;
+  border-radius:22px;
   color:#fff;
   cursor:pointer;
   font-size:14px;
@@ -36,26 +25,59 @@ body{
 .card{
   background:#fff;
   padding:15px;
-  border-radius:15px;
-  margin-bottom:15px;
-  box-shadow:0 8px 20px rgba(0,0,0,.12)
+  border-radius:16px;
+  margin-bottom:16px;
+  box-shadow:0 10px 25px rgba(0,0,0,.12)
 }
 
-.status{font-weight:bold;margin:5px 0}
-.meta{font-size:14px;color:#555;margin:3px 0}
+/* STATUS */
+.status-row{display:flex;align-items:center;gap:8px;margin:6px 0;font-weight:bold}
+.dot{width:12px;height:12px;border-radius:50%}
+.active{background:#2e7d32;box-shadow:0 0 6px #2e7d32}
+.inactive{background:#d32f2f;box-shadow:0 0 6px #d32f2f}
 
-.modal{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.6);
-  display:none;
+.meta{font-size:14px;color:#555;margin:4px 0}
+.highlight{background:yellow}
+
+/* SEARCH + FILTER */
+.search-box{
+  width:100%;
+  padding:12px;
+  margin:15px 0;
+  border-radius:25px;
+  border:1px solid #ccc;
+  font-size:15px;
+}
+.filter{
+  display:flex;
   align-items:center;
-  justify-content:center
+  gap:8px;
+  margin-bottom:15px;
+  font-weight:bold;
 }
+
+/* DASHBOARD */
+.stats{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+  margin:15px 0;
+}
+.stat{
+  background:#fff;
+  padding:12px;
+  border-radius:14px;
+  text-align:center;
+  box-shadow:0 6px 15px rgba(0,0,0,.12)
+}
+.stat b{font-size:20px}
+
+/* MODAL */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center}
 .modal-box{
   background:#fff;
   padding:20px;
-  border-radius:15px;
+  border-radius:16px;
   width:92%;
   max-width:420px
 }
@@ -63,9 +85,8 @@ body{
   width:100%;
   padding:12px;
   margin-bottom:12px;
-  border-radius:8px;
+  border-radius:10px;
   border:1px solid #ccc;
-  font-size:15px
 }
 </style>
 </head>
@@ -78,7 +99,23 @@ body{
 </div>
 
 <div class="container">
+
+  <!-- DASHBOARD -->
+  <div class="stats">
+    <div class="stat">Total<br><b id="total">0</b></div>
+    <div class="stat">Active<br><b id="active">0</b></div>
+    <div class="stat">Inactive<br><b id="inactive">0</b></div>
+  </div>
+
   <button class="btn add" onclick="openModal()">+ Add Venue</button>
+
+  <input class="search-box" id="search" placeholder="🔍 Search venue, mobile or address" oninput="render()">
+
+  <div class="filter">
+    <input type="checkbox" id="onlyActive" onchange="render()">
+    Show Active Only
+  </div>
+
   <div id="venueList">Loading...</div>
 </div>
 
@@ -87,10 +124,10 @@ body{
   <div class="modal-box">
     <h3>Add / Edit Venue</h3>
     <input id="vname" placeholder="Venue Name">
-    <input id="vlocation" placeholder="Address / Location">
-    <input id="vcontact" placeholder="Mobile Number">
-    <button class="btn edit" style="width:100%" onclick="saveVenue()">Save</button>
-    <p style="text-align:center;cursor:pointer;margin-top:10px" onclick="closeModal()">Cancel</p>
+    <input id="vlocation" placeholder="Address">
+    <input id="vcontact" placeholder="Mobile">
+    <button class="btn edit" style="width:100%" onclick="save()">Save</button>
+    <p style="text-align:center;cursor:pointer" onclick="closeModal()">Cancel</p>
   </div>
 </div>
 
@@ -99,76 +136,77 @@ body{
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
-const firebaseConfig={
+firebase.initializeApp({
   apiKey:"AIzaSyDK3dqXZuWaH3gctxURdOZc_Q1UfioesaA",
   authDomain:"rcem-system.firebaseapp.com",
-  projectId:"rcem-system",
-  storageBucket:"rcem-system.appspot.com",
-  messagingSenderId:"569730845486",
-  appId:"1:569730845486:web:93e6c14ea47fdc6c89c8bf"
-};
-
-firebase.initializeApp(firebaseConfig);
-const auth=firebase.auth();
-const db=firebase.firestore();
-let editId=null;
-
-auth.onAuthStateChanged(u=>{
-  if(!u) location.href="index.html";
+  projectId:"rcem-system"
 });
 
-function logout(){
-  auth.signOut().then(()=>location.href="index.html");
-}
+const auth=firebase.auth();
+const db=firebase.firestore();
 
-function openModal(id=null,data=null){
+let data=[],editId=null;
+
+auth.onAuthStateChanged(u=>{ if(!u) location.href="index.html"; });
+function logout(){auth.signOut().then(()=>location.href="index.html");}
+
+function openModal(id=null,d=null){
   editId=id;
   modal.style.display="flex";
-  vname.value=data?.venue_name||"";
-  vlocation.value=data?.location||"";
-  vcontact.value=data?.contact||"";
+  vname.value=d?.venue_name||"";
+  vlocation.value=d?.location||"";
+  vcontact.value=d?.contact||"";
 }
-
-function closeModal(){
-  modal.style.display="none";
-}
-
-function saveVenue(){
-  const name=vname.value.trim();
-  if(!name){alert("Venue name required");return;}
-
-  const data={
-    venue_name:name,
-    location:vlocation.value,
-    contact:vcontact.value,
-    active:true
-  };
-
-  editId
-    ? db.collection("venues").doc(editId).update(data)
-    : db.collection("venues").add(data);
-
+function closeModal(){modal.style.display="none";}
+function save(){
+  const obj={venue_name:vname.value,location:vlocation.value,contact:vcontact.value,active:true};
+  editId?db.collection("venues").doc(editId).update(obj):db.collection("venues").add(obj);
   closeModal();
 }
+function toggle(id,val){db.collection("venues").doc(id).update({active:!val});}
 
-function toggleStatus(id,val){
-  db.collection("venues").doc(id).update({active:!val});
+function highlight(text,key){
+  if(!key) return text;
+  return text.replace(new RegExp(key,"gi"),m=>`<span class="highlight">${m}</span>`);
 }
 
-db.collection("venues").onSnapshot(snap=>{
+function render(){
+  const key=search.value.toLowerCase();
+  const only=onlyActive.checked;
   venueList.innerHTML="";
-  snap.forEach(d=>{
-    const v=d.data();
+
+  let t=0,a=0,i=0;
+
+  data.forEach(v=>{
+    t++; v.active?a++:i++;
+    if(only && !v.active) return;
+
+    if(
+      !v.venue_name.toLowerCase().includes(key) &&
+      !(v.contact||"").includes(key) &&
+      !(v.location||"").toLowerCase().includes(key)
+    ) return;
+
     venueList.innerHTML+=`
       <div class="card">
-        <b>${v.venue_name}</b>
-        <div class="status">Status: ${v.active?"Active":"Inactive"}</div>
-        <div class="meta">📞 ${v.contact || "N/A"}</div>
-        <div class="meta">📍 ${v.location || "N/A"}</div><br>
-        <button class="btn edit" onclick='openModal("${d.id}",${JSON.stringify(v)})'>Edit</button>
-        <button class="btn toggle" onclick='toggleStatus("${d.id}",${v.active})'>Toggle</button>
+        <b>${highlight(v.venue_name,key)}</b>
+        <div class="status-row">
+          <div class="dot ${v.active?"active":"inactive"}"></div>
+          ${v.active?"Active":"Inactive"}
+        </div>
+        <div class="meta">📞 ${highlight(v.contact||"",key)}</div>
+        <div class="meta">📍 ${highlight(v.location||"",key)}</div><br>
+        <button class="btn edit" onclick='openModal("${v.id}",${JSON.stringify(v)})'>Edit</button>
+        <button class="btn toggle" onclick='toggle("${v.id}",${v.active})'>Toggle</button>
       </div>`;
   });
+
+  total.innerText=t; active.innerText=a; inactive.innerText=i;
+}
+
+db.collection("venues").onSnapshot(s=>{
+  data=[]; s.forEach(d=>data.push({id:d.id,...d.data()}));
+  render();
 });
 </script>
 
