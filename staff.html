@@ -173,10 +173,10 @@ body{margin:0;background:#f4f6f9}
 <div class="modal" id="modal">
   <div class="modal-box">
     <h3 id="modalTitle">Add Staff</h3>
-    <input id="name" placeholder="Name">
-    <input id="phone" placeholder="Phone">
-    <input id="address" placeholder="Address">
-    <select id="badge">
+    <input id="staffName" placeholder="Name">
+    <input id="staffPhone" placeholder="Phone">
+    <input id="staffAddress" placeholder="Address">
+    <select id="staffBadge">
       <option value="new">New Member</option>
       <option value="member">Member</option>
       <option value="second_leader">Second Leader</option>
@@ -225,10 +225,7 @@ function render(){
   let i=1;
 
   staffs.forEach(s=>{
-    if(
-      !s.name?.toLowerCase().includes(k) &&
-      !s.phone?.includes(k)
-    ) return;
+    if(!s.name?.toLowerCase().includes(k) && !s.phone?.includes(k)) return;
 
     const badgeMap={
       leader:["Leader","leader"],
@@ -241,7 +238,6 @@ function render(){
     list.innerHTML+=`
       <div class="card">
         <div class="avatar">👤</div>
-
         <div class="info">
           <div class="name"><span class="serial">${i}.</span>${s.name}</div>
           <div class="meta">📞 <a href="tel:${s.phone}">${s.phone}</a></div>
@@ -249,7 +245,6 @@ function render(){
           <span class="badge ${bc}">${bt}</span>
           <div class="level">Level: ${s.level||0} / 100</div>
         </div>
-
         <div class="actions">
           <button class="btn rate">Give Rating</button>
           <button class="btn edit" onclick='openModal(${JSON.stringify(s).replace(/"/g,"&quot;")})'>Edit</button>
@@ -265,41 +260,39 @@ function openModal(s=null){
   if(s){
     editId=s.id;
     modalTitle.innerText="Edit Staff";
-    name.value=s.name;
-    phone.value=s.phone;
-    address.value=s.address||"";
-    badge.value=s.badge||"new";
+    staffName.value=s.name||"";
+    staffPhone.value=s.phone||"";
+    staffAddress.value=s.address||"";
+    staffBadge.value=s.badge||"new";
   }else{
     editId=null;
     modalTitle.innerText="Add Staff";
-    name.value=phone.value=address.value="";
-    badge.value="new";
+    staffName.value=staffPhone.value=staffAddress.value="";
+    staffBadge.value="new";
   }
 }
 
 function closeModal(){modal.style.display="none"}
 
 async function save(){
-  if(!name.value || !phone.value){
+  if(!staffName.value.trim() || !staffPhone.value.trim()){
     alert("Name এবং Phone দরকার");
     return;
   }
 
   if(editId){
-    if(!perms.staff_edit){alert("Permission denied");return;}
     await db.collection("staffs").doc(editId).update({
-      name:name.value,
-      phone:phone.value,
-      address:address.value,
-      badge:badge.value
+      name:staffName.value,
+      phone:staffPhone.value,
+      address:staffAddress.value,
+      badge:staffBadge.value
     });
   }else{
-    if(!perms.staff_add){alert("Permission denied");return;}
     await db.collection("staffs").add({
-      name:name.value,
-      phone:phone.value,
-      address:address.value,
-      badge:badge.value,
+      name:staffName.value,
+      phone:staffPhone.value,
+      address:staffAddress.value,
+      badge:staffBadge.value,
       level:0,
       active:true,
       created:Date.now()
