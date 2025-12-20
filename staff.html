@@ -12,69 +12,186 @@ body{margin:0;background:#f4f6f9}
 /* HEADER */
 .header{
   background:linear-gradient(135deg,#0d47a1,#1976d2);
-  color:#fff;padding:16px;
-  display:flex;justify-content:space-between;align-items:center
+  color:#fff;
+  padding:16px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between
 }
 .back{cursor:pointer}
 
-/* CARD */
+/* SEARCH */
+.search{
+  padding:14px;
+}
+.search input{
+  width:100%;
+  padding:13px 18px;
+  border-radius:30px;
+  border:1px solid #ccc;
+  font-size:15px;
+  outline:none
+}
+
+/* ADD BUTTON */
+.top-actions{
+  padding:0 16px 10px;
+}
+.add-btn{
+  padding:10px 18px;
+  border:none;
+  border-radius:22px;
+  background:linear-gradient(45deg,#2e7d32,#43a047);
+  color:#fff;
+  font-size:14px;
+  cursor:pointer
+}
+
+/* LIST */
 .container{padding:16px}
+
+/* CARD */
 .card{
   background:#fff;
   border-radius:18px;
   padding:16px;
   margin-bottom:14px;
-  box-shadow:0 8px 20px rgba(0,0,0,.12)
+  box-shadow:0 10px 25px rgba(0,0,0,.12);
+  display:flex;
+  gap:14px;
+  align-items:flex-start
 }
-.name{font-size:17px;font-weight:bold}
-.meta{font-size:14px;color:#555;margin:4px 0}
 
-/* RATING */
-.rating{color:#f9a825;font-size:14px}
-.level{
+/* AVATAR */
+.avatar{
+  width:58px;
+  height:58px;
+  border-radius:50%;
   background:#e3f2fd;
-  padding:6px 10px;
-  border-radius:10px;
-  font-size:13px;
-  display:inline-block;
-  margin-top:6px
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:26px;
+  color:#1976d2;
+  flex-shrink:0;
+  overflow:hidden
 }
-.btn{
-  margin-top:10px;
-  padding:8px 14px;
-  border:none;
-  border-radius:16px;
-  cursor:pointer;
+.avatar img{
+  width:100%;
+  height:100%;
+  object-fit:cover
+}
+
+/* INFO */
+.info{flex:1}
+.name{
+  font-size:17px;
+  font-weight:bold;
+  margin-bottom:2px
+}
+.serial{
+  color:#1976d2;
+  font-weight:bold;
+  margin-right:6px
+}
+.meta{
   font-size:14px;
-  background:#2e7d32;
+  color:#555;
+  margin:2px 0
+}
+
+/* BADGE */
+.badge{
+  display:inline-block;
+  padding:4px 10px;
+  border-radius:12px;
+  font-size:12px;
+  margin-top:6px;
   color:#fff
 }
-.btn:disabled{
+.leader{background:#6a1b9a}
+.second{background:#1565c0}
+.member{background:#2e7d32}
+.new{background:#757575}
+
+/* RATING */
+.rating{
+  margin-top:6px;
+  font-size:14px;
+  color:#f9a825
+}
+
+/* LEVEL */
+.level{
+  margin-top:6px;
+  background:#e3f2fd;
+  padding:5px 12px;
+  border-radius:12px;
+  font-size:13px;
+  display:inline-block
+}
+
+/* ACTIONS */
+.actions{
+  display:flex;
+  flex-direction:column;
+  gap:8px
+}
+.btn{
+  padding:8px 12px;
+  border:none;
+  border-radius:14px;
+  font-size:13px;
+  cursor:pointer
+}
+.edit{background:#1565c0;color:#fff}
+.rate{background:#f9a825;color:#000}
+.disabled{
   background:#ccc;
   cursor:not-allowed
 }
 
 /* MODAL */
 .modal{
-  position:fixed;inset:0;
-  background:rgba(0,0,0,.5);
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.6);
   display:none;
   align-items:center;
-  justify-content:center
+  justify-content:center;
+  padding:12px
 }
 .modal-box{
   background:#fff;
-  padding:20px;
+  padding:18px;
   border-radius:18px;
-  width:90%;max-width:360px;
-  text-align:center
+  width:100%;
+  max-width:420px
 }
-.star{
-  font-size:30px;
+.modal-box h3{margin-top:0}
+.modal-box input, .modal-box select{
+  width:100%;
+  padding:12px;
+  margin-bottom:12px;
+  border-radius:12px;
+  border:1px solid #ccc;
+  font-size:15px
+}
+.modal-box button{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:22px;
+  background:#2e7d32;
+  color:#fff;
+  font-size:15px
+}
+.cancel{
+  text-align:center;
+  margin-top:10px;
   cursor:pointer;
-  color:#ccc
+  color:#555
 }
-.star.active{color:#f9a825}
 </style>
 </head>
 
@@ -85,17 +202,31 @@ body{margin:0;background:#f4f6f9}
   <h3>Staff List</h3>
 </div>
 
+<div class="search">
+  <input id="search" placeholder="🔍 Search by name or phone" oninput="render()">
+</div>
+
+<div class="top-actions">
+  <button id="addBtn" class="add-btn" onclick="openModal()">+ Add Staff</button>
+</div>
+
 <div class="container" id="list">Loading...</div>
 
-<!-- RATING MODAL -->
+<!-- MODAL -->
 <div class="modal" id="modal">
   <div class="modal-box">
-    <h3>Rate Staff</h3>
-    <div id="stars"></div>
-    <br>
-    <button class="btn" onclick="submitRating()">Submit</button>
-    <br><br>
-    <span style="cursor:pointer;color:#d32f2f" onclick="closeModal()">Cancel</span>
+    <h3 id="modalTitle">Add Staff</h3>
+    <input id="name" placeholder="Name">
+    <input id="phone" placeholder="Phone">
+    <input id="address" placeholder="Address">
+    <select id="badge">
+      <option value="new">New Member</option>
+      <option value="member">Member</option>
+      <option value="second_leader">Second Leader</option>
+      <option value="leader">Leader</option>
+    </select>
+    <button onclick="save()">Save</button>
+    <div class="cancel" onclick="closeModal()">Cancel</div>
   </div>
 </div>
 
@@ -113,100 +244,118 @@ firebase.initializeApp({
 const auth=firebase.auth();
 const db=firebase.firestore();
 
-let currentStaff=null;
-let selectedStars=0;
+let staffs=[];
 let perms={};
+let editId=null;
 
 /* AUTH */
 auth.onAuthStateChanged(async user=>{
   if(!user){location.href="index.html";return;}
-
   const u=await db.collection("users").doc(user.email).get();
   perms=u.data()?.permissions||{};
+  if(!perms.staff_add) addBtn.style.display="none";
 });
 
 /* LOAD STAFF */
 db.collection("staffs").onSnapshot(s=>{
+  staffs=[];
+  s.forEach(d=>staffs.push({id:d.id,...d.data()}));
+  staffs.sort((a,b)=>(b.level||0)-(a.level||0));
+  render();
+});
+
+function render(){
+  const k=search.value.toLowerCase();
   list.innerHTML="";
-  s.forEach(d=>{
-    const v=d.data();
-    const rating=v.rating||0;
-    const reviews=v.total_reviews||0;
-    const level=v.level||0;
+  let i=1;
+
+  staffs.forEach(s=>{
+    if(
+      !s.name?.toLowerCase().includes(k) &&
+      !s.phone?.includes(k)
+    ) return;
+
+    const badgeMap={
+      leader:["Leader","leader"],
+      second_leader:["Second Leader","second"],
+      member:["Member","member"],
+      new:["New Member","new"]
+    };
+    const [badgeText,badgeClass]=badgeMap[s.badge||"new"];
 
     list.innerHTML+=`
       <div class="card">
-        <div class="name">${v.name}</div>
-        <div class="meta">📞 ${v.phone}</div>
-        <div class="meta">📍 ${v.address}</div>
-        <div class="rating">⭐ ${rating.toFixed(1)} (${reviews} reviews)</div>
-        <div class="level">Level: ${level} / 100</div><br>
-        <button class="btn"
-          ${!perms.staff ? "disabled" : ""}
-          onclick='openModal("${d.id}")'>
-          Give Rating
-        </button>
+        <div class="avatar">
+          ${s.photo?`<img src="${s.photo}">`:"👤"}
+        </div>
+
+        <div class="info">
+          <div class="name">
+            <span class="serial">${i}.</span>${s.name||"Unnamed"}
+          </div>
+          <div class="meta">📞 ${s.phone||"-"}</div>
+          <div class="meta">📍 ${s.address||"-"}</div>
+          <span class="badge ${badgeClass}">${badgeText}</span>
+          <div class="rating">⭐ ${(s.rating||0).toFixed(1)} (${s.total_reviews||0})</div>
+          <div class="level">Level: ${s.level||0} / 100</div>
+        </div>
+
+        <div class="actions">
+          <button class="btn rate">Give Rating</button>
+          <button class="btn edit ${!perms.staff_edit?"disabled":""}"
+            ${!perms.staff_edit?"disabled":""}
+            onclick="openModal(${JSON.stringify(s).replace(/"/g,'&quot;')})">
+            Edit
+          </button>
+        </div>
       </div>
     `;
+    i++;
   });
-});
+}
 
 /* MODAL */
-function openModal(id){
-  currentStaff=id;
-  selectedStars=0;
-  stars.innerHTML="";
-  for(let i=1;i<=5;i++){
-    stars.innerHTML+=`<span class="star" onclick="pick(${i})">★</span>`;
-  }
+function openModal(s=null){
   modal.style.display="flex";
-}
-function closeModal(){modal.style.display="none";}
-function pick(n){
-  selectedStars=n;
-  document.querySelectorAll(".star").forEach((s,i)=>{
-    s.classList.toggle("active",i<n);
-  });
-}
-
-/* SUBMIT RATING */
-async function submitRating(){
-  if(selectedStars===0)return alert("Star দিন");
-
-  const today=new Date().toISOString().slice(0,10);
-
-  const q=await db.collection("staff_reviews")
-    .where("staff_id","==",currentStaff)
-    .where("date","==",today)
-    .get();
-
-  if(!q.empty){
-    alert("আজকে ইতিমধ্যে রেটিং দেওয়া হয়েছে");
-    return;
+  if(s){
+    editId=s.id;
+    modalTitle.innerText="Edit Staff";
+    name.value=s.name||"";
+    phone.value=s.phone||"";
+    address.value=s.address||"";
+    badge.value=s.badge||"new";
+  }else{
+    editId=null;
+    modalTitle.innerText="Add Staff";
+    name.value=phone.value=address.value="";
+    badge.value="new";
   }
+}
+function closeModal(){modal.style.display="none"}
 
-  await db.collection("staff_reviews").add({
-    staff_id:currentStaff,
-    stars:selectedStars,
-    date:today,
-    created:Date.now()
-  });
-
-  const ref=db.collection("staffs").doc(currentStaff);
-  const snap=await ref.get();
-  const r=snap.data().total_reviews||0;
-  const avg=snap.data().rating||0;
-
-  const newReviews=r+1;
-  const newAvg=((avg*r)+selectedStars)/newReviews;
-  const level=Math.min(100,newReviews*2);
-
-  await ref.update({
-    total_reviews:newReviews,
-    rating:newAvg,
-    level:level
-  });
-
+function save(){
+  if(editId){
+    if(!perms.staff_edit) return alert("Permission denied");
+    db.collection("staffs").doc(editId).update({
+      name:name.value,
+      phone:phone.value,
+      address:address.value,
+      badge:badge.value
+    });
+  }else{
+    if(!perms.staff_add) return alert("Permission denied");
+    db.collection("staffs").add({
+      name:name.value,
+      phone:phone.value,
+      address:address.value,
+      badge:badge.value,
+      rating:0,
+      total_reviews:0,
+      level:0,
+      active:true,
+      created:Date.now()
+    });
+  }
   closeModal();
 }
 </script>
