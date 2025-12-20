@@ -22,6 +22,7 @@ body{margin:0;font-family:Arial;background:#f4f6f9}
 .add{background:linear-gradient(45deg,#2e7d32,#43a047)}
 .toggle{background:linear-gradient(45deg,#f9a825,#fbc02d);color:#000}
 .edit{background:linear-gradient(45deg,#1565c0,#1e88e5)}
+.child{background:linear-gradient(45deg,#6a1b9a,#8e24aa)}
 .logout{background:#d32f2f}
 
 .card{
@@ -138,31 +139,19 @@ let editId=null;
 let perms={};
 
 auth.onAuthStateChanged(async user=>{
-  if(!user){
-    location.href="index.html";
-    return;
-  }
+  if(!user){ location.href="index.html"; return; }
 
   const snap = await db.collection("users").doc(user.email).get();
-
   if(!snap.exists || snap.data().active!==true){
-    alert(
-      "বর্তমানে এই অপশনে ঢোকার আপনার অনুমতি নেই。\n\n" +
-      "সাপোর্ট: admin@rcem-system.com\n" +
-      "ফোন: +8801926627000\n\n" +
-      "Rajshahi Catering & Event Management"
-    );
+    alert("এই অপশনে ঢোকার অনুমতি নেই");
     await auth.signOut();
     location.href="index.html";
     return;
   }
-
   perms = snap.data().permissions || {};
 });
 
-function logout(){
-  auth.signOut().then(()=>location.href="index.html");
-}
+function logout(){ auth.signOut().then(()=>location.href="index.html"); }
 
 function openModal(v=null){
   modal.style.display="flex";
@@ -178,25 +167,18 @@ function openModal(v=null){
     vname.value="";vlocation.value="";vcontact.value="";
   }
 }
-
 function closeModal(){ modal.style.display="none"; }
 
 function save(){
   if(editId){
-    if(!perms.venues_edit){
-      alert("Edit permission নেই");
-      return;
-    }
+    if(!perms.venues_edit){ alert("Edit permission নেই"); return; }
     db.collection("venues").doc(editId).update({
       venue_name:vname.value,
       location:vlocation.value,
       contact:vcontact.value
     });
   }else{
-    if(!perms.venues_add){
-      alert("Add permission নেই");
-      return;
-    }
+    if(!perms.venues_add){ alert("Add permission নেই"); return; }
     db.collection("venues").add({
       venue_name:vname.value,
       location:vlocation.value,
@@ -208,11 +190,16 @@ function save(){
 }
 
 function toggle(id,val){
-  if(!perms.venues_edit){
-    alert("Active / Inactive করার অনুমতি নেই");
+  if(!perms.venues_edit){ alert("Permission নেই"); return; }
+  db.collection("venues").doc(id).update({active:!val});
+}
+
+function openRestaurants(id){
+  if(!perms.venues_view){
+    alert("Restaurant দেখার অনুমতি নেই");
     return;
   }
-  db.collection("venues").doc(id).update({active:!val});
+  location.href = `venue-restaurants.html?venue=${id}`;
 }
 
 function highlight(t,k){
@@ -250,6 +237,10 @@ function render(){
           style="text-decoration:none;color:#0d47a1">
           ${highlight(v.location||"",k)}</a>
         </div><br>
+
+        <button class="btn child" onclick='openRestaurants("${v.id}")'>
+          Restaurants / Halls
+        </button>
         <button class="btn edit" onclick='openModal(${JSON.stringify(v)})'>Edit</button>
         <button class="btn toggle" onclick='toggle("${v.id}",${v.active})'>Toggle</button>
       </div>`;
