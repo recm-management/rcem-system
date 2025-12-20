@@ -6,168 +6,108 @@
 <title>RCEM Admin Dashboard</title>
 
 <style>
-*{box-sizing:border-box;margin:0;padding:0;font-family:Arial,sans-serif}
-body{background:#f4f6f9;overflow-x:hidden}
-
-/* HEADER */
+body{margin:0;font-family:Arial;background:#f4f6f9}
 .header{
-  background:linear-gradient(135deg,#0d47a1,#1976d2);
+  background:#0d47a1;
   color:#fff;
-  padding:16px;
+  padding:15px;
   display:flex;
   justify-content:space-between;
   align-items:center
 }
 .menu-btn{
   font-size:26px;
-  cursor:pointer;
-  user-select:none
+  cursor:pointer
 }
-
-/* OVERLAY */
-.overlay{
+.drawer{
   position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.45);
-  opacity:0;
-  pointer-events:none;
-  transition:.3s;
-  z-index:10
-}
-.overlay.active{
-  opacity:1;
-  pointer-events:auto
-}
-
-/* SLIDE MENU */
-.side-menu{
-  position:fixed;
-  top:0;right:-280px;
+  top:0;
+  left:-260px;
   width:260px;
   height:100%;
   background:#fff;
-  box-shadow:-10px 0 25px rgba(0,0,0,.2);
-  transition:.35s ease;
-  z-index:11;
-  display:flex;
-  flex-direction:column
+  box-shadow:4px 0 15px rgba(0,0,0,.25);
+  transition:.3s;
+  z-index:1000;
+  padding:15px
 }
-.side-menu.active{right:0}
-
-/* USER INFO */
-.user-box{
-  padding:18px;
-  background:#f1f5ff;
-  border-bottom:1px solid #ddd
-}
-.user-box b{display:block;font-size:14px;color:#555}
-.user-box span{font-size:13px;color:#0d47a1}
-
-/* MENU ITEMS */
-.menu{
-  flex:1;
-  padding:10px
-}
-.menu a{
+.drawer.open{left:0}
+.drawer h4{margin-top:0}
+.drawer a{
   display:block;
-  padding:14px 16px;
+  padding:12px;
   margin-bottom:6px;
-  border-radius:12px;
+  border-radius:10px;
   color:#333;
   text-decoration:none;
-  font-weight:500;
-  transition:.25s
+  font-weight:bold
 }
-.menu a:hover{
-  background:#e3f2fd;
-  transform:translateX(6px)
-}
-
-/* LOGOUT */
+.drawer a:hover{background:#e3f2fd}
 .logout{
-  margin:15px;
-  padding:12px;
-  border:none;
-  border-radius:25px;
   background:#d32f2f;
   color:#fff;
-  font-size:15px;
-  cursor:pointer
+  text-align:center
 }
-
-/* DASHBOARD CONTENT */
-.container{padding:18px}
-.cards{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:15px
-}
+.content{padding:20px}
 .card{
   background:#fff;
-  padding:20px;
-  border-radius:18px;
+  padding:16px;
+  border-radius:16px;
+  margin-bottom:15px;
   box-shadow:0 8px 20px rgba(0,0,0,.12)
 }
-.card h3{font-size:15px;color:#666;margin-bottom:8px}
-.card p{font-size:22px;font-weight:bold;color:#0d47a1}
+.stat{font-size:22px;color:#0d47a1}
 </style>
 </head>
 
 <body>
 
-<!-- HEADER -->
 <div class="header">
-  <h2>RCEM Dashboard</h2>
-  <div class="menu-btn" onclick="openMenu()">☰</div>
+  <span class="menu-btn" onclick="toggleMenu()">☰</span>
+  <h3>RCEM Dashboard</h3>
 </div>
 
-<!-- OVERLAY -->
-<div class="overlay" id="overlay" onclick="closeMenu()"></div>
+<!-- SLIDE MENU -->
+<div class="drawer" id="drawer">
+  <h4>Logged in as</h4>
+  <div id="loggedEmail" style="margin-bottom:15px;font-weight:bold"></div>
 
-<!-- SIDE MENU -->
-<div class="side-menu" id="sideMenu">
-  <div class="user-box">
-    <b>Logged in as</b>
-    <span id="userEmail">Loading...</span>
-  </div>
+  <a id="menu_dashboard" href="admin.html">Dashboard</a>
+  <a id="menu_assignments" href="assignments.html">Assignments</a>
+  <a id="menu_staff" href="staff.html">Staff</a>
+  <a id="menu_venues" href="venues.html">Venues</a>
+  <a id="menu_accounts" href="accounts.html">Monthly Accounts</a>
+  <a id="menu_users" href="admin-users.html">Admin Users</a>
 
-  <div class="menu">
-    <a href="admin.html">Dashboard</a>
-    <a href="#">Assignments</a>
-    <a href="staff.html">Staff</a>
-    <a href="venues.html">Venues</a>
-    <a href="#">Monthly Accounts</a>
-    <a href="admin-users.html">Admin Users</a>
-  </div>
-
-  <button class="logout" onclick="logout()">Logout</button>
+  <a class="logout" href="#" onclick="logout()">Logout</a>
 </div>
 
-<!-- CONTENT -->
-<div class="container">
-  <div class="cards">
-    <div class="card">
-      <h3>Total Assignments</h3>
-      <p>12</p>
-    </div>
-    <div class="card">
-      <h3>Total Staff</h3>
-      <p>85</p>
-    </div>
-    <div class="card">
-      <h3>This Month Income</h3>
-      <p>৳ 1,25,000</p>
-    </div>
-    <div class="card">
-      <h3>Profit</h3>
-      <p>৳ 32,000</p>
-    </div>
+<!-- MAIN CONTENT -->
+<div class="content">
+  <div class="card">
+    <div>Total Assignments</div>
+    <div class="stat">12</div>
+  </div>
+
+  <div class="card">
+    <div>Total Staff</div>
+    <div class="stat">85</div>
+  </div>
+
+  <div class="card">
+    <div>This Month Income</div>
+    <div class="stat">৳ 1,25,000</div>
+  </div>
+
+  <div class="card">
+    <div>Profit</div>
+    <div class="stat">৳ 32,000</div>
   </div>
 </div>
 
-<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
 firebase.initializeApp({
@@ -177,22 +117,52 @@ firebase.initializeApp({
 });
 
 const auth=firebase.auth();
+const db=firebase.firestore();
 
-auth.onAuthStateChanged(user=>{
-  if(!user){location.href="index.html";return;}
-  document.getElementById("userEmail").innerText=user.email;
-});
+function toggleMenu(){
+  drawer.classList.toggle("open");
+}
 
-function openMenu(){
-  sideMenu.classList.add("active");
-  overlay.classList.add("active");
-}
-function closeMenu(){
-  sideMenu.classList.remove("active");
-  overlay.classList.remove("active");
-}
 function logout(){
   auth.signOut().then(()=>location.href="index.html");
+}
+
+/* 🔐 AUTH + PERMISSION CONTROL */
+auth.onAuthStateChanged(async user=>{
+  if(!user){
+    location.href="index.html";
+    return;
+  }
+
+  loggedEmail.innerText=user.email;
+
+  const snap = await db.collection("users").doc(user.email).get();
+
+  if(!snap.exists || snap.data().active !== true){
+    alert(
+      "বর্তমানে এই অপশনে ঢোকার আপনার অনুমতি নেই\n\n" +
+      "সাপোর্ট: admin@rcem-system.com\n" +
+      "ফোন: +8801926627000"
+    );
+    await auth.signOut();
+    location.href="index.html";
+    return;
+  }
+
+  const p = snap.data().permissions || {};
+
+  hide("menu_dashboard", p.dashboard);
+  hide("menu_assignments", p.assignments);
+  hide("menu_staff", p.staff);
+  hide("menu_venues", p.venues);
+  hide("menu_accounts", p.accounts);
+  hide("menu_users", p.user_management);
+});
+
+function hide(id, allow){
+  const el=document.getElementById(id);
+  if(!el) return;
+  if(!allow) el.style.display="none";
 }
 </script>
 
