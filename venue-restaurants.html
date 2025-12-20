@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RCEM – Venue Restaurants</title>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:Arial}
+body{background:#f4f6f9}
+
+/* HEADER */
+.header{
+  background:linear-gradient(135deg,#0d47a1,#1976d2);
+  color:#fff;
+  padding:16px;
+  display:flex;
+  align-items:center;
+  gap:12px
+}
+.header span{cursor:pointer;font-size:20px}
+
+/* CARD */
+.container{padding:16px}
+.card{
+  background:#fff;
+  padding:16px;
+  border-radius:18px;
+  margin-bottom:14px;
+  box-shadow:0 8px 20px rgba(0,0,0,.12)
+}
+.card h3{margin-bottom:8px}
+
+/* INPUT */
+input{
+  width:100%;
+  padding:12px;
+  border-radius:12px;
+  border:1px solid #ccc;
+  margin-bottom:10px
+}
+button{
+  padding:10px 18px;
+  border:none;
+  border-radius:20px;
+  cursor:pointer;
+  font-size:14px
+}
+.add{background:#2e7d32;color:#fff}
+.disable{background:#f9a825}
+.badge{
+  display:inline-block;
+  padding:4px 10px;
+  border-radius:12px;
+  font-size:12px;
+  background:#1976d2;
+  color:#fff
+}
+.inactive{opacity:.5}
+</style>
+</head>
+
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <span onclick="history.back()">←</span>
+  <h3 id="venueName">Loading...</h3>
+</div>
+
+<div class="container">
+
+  <!-- ADD RESTAURANT -->
+  <div class="card">
+    <h3>Add Restaurant / Hall</h3>
+    <input id="resName" placeholder="Restaurant / Hall Name">
+    <button class="add" onclick="addRestaurant()">Add</button>
+  </div>
+
+  <!-- LIST -->
+  <div id="list"></div>
+
+</div>
+
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyDK3dqXZuWaH3gctxURdOZc_Q1UfioesaA",
+  authDomain:"rcem-system.firebaseapp.com",
+  projectId:"rcem-system"
+});
+
+const db = firebase.firestore();
+
+const params = new URLSearchParams(location.search);
+const venueId = params.get("venue");
+
+if(!venueId){
+  alert("Venue not found");
+  history.back();
+}
+
+/* LOAD VENUE NAME */
+db.collection("venues").doc(venueId).get().then(d=>{
+  if(d.exists) venueName.innerText=d.data().name;
+});
+
+/* ADD RESTAURANT */
+function addRestaurant(){
+  const name = resName.value.trim();
+  if(!name) return alert("Name required");
+
+  db.collection("venues")
+    .doc(venueId)
+    .collection("restaurants")
+    .add({
+      name:name,
+      active:true,
+      created:Date.now()
+    });
+
+  resName.value="";
+}
+
+/* TOGGLE */
+function toggle(id,val){
+  db.collection("venues")
+    .doc(venueId)
+    .collection("restaurants")
+    .doc(id)
+    .update({active:!val});
+}
+
+/* LOAD LIST */
+db.collection("venues")
+  .doc(venueId)
+  .collection("restaurants")
+  .orderBy("created","desc")
+  .onSnapshot(s=>{
+    list.innerHTML="";
+    s.forEach(d=>{
+      const r=d.data();
+      list.innerHTML+=`
+        <div class="card ${!r.active?"inactive":""}">
+          <b>${r.name}</b><br><br>
+          <span class="badge">${r.active?"Active":"Inactive"}</span><br><br>
+          <button class="disable" onclick="toggle('${d.id}',${r.active})">
+            ${r.active?"Disable":"Enable"}
+          </button>
+        </div>
+      `;
+    });
+  });
+</script>
+
+</body>
+</html>
