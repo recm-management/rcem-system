@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RCEM – Add Assignment</title>
+
+<style>
+*{box-sizing:border-box;font-family:Arial}
+body{margin:0;background:#f4f6f9}
+
+/* HEADER */
+.header{
+  background:linear-gradient(135deg,#0d47a1,#1976d2);
+  color:#fff;
+  padding:16px;
+  display:flex;
+  align-items:center;
+  gap:10px
+}
+.back{cursor:pointer}
+
+/* CONTENT */
+.container{padding:16px}
+
+/* CARD */
+.card{
+  background:#fff;
+  border-radius:16px;
+  padding:16px;
+  box-shadow:0 8px 20px rgba(0,0,0,.12)
+}
+.card h3{margin-top:0}
+
+/* INPUT */
+label{font-size:14px;color:#555}
+input,select{
+  width:100%;
+  padding:12px;
+  margin:8px 0 14px;
+  border-radius:12px;
+  border:1px solid #ccc;
+  font-size:15px
+}
+
+/* BUTTON */
+.btn{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:25px;
+  background:linear-gradient(45deg,#2e7d32,#43a047);
+  color:#fff;
+  font-size:16px;
+  cursor:pointer
+}
+</style>
+</head>
+
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="back" onclick="history.back()">← Back</div>
+  <h3>Add Assignment</h3>
+</div>
+
+<div class="container">
+  <div class="card">
+    <h3>Assignment Details</h3>
+
+    <label>Venue</label>
+    <select id="venueSelect">
+      <option value="">Select Venue</option>
+    </select>
+
+    <label>Event Date</label>
+    <input type="date" id="eventDate">
+
+    <label>Staff IDs (comma separated)</label>
+    <input id="staffIds" placeholder="101,102,103">
+
+    <label>Total Amount</label>
+    <input type="number" id="totalAmount">
+
+    <label>Advance</label>
+    <input type="number" id="advance">
+
+    <label>Due</label>
+    <input type="number" id="due" readonly>
+
+    <button class="btn" onclick="saveAssignment()">Save Assignment</button>
+  </div>
+</div>
+
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyDK3dqXZuWaH3gctxURdOZc_Q1UfioesaA",
+  authDomain:"rcem-system.firebaseapp.com",
+  projectId:"rcem-system"
+});
+
+const auth=firebase.auth();
+const db=firebase.firestore();
+let perms={};
+
+/* AUTH + PERMISSION */
+auth.onAuthStateChanged(async user=>{
+  if(!user){
+    location.href="index.html";
+    return;
+  }
+
+  const snap = await db.collection("users").doc(user.email).get();
+  if(!snap.exists || snap.data().permissions?.assignments_add !== true){
+    alert("আপনার Assignment add করার অনুমতি নেই");
+    location.href="admin.html";
+    return;
+  }
+
+  perms = snap.data().permissions || {};
+  loadActiveVenues();
+});
+
+/* LOAD ACTIVE VENUES */
+function loadActiveVenues(){
+  const select=document.getElementById("venueSelect");
+  select.innerHTML=`<option value="">Select Venue</option>`;
+
+  db.collection("venues")
+    .where("active","==",true)
+    .orderBy("venue_name")
+    .get()
+    .then(snap=>{
+      snap.forEach(d=>{
+        const v=d.data();
+        const opt=document.createElement("option");
+        opt.value=v.venue_name;
+        opt.textContent=v.venue_name;
+        select.appendChild(opt);
+      });
+    });
+}
+
+/* AUTO DUE CALC */
+document.getElementById("totalAmount").oninput=calcDue;
+document.getElementById("advance").oninput=calcDue;
+
+function calcDue(){
+  const t=Number(totalAmount.value||0);
+  const a=Number(advance.value||0);
+  due.value=t-a;
+}
+
+/* SAVE ASSIGNMENT */
+function saveAssignment(){
+  if(!perms.assignments_add){
+    alert("Permission denied");
+    return;
+  }
+
+  if(!venueSelect.value || !eventDate.value){
+    alert("Venue and date required");
+    return;
+  }
+
+  const staffArr = staffIds.value
+    ? staffIds.value.split(",").map(s=>s.trim())
+    : [];
+
+  db.collection("assignments").add({
+    venue_name: venueSelect.value,
+    event_date: eventDate.value,
+    staff_ids: staffArr,
+    total_amount: Number(totalAmount.value||0),
+    advance: Number(advance.value||0),
+    due: Number(due.value||0),
+    status: "pending",
+    created: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(()=>{
+    alert("Assignment saved");
+    history.back();
+  });
+}
+</script>
+
+</body>
+</html>
