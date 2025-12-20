@@ -6,199 +6,207 @@
 <title>RCEM Admin Dashboard</title>
 
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
-body{background:#f4f6f9;min-height:100vh}
+:root{
+  --primary:#0d47a1;
+  --primary-dark:#08306b;
+  --accent:#00e5ff;
+  --bg:#f4f6f9;
+  --danger:#d32f2f;
+}
 
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,BlinkMacSystemFont;
+  background:var(--bg);
+  overflow-x:hidden;
+}
+
+/* HEADER */
 .header{
-  background:#0d47a1;color:#fff;
-  padding:15px 20px;
-  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap
+  background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+  color:#fff;
+  padding:16px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
 }
-.header h1{font-size:20px}
-
-.user-info{font-size:14px;margin-top:5px}
-
-.logout-btn{
-  background:#d32f2f;border:none;color:#fff;
-  padding:8px 14px;border-radius:5px;cursor:pointer;margin-top:5px
+.menu-btn{
+  font-size:28px;
+  cursor:pointer;
+  user-select:none;
 }
+.title{font-size:18px;font-weight:600}
 
-.container{display:flex;min-height:calc(100vh - 70px)}
-
-.sidebar{
-  width:220px;background:#1565c0;color:#fff;padding:20px
+/* OVERLAY */
+.overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.35);
+  backdrop-filter:blur(3px);
+  opacity:0;
+  pointer-events:none;
+  transition:.4s;
+  z-index:9;
 }
-.sidebar h2{font-size:18px;margin-bottom:20px}
-
-.sidebar a{
-  display:block;color:#fff;text-decoration:none;
-  padding:10px 0;font-size:15px;cursor:pointer
-}
-.sidebar a.hidden{display:none}
-.sidebar a:hover{
-  background:rgba(255,255,255,0.1);
-  padding-left:5px
-}
-
-.main{flex:1;padding:20px}
-
-.cards{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:15px
+.overlay.show{
+  opacity:1;
+  pointer-events:auto;
 }
 
+/* DRAWER */
+.drawer{
+  position:fixed;
+  top:0;
+  left:0;
+  width:280px;
+  height:100%;
+  background:linear-gradient(180deg,#0d47a1,#062a5e);
+  transform:translateX(-100%);
+  transition:.45s cubic-bezier(.4,0,.2,1);
+  z-index:10;
+  padding:18px;
+  color:#fff;
+}
+.drawer.show{transform:translateX(0)}
+
+/* USER INFO */
+.user-box{
+  background:rgba(255,255,255,.12);
+  padding:14px;
+  border-radius:14px;
+  margin-bottom:18px;
+}
+.user-box small{opacity:.8}
+
+/* MENU BUTTONS */
+.menu-btns button{
+  width:100%;
+  background:rgba(255,255,255,.12);
+  border:none;
+  color:#fff;
+  padding:14px;
+  border-radius:14px;
+  margin-bottom:10px;
+  font-size:15px;
+  cursor:pointer;
+  transition:.25s;
+}
+.menu-btns button:hover{
+  background:rgba(255,255,255,.22);
+  transform:translateX(4px);
+}
+
+/* LOGOUT */
+.logout{
+  background:var(--danger)!important;
+  margin-top:14px;
+}
+
+/* CONTENT */
+.container{padding:16px}
 .card{
-  background:#fff;padding:20px;border-radius:10px;
-  box-shadow:0 4px 10px rgba(0,0,0,0.1)
+  background:#fff;
+  padding:18px;
+  border-radius:18px;
+  margin-bottom:16px;
+  box-shadow:0 12px 30px rgba(0,0,0,.12);
 }
-.card h3{font-size:16px;color:#555;margin-bottom:10px}
-.card p{font-size:22px;font-weight:bold;color:#0d47a1}
-
-@media(max-width:768px){
-  .container{flex-direction:column}
-  .sidebar{
-    width:100%;display:flex;flex-wrap:wrap;gap:10px
-  }
-  .sidebar a{
-    flex:1 1 45%;
-    text-align:center;
-    background:rgba(255,255,255,0.1);
-    border-radius:5px
-  }
+.value{
+  font-size:28px;
+  font-weight:700;
+  color:var(--primary);
 }
 </style>
 </head>
 
 <body>
 
+<!-- HEADER -->
 <div class="header">
-  <h1>RCEM Admin Dashboard</h1>
-  <div>
-    <div class="user-info">
-      Logged in as: <span id="adminEmail">Loading...</span>
-    </div>
-    <button class="logout-btn" onclick="logout()">Logout</button>
-  </div>
+  <div class="menu-btn" onclick="openDrawer()">☰</div>
+  <div class="title">RCEM Admin Dashboard</div>
 </div>
 
+<!-- OVERLAY -->
+<div class="overlay" id="overlay" onclick="closeDrawer()"></div>
+
+<!-- DRAWER -->
+<div class="drawer" id="drawer">
+
+  <div class="user-box">
+    <div><b id="userEmail">Loading...</b></div>
+    <small>Administrator</small>
+  </div>
+
+  <div class="menu-btns">
+    <button onclick="go('admin.html')">Dashboard</button>
+    <button onclick="go('assignments.html')">Assignments</button>
+    <button onclick="go('staff.html')">Staff</button>
+    <button onclick="go('venues.html')">Venues</button>
+    <button onclick="go('monthly-accounts.html')">Monthly Accounts</button>
+    <button onclick="go('admin-users.html')">Admin Users</button>
+    <button class="logout" onclick="logout()">Logout</button>
+  </div>
+
+</div>
+
+<!-- CONTENT -->
 <div class="container">
-
-  <!-- SIDEBAR -->
-  <div class="sidebar">
-    <h2>Menu</h2>
-    <a id="menuDashboard" onclick="showDashboard()">Dashboard</a>
-    <a id="menuAssignments">Assignments</a>
-    <a id="menuStaff">Staff</a>
-    <a id="menuVenues" href="venues.html">Venues</a>
-    <a id="menuAccounts">Monthly Accounts</a>
-    <a id="menuAdmins" href="admin-users.html">Admin Users</a>
+  <div class="card">
+    Total Assignments<br>
+    <span class="value">12</span>
   </div>
 
-  <!-- MAIN -->
-  <div class="main">
-    <div id="dashboardSection">
-      <div class="cards">
-        <div class="card">
-          <h3>Total Assignments</h3>
-          <p>12</p>
-        </div>
-        <div class="card">
-          <h3>Total Staff</h3>
-          <p>85</p>
-        </div>
-        <div class="card">
-          <h3>This Month Income</h3>
-          <p>৳ 1,25,000</p>
-        </div>
-        <div class="card">
-          <h3>Profit</h3>
-          <p>৳ 32,000</p>
-        </div>
-      </div>
-    </div>
+  <div class="card">
+    Total Staff<br>
+    <span class="value">85</span>
   </div>
 
+  <div class="card">
+    This Month Income<br>
+    <span class="value">৳ 1,25,000</span>
+  </div>
+
+  <div class="card">
+    Profit<br>
+    <span class="value">৳ 32,000</span>
+  </div>
 </div>
 
-<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
 firebase.initializeApp({
   apiKey:"AIzaSyDK3dqXZuWaH3gctxURdOZc_Q1UfioesaA",
-  authDomain:"rcem-system.firebaseapp.com",
-  projectId:"rcem-system"
+  authDomain:"rcem-system.firebaseapp.com"
 });
 
 const auth=firebase.auth();
-const db=firebase.firestore();
 
-auth.onAuthStateChanged(async user=>{
-  if(!user){location.href="index.html";return;}
-
-  adminEmail.innerText=user.email;
-
-  const doc=await db.collection("users").doc(user.email).get();
-
-  if(!doc.exists || !doc.data().active){
-    blockAccess();
-    return;
-  }
-
-  applyRole(doc.data().role);
+/* AUTH */
+auth.onAuthStateChanged(u=>{
+  if(!u){location.href="index.html";return;}
+  userEmail.innerText=u.email;
 });
 
-function applyRole(role){
-  document.querySelectorAll(".sidebar a")
-    .forEach(a=>a.classList.add("hidden"));
-
-  menuDashboard.classList.remove("hidden");
-
-  if(role==="super_admin"){
-    showAll();
-  }
-  else if(role==="admin"){
-    showAll();
-    menuAdmins.classList.add("hidden");
-  }
-  else if(role==="manager"){
-    menuVenues.classList.remove("hidden");
-  }
-  else if(role==="supervisor"){
-    // dashboard only
-  }
-  else{
-    blockAccess();
-  }
+/* DRAWER */
+function openDrawer(){
+  drawer.classList.add("show");
+  overlay.classList.add("show");
+}
+function closeDrawer(){
+  drawer.classList.remove("show");
+  overlay.classList.remove("show");
 }
 
-function showAll(){
-  document.querySelectorAll(".sidebar a")
-    .forEach(a=>a.classList.remove("hidden"));
-}
+/* NAV */
+function go(p){location.href=p}
 
-function blockAccess(){
-  alert(
-`বর্তমানে এই অপশনে ঢোকার আপনার অনুমতি নেই।
-অনুগ্রহ করে সাপোর্টে যোগাযোগ করুন ।
-
-সাপোর্ট: admin@rcem-system.com
-ফোন: +8801926627000
-
-Rajshahi Catering & Event Management`
-  );
-  logout();
-}
-
+/* LOGOUT */
 function logout(){
   auth.signOut().then(()=>location.href="index.html");
-}
-
-function showDashboard(){
-  document.getElementById("dashboardSection").style.display="block";
 }
 </script>
 
