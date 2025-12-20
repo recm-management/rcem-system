@@ -10,6 +10,7 @@
   --primary:#0d47a1;
   --accent:#2e7d32;
   --danger:#d32f2f;
+  --warn:#f9a825;
   --bg:#f4f6f9;
 }
 *{box-sizing:border-box}
@@ -31,7 +32,7 @@ body{margin:0;font-family:Arial;background:var(--bg)}
   background:#fff;padding:18px;border-radius:18px;
   margin-bottom:18px;
   box-shadow:0 10px 25px rgba(0,0,0,.12);
-  animation:fadeUp .4s ease
+  animation:fadeUp .35s ease
 }
 @keyframes fadeUp{
   from{opacity:0;transform:translateY(20px)}
@@ -45,13 +46,17 @@ input,select{
 }
 
 button{
-  padding:10px 18px;border:none;
-  border-radius:22px;cursor:pointer;
-  font-size:14px
+  padding:8px 16px;border:none;
+  border-radius:20px;cursor:pointer;
+  font-size:14px;margin-right:6px
 }
 .add{background:#2e7d32;color:#fff}
 .toggle{background:#f9a825}
-.disabled{opacity:.5;pointer-events:none}
+.delete{background:#d32f2f;color:#fff}
+
+.inactive{
+  opacity:.55;
+}
 
 .badge{
   display:inline-block;padding:4px 12px;
@@ -72,11 +77,11 @@ button{
   background:#f1f5f9;padding:10px 14px;
   border-radius:12px
 }
-.perm input{width:auto;transform:scale(1.2)}
+.perm input{transform:scale(1.2)}
 
 .lock{
   color:#d32f2f;font-weight:bold;
-  margin-top:10px
+  margin-left:6px
 }
 </style>
 </head>
@@ -134,16 +139,14 @@ firebase.initializeApp({
   projectId:"rcem-system"
 });
 
-const MASTER_EMAIL = "admin@rcem-system.com";
-
+const MASTER_EMAIL="admin@rcem-system.com";
 const auth=firebase.auth();
 const db=firebase.firestore();
 
-/* AUTH */
 auth.onAuthStateChanged(async u=>{
   if(!u){location.href="index.html";return;}
-  const snap=await db.collection("users").doc(u.email).get();
-  if(!snap.exists || snap.data().role!=="super_admin"){
+  const s=await db.collection("users").doc(u.email).get();
+  if(!s.exists||s.data().role!=="super_admin"){
     alert("Access denied");
     location.href="admin.html";
   }
@@ -153,16 +156,13 @@ function logout(){
   auth.signOut().then(()=>location.href="index.html");
 }
 
-/* ADD USER */
 function addUser(){
   const email=emailInput.value.trim();
-  const role=roleSelect.value;
   if(!email){alert("Email required");return;}
 
   db.collection("users").doc(email).set({
-    role:role,
+    role:roleSelect.value,
     active:true,
-    isMaster: email===MASTER_EMAIL,
     permissions:{
       dashboard:p_dashboard.checked,
       venues:p_venues.checked,
@@ -177,38 +177,44 @@ function addUser(){
   });
 }
 
-/* TOGGLE ACTIVE */
-function toggle(email,val){
+function toggleUser(email,val){
   if(email===MASTER_EMAIL) return;
   db.collection("users").doc(email).update({active:!val});
 }
 
-/* LOAD USERS */
+function deleteUser(email){
+  if(email===MASTER_EMAIL) return;
+  if(!confirm("Are you sure to delete this user?")) return;
+  db.collection("users").doc(email).delete();
+}
+
 db.collection("users").onSnapshot(s=>{
   list.innerHTML="";
   s.forEach(d=>{
     const u=d.data();
-    const isMaster = d.id===MASTER_EMAIL;
+    const isMaster=d.id===MASTER_EMAIL;
 
     list.innerHTML+=`
-    <div class="card ${!u.active?"disabled":""}">
-      <b>${d.id}</b><br>
+    <div class="card ${!u.active?"inactive":""}">
+      <b>${d.id}</b>
       <span class="badge ${u.role}">${u.role}</span>
-      ${isMaster?'<span class="lock"> 🔒 Master Admin</span>':""}
+      ${isMaster?'<span class="lock">🔒 Master Admin</span>':""}
       <br><br>
-
       Status: ${u.active?"Active":"Inactive"}<br><br>
 
-      ${isMaster?"":
-        `<button class="toggle" onclick="toggle('${d.id}',${u.active})">
+      ${isMaster?"":`
+        <button class="toggle" onclick="toggleUser('${d.id}',${u.active})">
           ${u.active?"Disable":"Enable"}
-        </button>`
-      }
+        </button>
+        <button class="delete" onclick="deleteUser('${d.id}')">
+          Delete
+        </button>
+      `}
     </div>`;
   });
 });
 
-/* Shortcuts */
+/* shortcut refs */
 const emailInput=document.getElementById("email");
 const roleSelect=document.getElementById("role");
 const p_dashboard=document.getElementById("p_dashboard");
