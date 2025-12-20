@@ -18,7 +18,6 @@
       min-height: 100vh;
     }
 
-    /* Header */
     .header {
       background: #0d47a1;
       color: #fff;
@@ -29,9 +28,7 @@
       flex-wrap: wrap;
     }
 
-    .header h1 {
-      font-size: 20px;
-    }
+    .header h1 { font-size: 20px; }
 
     .user-info {
       font-size: 14px;
@@ -48,13 +45,11 @@
       margin-top: 5px;
     }
 
-    /* Layout */
     .container {
       display: flex;
       min-height: calc(100vh - 70px);
     }
 
-    /* Sidebar */
     .sidebar {
       width: 220px;
       background: #1565c0;
@@ -81,7 +76,6 @@
       padding-left: 5px;
     }
 
-    /* Main */
     .main {
       flex: 1;
       padding: 20px;
@@ -112,19 +106,14 @@
       color: #0d47a1;
     }
 
-    /* Mobile */
     @media (max-width: 768px) {
-      .container {
-        flex-direction: column;
-      }
-
+      .container { flex-direction: column; }
       .sidebar {
         width: 100%;
         display: flex;
         flex-wrap: wrap;
         gap: 10px;
       }
-
       .sidebar a {
         flex: 1 1 45%;
         text-align: center;
@@ -137,101 +126,108 @@
 
 <body>
 
-  <!-- Header -->
-  <div class="header">
-    <h1>RCEM Admin Dashboard</h1>
-    <div>
-      <div class="user-info">
-        Logged in as: <span id="adminEmail">Loading...</span>
-      </div>
-      <button class="logout-btn" onclick="logout()">Logout</button>
+<div class="header">
+  <h1>RCEM Admin Dashboard</h1>
+  <div>
+    <div class="user-info">
+      Logged in as: <span id="adminEmail">Loading...</span>
     </div>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="sidebar">
+    <h2>Menu</h2>
+    <a onclick="showDashboard()">Dashboard</a>
+    <a>Assignments</a>
+    <a>Staff</a>
+    <a href="venues.html">Venues</a>
+    <a>Monthly Accounts</a>
   </div>
 
-  <!-- Content -->
-  <div class="container">
-
-    <!-- Sidebar -->
-    <div class="sidebar">
-      <h2>Menu</h2>
-      <a onclick="showDashboard()">Dashboard</a>
-      <a>Assignments</a>
-      <a>Staff</a>
-      <a href="venues.html">Venues</a>
-      <a>Monthly Accounts</a>
-    </div>
-
-    <!-- Main -->
-    <div class="main">
-      <div id="dashboardSection">
-        <div class="cards">
-          <div class="card">
-            <h3>Total Assignments</h3>
-            <p>12</p>
-          </div>
-
-          <div class="card">
-            <h3>Total Staff</h3>
-            <p>85</p>
-          </div>
-
-          <div class="card">
-            <h3>This Month Income</h3>
-            <p>৳ 1,25,000</p>
-          </div>
-
-          <div class="card">
-            <h3>Profit</h3>
-            <p>৳ 32,000</p>
-          </div>
+  <div class="main">
+    <div id="dashboardSection">
+      <div class="cards">
+        <div class="card">
+          <h3>Total Assignments</h3>
+          <p>12</p>
+        </div>
+        <div class="card">
+          <h3>Total Staff</h3>
+          <p>85</p>
+        </div>
+        <div class="card">
+          <h3>This Month Income</h3>
+          <p>৳ 1,25,000</p>
+        </div>
+        <div class="card">
+          <h3>Profit</h3>
+          <p>৳ 32,000</p>
         </div>
       </div>
     </div>
-
   </div>
 
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+</div>
 
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyDK3dqXZuWaH3gctxURdOZc_Q1UfioesaA",
-      authDomain: "rcem-system.firebaseapp.com",
-      projectId: "rcem-system",
-      storageBucket: "rcem-system.appspot.com",
-      messagingSenderId: "569730845486",
-      appId: "1:569730845486:web:93e6c14ea47fdc6c89c8bf"
-    };
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-    if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig);
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyDK3dqXZuWaH3gctxURdOZc_Q1UfioesaA",
+    authDomain: "rcem-system.firebaseapp.com",
+    projectId: "rcem-system"
+  };
+
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+  }
+
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  auth.onAuthStateChanged(async user => {
+    if (!user) {
+      location.href = "index.html";
+      return;
     }
 
-    const auth = firebase.auth();
-    let checked = false;
+    document.getElementById("adminEmail").innerText = user.email;
 
-    auth.onAuthStateChanged(user => {
-      if (checked) return;
-      checked = true;
+    const snap = await db.collection("users").doc(user.email).get();
 
-      if (!user) {
-        window.location.replace("index.html");
-      } else {
-        document.getElementById("adminEmail").innerText = user.email;
-      }
-    });
-
-    function logout() {
-      auth.signOut().then(() => {
-        window.location.replace("index.html");
-      });
+    if (!snap.exists || !snap.data().active) {
+      alert(
+        "বর্তমানে এই অপশনে ঢোকার আপনার অনুমতি নেই。\n\n" +
+        "সাপোর্ট: admin@rcem-system.com\n" +
+        "ফোন: +8801926627000\n\n" +
+        "Rajshahi Catering & Event Management"
+      );
+      auth.signOut();
+      location.href = "index.html";
+      return;
     }
 
-    function showDashboard() {
-      document.getElementById("dashboardSection").style.display = "block";
+    const role = snap.data().role;
+    if (role !== "super_admin" && role !== "admin") {
+      alert("আপনার Admin Dashboard এ প্রবেশের অনুমতি নেই");
+      location.href = "index.html";
     }
-  </script>
+  });
+
+  function logout() {
+    auth.signOut().then(() => location.href = "index.html");
+  }
+
+  function showDashboard() {
+    document.getElementById("dashboardSection").style.display = "block";
+  }
+</script>
 
 </body>
 </html>
