@@ -11,8 +11,10 @@ body{margin:0;font-family:Arial;background:#f4f6f9}
 .container{padding:15px;max-width:900px;margin:auto}
 .card{background:#fff;padding:16px;border-radius:16px;margin-bottom:15px;box-shadow:0 8px 20px rgba(0,0,0,.12)}
 input,select{width:100%;padding:12px;border-radius:12px;border:1px solid #ccc;margin-bottom:10px;font-size:15px}
-button{padding:10px 18px;border:none;border-radius:22px;cursor:pointer;font-size:14px}
+button{padding:10px 18px;border:none;border-radius:22px;cursor:pointer;font-size:14px;margin-right:6px}
 .add{background:#2e7d32;color:#fff}
+.edit{background:#1565c0;color:#fff}
+.del{background:#d32f2f;color:#fff}
 .toggle{background:#f9a825}
 .logout{background:#d32f2f;color:#fff}
 .badge{padding:4px 10px;border-radius:12px;font-size:13px;color:#fff}
@@ -33,39 +35,39 @@ button{padding:10px 18px;border:none;border-radius:22px;cursor:pointer;font-size
 
 <div class="container">
 
-  <!-- ADD USER -->
-  <div class="card">
-    <h3>Add New User</h3>
+<!-- ADD USER -->
+<div class="card">
+  <h3>Add New User</h3>
 
-    <input id="email" placeholder="User Email">
+  <input id="email" placeholder="User Email">
 
-    <select id="role">
-      <option value="admin">Admin</option>
-      <option value="manager">Manager</option>
-      <option value="supervisor">Supervisor</option>
-    </select>
+  <select id="role">
+    <option value="admin">Admin</option>
+    <option value="manager">Manager</option>
+    <option value="supervisor">Supervisor</option>
+  </select>
 
-    <!-- 🔐 PERMISSIONS (NEW – UI ONLY) -->
-    <div class="perm" id="permBox" style="display:none">
-      <b>Permissions</b>
-      <label><input type="checkbox" id="p_dashboard"> Dashboard</label>
-      <label><input type="checkbox" id="p_venues"> Venues View</label>
-      <label><input type="checkbox" id="p_venues_add"> Venues Add</label>
-      <label><input type="checkbox" id="p_venues_edit"> Venues Edit</label>
-      <label><input type="checkbox" id="p_staff"> Staff</label>
-      <label><input type="checkbox" id="p_assignments"> Assignments</label>
-      <label><input type="checkbox" id="p_accounts"> Accounts</label>
-      <label><input type="checkbox" id="p_user_management"> User Management</label>
-    </div>
-
-    <button class="add" onclick="addUser()">Add User</button>
+  <!-- PERMISSIONS -->
+  <div class="perm">
+    <b>Permissions</b>
+    <label><input type="checkbox" id="p_dashboard"> Dashboard</label>
+    <label><input type="checkbox" id="p_venues"> Venues</label>
+    <label><input type="checkbox" id="p_venues_add"> Venues Add</label>
+    <label><input type="checkbox" id="p_venues_edit"> Venues Edit</label>
+    <label><input type="checkbox" id="p_staff"> Staff</label>
+    <label><input type="checkbox" id="p_assignments"> Assignments</label>
+    <label><input type="checkbox" id="p_accounts"> Accounts</label>
+    <label><input type="checkbox" id="p_user_management"> User Management</label>
   </div>
 
-  <!-- USER LIST -->
-  <div class="card">
-    <h3>Existing Users</h3>
-    <div id="list">Loading...</div>
-  </div>
+  <button class="add" onclick="addUser()">Add User</button>
+</div>
+
+<!-- USER LIST -->
+<div class="card">
+  <h3>Existing Users</h3>
+  <div id="list">Loading...</div>
+</div>
 
 </div>
 
@@ -83,12 +85,12 @@ firebase.initializeApp({
 const auth=firebase.auth();
 const db=firebase.firestore();
 
-/* AUTH + ROLE CHECK */
+/* AUTH CHECK */
 auth.onAuthStateChanged(async u=>{
   if(!u){location.href="index.html";return;}
-  const snap=await db.collection("users").doc(u.email).get();
-  if(!snap.exists || snap.data().role!=="super_admin"){
-    alert("আপনার এই অপশনে প্রবেশের অনুমতি নেই।\nঅনুগ্রহ করে admin@rcem-system.com এ যোগাযোগ করুন");
+  const s=await db.collection("users").doc(u.email).get();
+  if(!s.exists || s.data().role!=="super_admin"){
+    alert("Only Super Admin allowed");
     location.href="admin.html";
   }
 });
@@ -98,28 +100,7 @@ function logout(){
   auth.signOut().then(()=>location.href="index.html");
 }
 
-/* ROLE → DEFAULT PERMISSIONS */
-role.onchange=()=>{
-  permBox.style.display="block";
-  setAll(false);
-
-  if(role.value==="admin"){
-    setAll(true);
-  }
-  if(role.value==="manager"){
-    p_dashboard.checked=true;
-    p_venues.checked=true;
-  }
-  if(role.value==="supervisor"){
-    p_venues.checked=true;
-  }
-};
-
-function setAll(v){
-  document.querySelectorAll(".perm input").forEach(c=>c.checked=v);
-}
-
-/* ADD USER + SAVE PERMISSIONS */
+/* ADD USER */
 function addUser(){
   const mail=email.value.trim();
   if(!mail){alert("Email required");return;}
@@ -138,17 +119,23 @@ function addUser(){
   db.collection("users").doc(mail).set({
     role:role.value,
     active:true,
-    permissions:permissions,
+    permissions,
     created:Date.now()
   });
 
   email.value="";
-  permBox.style.display="none";
 }
 
 /* TOGGLE ACTIVE */
-function toggle(email,val){
-  db.collection("users").doc(email).update({active:!val});
+function toggleUser(mail,val){
+  db.collection("users").doc(mail).update({active:!val});
+}
+
+/* DELETE USER */
+function deleteUser(mail){
+  if(confirm("Delete this user?")){
+    db.collection("users").doc(mail).delete();
+  }
 }
 
 /* LOAD USERS */
@@ -157,14 +144,15 @@ db.collection("users").onSnapshot(s=>{
   s.forEach(d=>{
     const u=d.data();
     list.innerHTML+=`
-      <div class="card ${!u.active?"inactive":""}">
-        <b>${d.id}</b><br>
-        <span class="badge ${u.role}">${u.role}</span><br><br>
-        Status: ${u.active?"Active":"Inactive"}<br><br>
-        <button class="toggle" onclick="toggle('${d.id}',${u.active})">
-          ${u.active?"Disable":"Enable"}
-        </button>
-      </div>`;
+    <div class="card ${!u.active?"inactive":""}">
+      <b>${d.id}</b><br>
+      <span class="badge ${u.role}">${u.role}</span><br><br>
+      Status: ${u.active?"Active":"Inactive"}<br><br>
+      <button class="toggle" onclick="toggleUser('${d.id}',${u.active})">
+        ${u.active?"Disable":"Enable"}
+      </button>
+      <button class="del" onclick="deleteUser('${d.id}')">Delete</button>
+    </div>`;
   });
 });
 </script>
