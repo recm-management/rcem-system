@@ -20,6 +20,7 @@ body{margin:0;font-family:Arial;background:#f4f6f9}
 }
 .add{background:linear-gradient(45deg,#2e7d32,#43a047)}
 .toggle{background:linear-gradient(45deg,#f9a825,#fbc02d);color:#000}
+.edit{background:linear-gradient(45deg,#1565c0,#1e88e5)}
 .logout{background:#d32f2f}
 
 .card{
@@ -33,8 +34,8 @@ body{margin:0;font-family:Arial;background:#f4f6f9}
   margin:6px 0;font-weight:bold
 }
 .dot{width:12px;height:12px;border-radius:50%}
-.active{background:#2e7d32;box-shadow:0 0 6px #2e7d32}
-.inactive{background:#d32f2f;box-shadow:0 0 6px #d32f2f}
+.active{background:#2e7d32}
+.inactive{background:#d32f2f}
 
 .meta{font-size:14px;color:#555;margin:4px 0}
 .highlight{background:yellow}
@@ -60,10 +61,8 @@ body{margin:0;font-family:Arial;background:#f4f6f9}
 .stat b{font-size:20px}
 
 .modal{
-  position:fixed;inset:0;
-  background:rgba(0,0,0,.6);
+  position:fixed;inset:0;background:rgba(0,0,0,.6);
   display:none;align-items:center;justify-content:center;
-  padding:12px
 }
 .modal-box{
   background:#fff;padding:18px;border-radius:18px;
@@ -71,7 +70,7 @@ body{margin:0;font-family:Arial;background:#f4f6f9}
 }
 .modal-box input{
   width:100%;padding:12px;margin-bottom:12px;
-  border-radius:12px;border:1px solid #ccc;font-size:15px
+  border-radius:12px;border:1px solid #ccc
 }
 </style>
 </head>
@@ -91,29 +90,28 @@ body{margin:0;font-family:Arial;background:#f4f6f9}
     <div class="stat">Inactive<br><b id="inactive">0</b></div>
   </div>
 
-  <button class="btn add" onclick="openModal()">+ Add Venue</button>
+  <button id="addBtn" class="btn add" onclick="openModal()">+ Add Venue</button>
 
   <input class="search-box" id="search"
     placeholder="🔍 Search venue, mobile or address"
     oninput="render()">
 
   <div class="filter">
-    <input type="checkbox" id="onlyActive" onchange="render()">
-    Show Active Only
+    <input type="checkbox" id="onlyActive" onchange="render()"> Show Active Only
   </div>
 
   <div id="venueList">Loading...</div>
 </div>
 
+<!-- ADD / EDIT MODAL -->
 <div class="modal" id="modal">
   <div class="modal-box">
-    <h3>Add Venue</h3>
+    <h3 id="modalTitle">Add Venue</h3>
     <input id="vname" placeholder="Venue Name">
     <input id="vlocation" placeholder="Address">
     <input id="vcontact" placeholder="Mobile">
     <button class="btn add" style="width:100%" onclick="save()">Save</button>
-    <p style="text-align:center;cursor:pointer;margin-top:10px"
-       onclick="closeModal()">Cancel</p>
+    <p style="text-align:center;cursor:pointer" onclick="closeModal()">Cancel</p>
   </div>
 </div>
 
@@ -130,114 +128,100 @@ firebase.initializeApp({
 
 const auth=firebase.auth();
 const db=firebase.firestore();
-let data=[];
 
-/* 🔐 ROLE BASED ACCESS (FINAL) */
+let data=[], perms={}, editId=null;
+
+/* 🔐 PERMISSION CHECK */
 auth.onAuthStateChanged(async user=>{
-  if(!user){
-    location.href="index.html";
-    return;
-  }
+  if(!user){ location.href="index.html"; return; }
 
   const snap = await db.collection("users").doc(user.email).get();
-
-  if(!snap.exists || snap.data().active !== true){
-    alert(
-      "বর্তমানে এই অপশনে ঢোকার আপনার অনুমতি নেই。\n\n" +
-      "সাপোর্ট: admin@rcem-system.com\n" +
-      "ফোন: +8801926627000\n\n" +
-      "Rajshahi Catering & Event Management"
-    );
-    await auth.signOut();
-    location.href="index.html";
-    return;
+  if(!snap.exists || !snap.data().active){
+    alert("Unauthorized access");
+    auth.signOut(); location.href="index.html"; return;
   }
 
-  const role = snap.data().role;
-  if(role !== "super_admin" && role !== "admin"){
+  perms = snap.data().permissions || {};
+  if(!perms.venues){
     alert("এই পেজে ঢোকার অনুমতি নেই");
     location.href="admin.html";
   }
+
+  if(!perms.venues_add) document.getElementById("addBtn").style.display="none";
 });
 
 function logout(){
   auth.signOut().then(()=>location.href="index.html");
 }
 
-function openModal(){
+function openModal(v=null){
   modal.style.display="flex";
-  vname.value=""; vlocation.value=""; vcontact.value="";
+  if(v){
+    modalTitle.innerText="Edit Venue";
+    vname.value=v.venue_name;
+    vlocation.value=v.location;
+    vcontact.value=v.contact;
+    editId=v.id;
+  }else{
+    modalTitle.innerText="Add Venue";
+    vname.value=""; vlocation.value=""; vcontact.value="";
+    editId=null;
+  }
 }
 function closeModal(){ modal.style.display="none"; }
 
 function save(){
-  if(!vname.value.trim()){
-    alert("Venue name required"); return;
-  }
-  db.collection("venues").add({
+  if(!vname.value.trim()) return alert("Venue name required");
+  const payload={
     venue_name:vname.value,
     location:vlocation.value,
-    contact:vcontact.value,
-    active:true
-  });
+    contact:vcontact.value
+  };
+  editId
+    ? db.collection("venues").doc(editId).update(payload)
+    : db.collection("venues").add({...payload,active:true});
   closeModal();
 }
 
 function toggle(id,val){
+  if(!perms.venues_edit) return;
   db.collection("venues").doc(id).update({active:!val});
 }
 
-function highlight(t,k){
-  if(!k) return t;
-  return t.replace(new RegExp(k,"gi"),m=>`<span class="highlight">${m}</span>`);
-}
-
 function render(){
-  const k=search.value.toLowerCase();
-  const only=onlyActive.checked;
   venueList.innerHTML="";
   let t=0,a=0,i=0,serial=1;
+  const k=search.value.toLowerCase();
+  const only=onlyActive.checked;
 
   data.forEach(v=>{
     t++; v.active?a++:i++;
     if(only && !v.active) return;
-    if(
-      !v.venue_name.toLowerCase().includes(k) &&
-      !(v.contact||"").includes(k) &&
-      !(v.location||"").toLowerCase().includes(k)
-    ) return;
-
-    const mapLink = v.location
-      ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(v.location)}`
-      : "#";
+    if(!v.venue_name.toLowerCase().includes(k)
+      && !(v.contact||"").includes(k)
+      && !(v.location||"").toLowerCase().includes(k)) return;
 
     venueList.innerHTML+=`
-      <div class="card">
-        <b>${serial}. ${highlight(v.venue_name,k)}</b>
-        <div class="status-row">
-          <div class="dot ${v.active?"active":"inactive"}"></div>
-          ${v.active?"Active":"Inactive"}
-        </div>
-        <div class="meta">📞 ${highlight(v.contact||"",k)}</div>
-        <div class="meta">
-          📍 <a href="${mapLink}" target="_blank"
-          style="text-decoration:none;color:#0d47a1">
-          ${highlight(v.location||"",k)}</a>
-        </div><br>
-        <button class="btn toggle"
-          onclick='toggle("${v.id}",${v.active})'>Toggle</button>
-      </div>`;
-    serial++;
+    <div class="card">
+      <b>${serial++}. ${v.venue_name}</b>
+      <div class="status-row">
+        <div class="dot ${v.active?"active":"inactive"}"></div>
+        ${v.active?"Active":"Inactive"}
+      </div>
+      <div class="meta">📞 ${v.contact||""}</div>
+      <div class="meta">📍 ${v.location||""}</div><br>
+      ${perms.venues_edit?`
+        <button class="btn edit" onclick='openModal(${JSON.stringify(v)})'>Edit</button>
+        <button class="btn toggle" onclick='toggle("${v.id}",${v.active})'>Toggle</button>
+      `:""}
+    </div>`;
   });
 
-  total.innerText=t;
-  active.innerText=a;
-  inactive.innerText=i;
+  total.innerText=t; active.innerText=a; inactive.innerText=i;
 }
 
 db.collection("venues").onSnapshot(s=>{
-  data=[];
-  s.forEach(d=>data.push({id:d.id,...d.data()}));
+  data=[]; s.forEach(d=>data.push({id:d.id,...d.data()}));
   render();
 });
 </script>
