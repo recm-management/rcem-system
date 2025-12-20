@@ -37,11 +37,10 @@ body{margin:0;background:#f4f6f9}
 /* STATUS */
 .status{
   display:inline-block;
-  padding:4px 12px;
-  border-radius:14px;
+  padding:4px 10px;
+  border-radius:12px;
   font-size:13px;
-  color:#fff;
-  margin:6px 0
+  color:#fff
 }
 .pending{background:#f9a825}
 .completed{background:#2e7d32}
@@ -56,15 +55,14 @@ body{margin:0;background:#f4f6f9}
 
 /* ACTIONS */
 .actions{
-  margin-top:12px;
   display:flex;
   gap:10px;
-  flex-wrap:wrap
+  margin-top:12px
 }
 .btn{
-  border:none;
   padding:8px 14px;
-  border-radius:18px;
+  border:none;
+  border-radius:14px;
   font-size:13px;
   cursor:pointer;
   color:#fff
@@ -105,50 +103,65 @@ firebase.initializeApp({
   projectId:"rcem-system"
 });
 
-const auth = firebase.auth();
-const db   = firebase.firestore();
+const auth=firebase.auth();
+const db=firebase.firestore();
 
-let isSuperAdmin = false;
-let canEdit = false;
+let canEdit=false;
+let isSuper=false;
 
 /* AUTH + PERMISSION */
 auth.onAuthStateChanged(async user=>{
-  if(!user){
-    location.href="index.html";
-    return;
-  }
+  if(!user){location.href="index.html";return;}
 
-  const snap = await db.collection("users").doc(user.email).get();
+  const snap=await db.collection("users").doc(user.email).get();
   if(!snap.exists){
     alert("Unauthorized");
     location.href="admin.html";
     return;
   }
 
-  const data = snap.data();
-  isSuperAdmin = data.role === "super_admin";
-  canEdit = data.permissions?.assignments_edit === true;
+  const data=snap.data();
+  isSuper = data.role==="super_admin";
+  canEdit = data.permissions?.assignments_edit===true;
 });
+
+/* ACTIONS */
+function markCompleted(id){
+  if(!canEdit){
+    alert("আপনার Edit permission নেই");
+    return;
+  }
+  db.collection("assignments").doc(id).update({
+    status:"completed",
+    completed_at:Date.now()
+  });
+}
+
+function deleteAssignment(id){
+  if(!isSuper){
+    alert("Delete permission নেই");
+    return;
+  }
+  if(confirm("Are you sure?")){
+    db.collection("assignments").doc(id).delete();
+  }
+}
 
 /* LOAD ASSIGNMENTS */
 db.collection("assignments")
 .orderBy("created","desc")
 .onSnapshot(s=>{
   list.innerHTML="";
-
   if(s.empty){
     list.innerHTML=`<div class="empty">No assignments found</div>`;
     return;
   }
 
   s.forEach(d=>{
-    const a = d.data();
-    const id = d.id;
-
-    list.innerHTML += `
+    const a=d.data();
+    list.innerHTML+=`
       <div class="card">
         <h3>${a.venue_name}</h3>
-
         <div class="meta">📅 Event Date: ${a.event_date}</div>
         <div class="meta">👥 Staff: ${(a.staff_ids||[]).join(", ")}</div>
 
@@ -162,37 +175,26 @@ db.collection("assignments")
           <div>Due: ৳ ${a.due}</div>
         </div>
 
-        <div class="actions">
-          ${
-            a.status !== "completed" && canEdit
-            ? `<button class="btn complete" onclick="markCompleted('${id}')">Mark Completed</button>`
-            : ``
-          }
-          ${
-            isSuperAdmin
-            ? `<button class="btn delete" onclick="deleteAssignment('${id}')">Delete</button>`
-            : ``
-          }
-        </div>
+        ${
+          a.status==="pending" && canEdit
+          ? `<div class="actions">
+              <button class="btn complete"
+                onclick="markCompleted('${d.id}')">
+                Mark Completed
+              </button>
+              ${isSuper
+                ? `<button class="btn delete"
+                    onclick="deleteAssignment('${d.id}')">
+                    Delete
+                   </button>`
+                : ``}
+            </div>`
+          : ``
+        }
       </div>
     `;
   });
 });
-
-/* ACTIONS */
-function markCompleted(id){
-  if(!confirm("Mark this assignment as completed?")) return;
-
-  db.collection("assignments").doc(id).update({
-    status:"completed",
-    completed_at: Date.now()
-  });
-}
-
-function deleteAssignment(id){
-  if(!confirm("⚠️ Permanently delete this assignment?")) return;
-  db.collection("assignments").doc(id).delete();
-}
 </script>
 
 </body>
