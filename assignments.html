@@ -9,89 +9,62 @@
 *{box-sizing:border-box;font-family:Arial}
 body{margin:0;background:#f4f6f9}
 
-/* HEADER */
 .header{
   background:linear-gradient(135deg,#0d47a1,#1976d2);
-  color:#fff;
-  padding:16px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center
+  color:#fff;padding:16px;
+  display:flex;justify-content:space-between;align-items:center
 }
-.back{cursor:pointer;font-size:14px}
+.back{cursor:pointer}
 
-/* CONTENT */
 .container{padding:16px}
 
-/* CARD */
 .card{
-  background:#fff;
-  border-radius:16px;
-  padding:16px;
-  margin-bottom:14px;
+  background:#fff;border-radius:16px;
+  padding:16px;margin-bottom:14px;
   box-shadow:0 8px 20px rgba(0,0,0,.12)
 }
 .card h3{margin:0;font-size:17px}
 .meta{font-size:14px;color:#555;margin:6px 0}
 
-/* STATUS */
 .status{
   display:inline-block;
   padding:4px 10px;
   border-radius:12px;
-  font-size:13px;
-  color:#fff
+  font-size:13px;color:#fff
 }
 .pending{background:#f9a825}
 .completed{background:#2e7d32}
 
-/* AMOUNT */
 .amount{
-  display:flex;
-  justify-content:space-between;
-  margin-top:10px;
-  font-size:14px
+  display:flex;justify-content:space-between;
+  margin-top:10px;font-size:14px
 }
 
-/* ACTIONS */
 .actions{
-  display:flex;
-  gap:10px;
-  margin-top:12px
+  margin-top:12px;
+  display:flex;gap:8px
 }
 .btn{
-  padding:8px 14px;
-  border:none;
-  border-radius:14px;
-  font-size:13px;
-  cursor:pointer;
-  color:#fff
+  border:none;border-radius:20px;
+  padding:6px 14px;
+  font-size:13px;cursor:pointer
 }
-.complete{background:#2e7d32}
-.delete{background:#d32f2f}
+.complete{background:#2e7d32;color:#fff}
+.delete{background:#d32f2f;color:#fff}
 
-/* EMPTY */
-.empty{
-  text-align:center;
-  color:#777;
-  margin-top:50px
-}
+.empty{text-align:center;color:#777;margin-top:50px}
 </style>
 </head>
 
 <body>
 
-<!-- HEADER -->
 <div class="header">
   <div class="back" onclick="history.back()">← Back</div>
   <h3>Assignments</h3>
 </div>
 
-<div class="container" id="list">
-  Loading...
-</div>
+<div class="container" id="list">Loading...</div>
 
-<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -106,46 +79,22 @@ firebase.initializeApp({
 const auth=firebase.auth();
 const db=firebase.firestore();
 
-let canEdit=false;
-let isSuper=false;
+let perms={}, role="";
 
-/* AUTH + PERMISSION */
+/* AUTH + LOAD PERMISSIONS */
 auth.onAuthStateChanged(async user=>{
   if(!user){location.href="index.html";return;}
 
   const snap=await db.collection("users").doc(user.email).get();
-  if(!snap.exists){
-    alert("Unauthorized");
+  if(!snap.exists || snap.data().permissions?.assignments!==true){
+    alert("Assignments দেখার অনুমতি নেই");
     location.href="admin.html";
     return;
   }
 
-  const data=snap.data();
-  isSuper = data.role==="super_admin";
-  canEdit = data.permissions?.assignments_edit===true;
+  perms=snap.data().permissions || {};
+  role=snap.data().role || "";
 });
-
-/* ACTIONS */
-function markCompleted(id){
-  if(!canEdit){
-    alert("আপনার Edit permission নেই");
-    return;
-  }
-  db.collection("assignments").doc(id).update({
-    status:"completed",
-    completed_at:Date.now()
-  });
-}
-
-function deleteAssignment(id){
-  if(!isSuper){
-    alert("Delete permission নেই");
-    return;
-  }
-  if(confirm("Are you sure?")){
-    db.collection("assignments").doc(id).delete();
-  }
-}
 
 /* LOAD ASSIGNMENTS */
 db.collection("assignments")
@@ -159,11 +108,28 @@ db.collection("assignments")
 
   s.forEach(d=>{
     const a=d.data();
+
+    let actionsHTML="";
+
+    if(perms.assignments_edit || role==="super_admin"){
+      actionsHTML+=`
+        <button class="btn complete"
+          onclick="markCompleted('${d.id}')">Complete</button>
+      `;
+    }
+
+    if(role==="super_admin"){
+      actionsHTML+=`
+        <button class="btn delete"
+          onclick="deleteAssign('${d.id}')">Delete</button>
+      `;
+    }
+
     list.innerHTML+=`
       <div class="card">
         <h3>${a.venue_name}</h3>
-        <div class="meta">📅 Event Date: ${a.event_date}</div>
-        <div class="meta">👥 Staff: ${(a.staff_ids||[]).join(", ")}</div>
+        <div class="meta">📅 ${a.event_date}</div>
+        <div class="meta">👥 ${a.staff_ids.join(", ")}</div>
 
         <span class="status ${a.status}">
           ${a.status.toUpperCase()}
@@ -175,26 +141,30 @@ db.collection("assignments")
           <div>Due: ৳ ${a.due}</div>
         </div>
 
-        ${
-          a.status==="pending" && canEdit
-          ? `<div class="actions">
-              <button class="btn complete"
-                onclick="markCompleted('${d.id}')">
-                Mark Completed
-              </button>
-              ${isSuper
-                ? `<button class="btn delete"
-                    onclick="deleteAssignment('${d.id}')">
-                    Delete
-                   </button>`
-                : ``}
-            </div>`
-          : ``
-        }
+        <div class="actions">${actionsHTML}</div>
       </div>
     `;
   });
 });
+
+/* ACTIONS */
+function markCompleted(id){
+  if(!perms.assignments_edit && role!=="super_admin"){
+    alert("Permission নেই");
+    return;
+  }
+  db.collection("assignments").doc(id).update({status:"completed"});
+}
+
+function deleteAssign(id){
+  if(role!=="super_admin"){
+    alert("Delete শুধুমাত্র Super Admin");
+    return;
+  }
+  if(confirm("Delete assignment?")){
+    db.collection("assignments").doc(id).delete();
+  }
+}
 </script>
 
 </body>
