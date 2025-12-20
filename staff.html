@@ -1,15 +1,82 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Staff Login - RCEM</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RCEM – Staff</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial;
+  background:#f4f6f9;
+}
+.header{
+  background:linear-gradient(135deg,#0d47a1,#1976d2);
+  color:#fff;
+  padding:16px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.back{cursor:pointer;font-size:14px}
+.container{padding:20px}
+.card{
+  background:#fff;
+  padding:20px;
+  border-radius:16px;
+  box-shadow:0 8px 20px rgba(0,0,0,.12)
+}
+</style>
 </head>
+
 <body>
 
-  <h2>Staff Login</h2>
-  <p>Staff dashboard will be here.</p>
+<div class="header">
+  <div class="back" onclick="history.back()">← Back</div>
+  <h3>Staff</h3>
+</div>
 
-  <a href="index.html">← Back to Home</a>
+<div class="container" id="content">
+  Loading...
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyDK3dqXZuWaH3gctxURdOZc_Q1UfioesaA",
+  authDomain:"rcem-system.firebaseapp.com",
+  projectId:"rcem-system"
+});
+
+const auth = firebase.auth();
+const db   = firebase.firestore();
+
+auth.onAuthStateChanged(async user=>{
+  if(!user){
+    location.href="index.html";
+    return;
+  }
+
+  const snap = await db.collection("users").doc(user.email).get();
+
+  if(!snap.exists || snap.data().permissions?.staff !== true){
+    alert("আপনার Staff দেখার অনুমতি নেই");
+    history.back();
+    return;
+  }
+
+  document.getElementById("content").innerHTML = `
+    <div class="card">
+      <h3>✅ Staff Module Active</h3>
+      <p>এখানে পরবর্তীতে staff list, add, edit আসবে</p>
+    </div>
+  `;
+});
+</script>
 
 </body>
 </html>
