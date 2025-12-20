@@ -15,8 +15,8 @@ body{margin:0;background:#f4f6f9}
   color:#fff;
   padding:16px;
   display:flex;
-  align-items:center;
-  justify-content:space-between
+  justify-content:space-between;
+  align-items:center
 }
 .back{cursor:pointer}
 
@@ -27,11 +27,11 @@ body{margin:0;background:#f4f6f9}
   padding:13px 18px;
   border-radius:30px;
   border:1px solid #ccc;
-  font-size:15px;
+  font-size:15px
 }
 
-/* ADD BUTTON */
-.top-actions{padding:0 16px 10px}
+/* ADD */
+.top-actions{padding:0 16px}
 .add-btn{
   padding:10px 18px;
   border:none;
@@ -53,72 +53,102 @@ body{margin:0;background:#f4f6f9}
   margin-bottom:14px;
   box-shadow:0 10px 25px rgba(0,0,0,.12);
   display:flex;
-  gap:14px;
+  gap:14px
 }
 
 /* AVATAR */
 .avatar{
-  width:58px;height:58px;border-radius:50%;
+  width:56px;
+  height:56px;
+  border-radius:50%;
   background:#e3f2fd;
-  display:flex;align-items:center;justify-content:center;
-  font-size:26px;color:#1976d2;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:26px;
+  color:#1976d2
 }
 
 /* INFO */
 .info{flex:1}
+.name{font-size:16px;font-weight:bold}
 .serial{color:#1976d2;font-weight:bold;margin-right:6px}
-.name{font-size:17px;font-weight:bold}
-.meta{font-size:14px;color:#555;margin:2px 0}
+.meta{font-size:14px;color:#555;margin-top:4px}
+.meta a{color:#1565c0;text-decoration:none}
 
 /* BADGE */
 .badge{
-  padding:4px 10px;border-radius:12px;
-  font-size:12px;color:#fff;display:inline-block
+  display:inline-block;
+  padding:4px 10px;
+  border-radius:12px;
+  font-size:12px;
+  margin-top:6px;
+  color:#fff
 }
 .leader{background:#6a1b9a}
 .second{background:#1565c0}
 .member{background:#2e7d32}
 .new{background:#757575}
 
-/* RATING */
-.rating{color:#f9a825;margin-top:4px}
+/* LEVEL */
 .level{
-  background:#e3f2fd;padding:5px 12px;
-  border-radius:12px;font-size:13px;
-  display:inline-block;margin-top:4px
+  margin-top:6px;
+  background:#e3f2fd;
+  padding:5px 12px;
+  border-radius:12px;
+  font-size:13px;
+  display:inline-block
 }
 
 /* ACTIONS */
-.actions{display:flex;flex-direction:column;gap:8px}
-.btn{
-  padding:8px 12px;border:none;
-  border-radius:14px;font-size:13px;cursor:pointer
+.actions{
+  display:flex;
+  flex-direction:column;
+  gap:8px
 }
-.rate{background:#f9a825}
+.btn{
+  padding:8px 12px;
+  border:none;
+  border-radius:14px;
+  font-size:13px;
+  cursor:pointer
+}
 .edit{background:#1565c0;color:#fff}
-.disabled{background:#ccc;cursor:not-allowed}
+.rate{background:#f9a825}
 
 /* MODAL */
 .modal{
-  position:fixed;inset:0;
+  position:fixed;
+  inset:0;
   background:rgba(0,0,0,.6);
-  display:none;align-items:center;justify-content:center
+  display:none;
+  align-items:center;
+  justify-content:center
 }
 .modal-box{
-  background:#fff;padding:18px;
-  border-radius:18px;width:90%;max-width:420px
+  background:#fff;
+  padding:18px;
+  border-radius:18px;
+  width:100%;
+  max-width:420px
 }
-.modal-box input,select{
-  width:100%;padding:12px;
-  margin-bottom:12px;border-radius:12px;
+.modal-box input,.modal-box select{
+  width:100%;
+  padding:12px;
+  margin-bottom:12px;
+  border-radius:12px;
   border:1px solid #ccc
 }
 .modal-box button{
-  width:100%;padding:12px;
-  border:none;border-radius:22px;
-  background:#2e7d32;color:#fff
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:22px;
+  background:#2e7d32;
+  color:#fff;
+  font-size:15px
 }
-.cancel{text-align:center;margin-top:10px;cursor:pointer}
+.cancel{text-align:center;margin-top:10px;color:#555;cursor:pointer}
 </style>
 </head>
 
@@ -143,7 +173,7 @@ body{margin:0;background:#f4f6f9}
 <div class="modal" id="modal">
   <div class="modal-box">
     <h3 id="modalTitle">Add Staff</h3>
-    <input id="staffName" placeholder="Name">
+    <input id="name" placeholder="Name">
     <input id="phone" placeholder="Phone">
     <input id="address" placeholder="Address">
     <select id="badge">
@@ -157,7 +187,6 @@ body{margin:0;background:#f4f6f9}
   </div>
 </div>
 
-<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -172,17 +201,17 @@ firebase.initializeApp({
 const auth=firebase.auth();
 const db=firebase.firestore();
 
-let staffs=[], perms={}, editId=null;
+let staffs=[];
+let perms={};
+let editId=null;
 
-/* AUTH */
 auth.onAuthStateChanged(async user=>{
   if(!user){location.href="index.html";return;}
-  const snap=await db.collection("users").doc(user.email).get();
-  perms=snap.data()?.permissions||{};
+  const u=await db.collection("users").doc(user.email).get();
+  perms=u.data()?.permissions||{};
   if(!perms.staff_add) addBtn.style.display="none";
 });
 
-/* LOAD STAFF */
 db.collection("staffs").onSnapshot(s=>{
   staffs=[];
   s.forEach(d=>staffs.push({id:d.id,...d.data()}));
@@ -190,10 +219,9 @@ db.collection("staffs").onSnapshot(s=>{
   render();
 });
 
-/* RENDER */
 function render(){
-  const k=search.value.toLowerCase();
   list.innerHTML="";
+  const k=search.value.toLowerCase();
   let i=1;
 
   staffs.forEach(s=>{
@@ -211,82 +239,73 @@ function render(){
     const [bt,bc]=badgeMap[s.badge||"new"];
 
     list.innerHTML+=`
-    <div class="card">
-      <div class="avatar">👤</div>
-      <div class="info">
-        <div class="name"><span class="serial">${i}.</span>${s.name}</div>
-        <div class="meta">📞 <a href="tel:${s.phone}">${s.phone}</a></div>
-        <div class="meta">📍 ${s.address||"-"}</div>
-        <span class="badge ${bc}">${bt}</span>
-        <div class="rating">⭐ ${(s.rating||0).toFixed(1)} (${s.total_reviews||0})</div>
-        <div class="level">Level: ${s.level||0} / 100</div>
+      <div class="card">
+        <div class="avatar">👤</div>
+
+        <div class="info">
+          <div class="name"><span class="serial">${i}.</span>${s.name}</div>
+          <div class="meta">📞 <a href="tel:${s.phone}">${s.phone}</a></div>
+          <div class="meta">📍 ${s.address||"-"}</div>
+          <span class="badge ${bc}">${bt}</span>
+          <div class="level">Level: ${s.level||0} / 100</div>
+        </div>
+
+        <div class="actions">
+          <button class="btn rate">Give Rating</button>
+          <button class="btn edit" onclick='openModal(${JSON.stringify(s).replace(/"/g,"&quot;")})'>Edit</button>
+        </div>
       </div>
-      <div class="actions">
-        <button class="btn rate">Give Rating</button>
-        <button class="btn edit ${!perms.staff_edit?"disabled":""}"
-          ${!perms.staff_edit?"disabled":""}
-          onclick='openModal(${JSON.stringify(s).replace(/"/g,"&quot;")})'>
-          Edit
-        </button>
-      </div>
-    </div>`;
+    `;
     i++;
   });
 }
 
-/* MODAL */
 function openModal(s=null){
   modal.style.display="flex";
   if(s){
     editId=s.id;
     modalTitle.innerText="Edit Staff";
-    staffName.value=s.name;
+    name.value=s.name;
     phone.value=s.phone;
     address.value=s.address||"";
     badge.value=s.badge||"new";
   }else{
     editId=null;
     modalTitle.innerText="Add Staff";
-    staffName.value=phone.value=address.value="";
+    name.value=phone.value=address.value="";
     badge.value="new";
   }
 }
+
 function closeModal(){modal.style.display="none"}
 
-/* SAVE (FIXED) */
 async function save(){
-  if(!staffName.value.trim() || !phone.value.trim()){
+  if(!name.value || !phone.value){
     alert("Name এবং Phone দরকার");
     return;
   }
 
-  try{
-    if(editId){
-      if(!perms.staff_edit) return alert("Permission denied");
-      await db.collection("staffs").doc(editId).update({
-        name:staffName.value.trim(),
-        phone:phone.value.trim(),
-        address:address.value.trim(),
-        badge:badge.value
-      });
-    }else{
-      if(!perms.staff_add) return alert("Permission denied");
-      await db.collection("staffs").add({
-        name:staffName.value.trim(),
-        phone:phone.value.trim(),
-        address:address.value.trim(),
-        badge:badge.value,
-        rating:0,
-        total_reviews:0,
-        level:0,
-        active:true,
-        created:Date.now()
-      });
-    }
-    closeModal();
-  }catch(e){
-    alert("Error: "+e.message);
+  if(editId){
+    if(!perms.staff_edit){alert("Permission denied");return;}
+    await db.collection("staffs").doc(editId).update({
+      name:name.value,
+      phone:phone.value,
+      address:address.value,
+      badge:badge.value
+    });
+  }else{
+    if(!perms.staff_add){alert("Permission denied");return;}
+    await db.collection("staffs").add({
+      name:name.value,
+      phone:phone.value,
+      address:address.value,
+      badge:badge.value,
+      level:0,
+      active:true,
+      created:Date.now()
+    });
   }
+  closeModal();
 }
 </script>
 
