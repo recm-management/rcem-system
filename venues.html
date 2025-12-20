@@ -132,18 +132,31 @@ const auth=firebase.auth();
 const db=firebase.firestore();
 let data=[];
 
-/* 🔐 ADMIN EMAIL RESTRICTION (NEW) */
+/* 🔐 ROLE BASED ACCESS (FINAL) */
 auth.onAuthStateChanged(async user=>{
   if(!user){
     location.href="index.html";
     return;
   }
 
-  const adminDoc = await db.collection("admins").doc(user.email).get();
-  if(!adminDoc.exists || adminDoc.data().active !== true){
-    alert("Unauthorized access");
+  const snap = await db.collection("users").doc(user.email).get();
+
+  if(!snap.exists || snap.data().active !== true){
+    alert(
+      "বর্তমানে এই অপশনে ঢোকার আপনার অনুমতি নেই。\n\n" +
+      "সাপোর্ট: admin@rcem-system.com\n" +
+      "ফোন: +8801926627000\n\n" +
+      "Rajshahi Catering & Event Management"
+    );
     await auth.signOut();
     location.href="index.html";
+    return;
+  }
+
+  const role = snap.data().role;
+  if(role !== "super_admin" && role !== "admin"){
+    alert("এই পেজে ঢোকার অনুমতি নেই");
+    location.href="admin.html";
   }
 });
 
