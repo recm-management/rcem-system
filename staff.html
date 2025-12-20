@@ -6,27 +6,75 @@
 <title>RCEM – Staff</title>
 
 <style>
-body{
-  margin:0;
-  font-family:Arial;
-  background:#f4f6f9;
-}
+*{box-sizing:border-box;font-family:Arial}
+body{margin:0;background:#f4f6f9}
+
+/* HEADER */
 .header{
   background:linear-gradient(135deg,#0d47a1,#1976d2);
-  color:#fff;
-  padding:16px;
-  display:flex;
-  align-items:center;
-  gap:12px;
+  color:#fff;padding:16px;
+  display:flex;justify-content:space-between;align-items:center
 }
-.back{cursor:pointer;font-size:14px}
-.container{padding:20px}
+.back{cursor:pointer}
+
+/* CARD */
+.container{padding:16px}
 .card{
   background:#fff;
-  padding:20px;
-  border-radius:16px;
+  border-radius:18px;
+  padding:16px;
+  margin-bottom:14px;
   box-shadow:0 8px 20px rgba(0,0,0,.12)
 }
+.name{font-size:17px;font-weight:bold}
+.meta{font-size:14px;color:#555;margin:4px 0}
+
+/* RATING */
+.rating{color:#f9a825;font-size:14px}
+.level{
+  background:#e3f2fd;
+  padding:6px 10px;
+  border-radius:10px;
+  font-size:13px;
+  display:inline-block;
+  margin-top:6px
+}
+.btn{
+  margin-top:10px;
+  padding:8px 14px;
+  border:none;
+  border-radius:16px;
+  cursor:pointer;
+  font-size:14px;
+  background:#2e7d32;
+  color:#fff
+}
+.btn:disabled{
+  background:#ccc;
+  cursor:not-allowed
+}
+
+/* MODAL */
+.modal{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.5);
+  display:none;
+  align-items:center;
+  justify-content:center
+}
+.modal-box{
+  background:#fff;
+  padding:20px;
+  border-radius:18px;
+  width:90%;max-width:360px;
+  text-align:center
+}
+.star{
+  font-size:30px;
+  cursor:pointer;
+  color:#ccc
+}
+.star.active{color:#f9a825}
 </style>
 </head>
 
@@ -34,11 +82,21 @@ body{
 
 <div class="header">
   <div class="back" onclick="history.back()">← Back</div>
-  <h3>Staff</h3>
+  <h3>Staff List</h3>
 </div>
 
-<div class="container" id="content">
-  Loading...
+<div class="container" id="list">Loading...</div>
+
+<!-- RATING MODAL -->
+<div class="modal" id="modal">
+  <div class="modal-box">
+    <h3>Rate Staff</h3>
+    <div id="stars"></div>
+    <br>
+    <button class="btn" onclick="submitRating()">Submit</button>
+    <br><br>
+    <span style="cursor:pointer;color:#d32f2f" onclick="closeModal()">Cancel</span>
+  </div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -52,30 +110,105 @@ firebase.initializeApp({
   projectId:"rcem-system"
 });
 
-const auth = firebase.auth();
-const db   = firebase.firestore();
+const auth=firebase.auth();
+const db=firebase.firestore();
 
+let currentStaff=null;
+let selectedStars=0;
+let perms={};
+
+/* AUTH */
 auth.onAuthStateChanged(async user=>{
-  if(!user){
-    location.href="index.html";
-    return;
-  }
+  if(!user){location.href="index.html";return;}
 
-  const snap = await db.collection("users").doc(user.email).get();
-
-  if(!snap.exists || snap.data().permissions?.staff !== true){
-    alert("আপনার Staff দেখার অনুমতি নেই");
-    history.back();
-    return;
-  }
-
-  document.getElementById("content").innerHTML = `
-    <div class="card">
-      <h3>✅ Staff Module Active</h3>
-      <p>এখানে পরবর্তীতে staff list, add, edit আসবে</p>
-    </div>
-  `;
+  const u=await db.collection("users").doc(user.email).get();
+  perms=u.data()?.permissions||{};
 });
+
+/* LOAD STAFF */
+db.collection("staffs").onSnapshot(s=>{
+  list.innerHTML="";
+  s.forEach(d=>{
+    const v=d.data();
+    const rating=v.rating||0;
+    const reviews=v.total_reviews||0;
+    const level=v.level||0;
+
+    list.innerHTML+=`
+      <div class="card">
+        <div class="name">${v.name}</div>
+        <div class="meta">📞 ${v.phone}</div>
+        <div class="meta">📍 ${v.address}</div>
+        <div class="rating">⭐ ${rating.toFixed(1)} (${reviews} reviews)</div>
+        <div class="level">Level: ${level} / 100</div><br>
+        <button class="btn"
+          ${!perms.staff ? "disabled" : ""}
+          onclick='openModal("${d.id}")'>
+          Give Rating
+        </button>
+      </div>
+    `;
+  });
+});
+
+/* MODAL */
+function openModal(id){
+  currentStaff=id;
+  selectedStars=0;
+  stars.innerHTML="";
+  for(let i=1;i<=5;i++){
+    stars.innerHTML+=`<span class="star" onclick="pick(${i})">★</span>`;
+  }
+  modal.style.display="flex";
+}
+function closeModal(){modal.style.display="none";}
+function pick(n){
+  selectedStars=n;
+  document.querySelectorAll(".star").forEach((s,i)=>{
+    s.classList.toggle("active",i<n);
+  });
+}
+
+/* SUBMIT RATING */
+async function submitRating(){
+  if(selectedStars===0)return alert("Star দিন");
+
+  const today=new Date().toISOString().slice(0,10);
+
+  const q=await db.collection("staff_reviews")
+    .where("staff_id","==",currentStaff)
+    .where("date","==",today)
+    .get();
+
+  if(!q.empty){
+    alert("আজকে ইতিমধ্যে রেটিং দেওয়া হয়েছে");
+    return;
+  }
+
+  await db.collection("staff_reviews").add({
+    staff_id:currentStaff,
+    stars:selectedStars,
+    date:today,
+    created:Date.now()
+  });
+
+  const ref=db.collection("staffs").doc(currentStaff);
+  const snap=await ref.get();
+  const r=snap.data().total_reviews||0;
+  const avg=snap.data().rating||0;
+
+  const newReviews=r+1;
+  const newAvg=((avg*r)+selectedStars)/newReviews;
+  const level=Math.min(100,newReviews*2);
+
+  await ref.update({
+    total_reviews:newReviews,
+    rating:newAvg,
+    level:level
+  });
+
+  closeModal();
+}
 </script>
 
 </body>
