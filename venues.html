@@ -7,140 +7,71 @@
 
 <style>
 *{box-sizing:border-box}
-
-body{
-  margin:0;
-  font-family:Arial;
-  background:#f4f6f9
-}
-
+body{margin:0;font-family:Arial;background:#f4f6f9}
 .header{
-  background:#0d47a1;
-  color:#fff;
-  padding:15px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center
+  background:#0d47a1;color:#fff;padding:15px;
+  display:flex;justify-content:space-between;align-items:center
 }
-
 .container{padding:15px}
 
 .btn{
-  padding:10px 18px;
-  border:none;
-  border-radius:22px;
-  color:#fff;
-  cursor:pointer;
-  font-size:14px
+  padding:10px 18px;border:none;border-radius:22px;
+  color:#fff;cursor:pointer;font-size:14px
 }
-
 .add{background:linear-gradient(45deg,#2e7d32,#43a047)}
 .toggle{background:linear-gradient(45deg,#f9a825,#fbc02d);color:#000}
 .logout{background:#d32f2f}
 
 .card{
-  background:#fff;
-  padding:16px;
-  border-radius:18px;
+  background:#fff;padding:16px;border-radius:18px;
   margin-bottom:16px;
   box-shadow:0 10px 25px rgba(0,0,0,.12)
 }
 
-/* STATUS */
 .status-row{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  margin:6px 0;
-  font-weight:bold
+  display:flex;align-items:center;gap:8px;
+  margin:6px 0;font-weight:bold
 }
+.dot{width:12px;height:12px;border-radius:50%}
+.active{background:#2e7d32;box-shadow:0 0 6px #2e7d32}
+.inactive{background:#d32f2f;box-shadow:0 0 6px #d32f2f}
 
-.dot{
-  width:12px;
-  height:12px;
-  border-radius:50%
-}
-
-.active{
-  background:#2e7d32;
-  box-shadow:0 0 6px #2e7d32
-}
-
-.inactive{
-  background:#d32f2f;
-  box-shadow:0 0 6px #d32f2f
-}
-
-.meta{
-  font-size:14px;
-  color:#555;
-  margin:4px 0
-}
-
+.meta{font-size:14px;color:#555;margin:4px 0}
 .highlight{background:yellow}
 
-/* SEARCH */
 .search-box{
-  width:100%;
-  padding:12px 16px;
-  margin:15px 0;
-  border-radius:25px;
-  border:1px solid #ccc;
-  font-size:15px
+  width:100%;padding:12px 16px;margin:15px 0;
+  border-radius:25px;border:1px solid #ccc;font-size:15px
 }
-
 .filter{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  margin-bottom:15px;
-  font-weight:bold
+  display:flex;align-items:center;gap:8px;
+  margin-bottom:15px;font-weight:bold
 }
 
-/* DASHBOARD */
 .stats{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:10px;
-  margin:15px 0
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:10px;margin:15px 0
 }
-
 .stat{
-  background:#fff;
-  padding:12px;
-  border-radius:14px;
+  background:#fff;padding:12px;border-radius:14px;
   text-align:center;
   box-shadow:0 6px 15px rgba(0,0,0,.12)
 }
-
 .stat b{font-size:20px}
 
-/* MODAL */
 .modal{
-  position:fixed;
-  inset:0;
+  position:fixed;inset:0;
   background:rgba(0,0,0,.6);
-  display:none;
-  align-items:center;
-  justify-content:center;
+  display:none;align-items:center;justify-content:center;
   padding:12px
 }
-
 .modal-box{
-  background:#fff;
-  padding:18px;
-  border-radius:18px;
-  width:100%;
-  max-width:420px
+  background:#fff;padding:18px;border-radius:18px;
+  width:100%;max-width:420px
 }
-
 .modal-box input{
-  width:100%;
-  padding:12px;
-  margin-bottom:12px;
-  border-radius:12px;
-  border:1px solid #ccc;
-  font-size:15px
+  width:100%;padding:12px;margin-bottom:12px;
+  border-radius:12px;border:1px solid #ccc;font-size:15px
 }
 </style>
 </head>
@@ -154,7 +85,6 @@ body{
 
 <div class="container">
 
-  <!-- DASHBOARD -->
   <div class="stats">
     <div class="stat">Total<br><b id="total">0</b></div>
     <div class="stat">Active<br><b id="active">0</b></div>
@@ -175,7 +105,6 @@ body{
   <div id="venueList">Loading...</div>
 </div>
 
-<!-- MODAL -->
 <div class="modal" id="modal">
   <div class="modal-box">
     <h3>Add Venue</h3>
@@ -183,7 +112,8 @@ body{
     <input id="vlocation" placeholder="Address">
     <input id="vcontact" placeholder="Mobile">
     <button class="btn add" style="width:100%" onclick="save()">Save</button>
-    <p style="text-align:center;cursor:pointer;margin-top:10px" onclick="closeModal()">Cancel</p>
+    <p style="text-align:center;cursor:pointer;margin-top:10px"
+       onclick="closeModal()">Cancel</p>
   </div>
 </div>
 
@@ -202,8 +132,19 @@ const auth=firebase.auth();
 const db=firebase.firestore();
 let data=[];
 
-auth.onAuthStateChanged(u=>{
-  if(!u) location.href="index.html";
+/* 🔐 ADMIN EMAIL RESTRICTION (NEW) */
+auth.onAuthStateChanged(async user=>{
+  if(!user){
+    location.href="index.html";
+    return;
+  }
+
+  const adminDoc = await db.collection("admins").doc(user.email).get();
+  if(!adminDoc.exists || adminDoc.data().active !== true){
+    alert("Unauthorized access");
+    await auth.signOut();
+    location.href="index.html";
+  }
 });
 
 function logout(){
@@ -214,11 +155,12 @@ function openModal(){
   modal.style.display="flex";
   vname.value=""; vlocation.value=""; vcontact.value="";
 }
-
 function closeModal(){ modal.style.display="none"; }
 
 function save(){
-  if(!vname.value.trim()){ alert("Venue name required"); return; }
+  if(!vname.value.trim()){
+    alert("Venue name required"); return;
+  }
   db.collection("venues").add({
     venue_name:vname.value,
     location:vlocation.value,
@@ -241,14 +183,11 @@ function render(){
   const k=search.value.toLowerCase();
   const only=onlyActive.checked;
   venueList.innerHTML="";
-  let t=0,a=0,i=0;
-  let serial=1;
+  let t=0,a=0,i=0,serial=1;
 
   data.forEach(v=>{
     t++; v.active?a++:i++;
-
     if(only && !v.active) return;
-
     if(
       !v.venue_name.toLowerCase().includes(k) &&
       !(v.contact||"").includes(k) &&
@@ -268,11 +207,12 @@ function render(){
         </div>
         <div class="meta">📞 ${highlight(v.contact||"",k)}</div>
         <div class="meta">
-          📍 <a href="${mapLink}" target="_blank" style="text-decoration:none;color:#0d47a1">
-            ${highlight(v.location||"",k)}
-          </a>
+          📍 <a href="${mapLink}" target="_blank"
+          style="text-decoration:none;color:#0d47a1">
+          ${highlight(v.location||"",k)}</a>
         </div><br>
-        <button class="btn toggle" onclick='toggle("${v.id}",${v.active})'>Toggle</button>
+        <button class="btn toggle"
+          onclick='toggle("${v.id}",${v.active})'>Toggle</button>
       </div>`;
     serial++;
   });
