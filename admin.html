@@ -133,10 +133,10 @@ body{background:#f4f6f9;overflow-x:hidden}
 
   <div class="menu">
     <a id="menu_dashboard" href="admin.html">Dashboard</a>
-    <a id="menu_assignments" href="#">Assignments</a>
+    <a id="menu_assignments" href="assignments.html">Assignments</a>
     <a id="menu_staff" href="staff.html">Staff</a>
     <a id="menu_venues" href="venues.html">Venues</a>
-    <a id="menu_accounts" href="#">Monthly Accounts</a>
+    <a id="menu_accounts" href="monthly-accounts.html">Monthly Accounts</a>
     <a id="menu_users" href="admin-users.html">Admin Users</a>
   </div>
 
@@ -186,9 +186,10 @@ auth.onAuthStateChanged(async user=>{
     return;
   }
 
-  userEmail.innerText=user.email;
+  document.getElementById("userEmail").innerText=user.email;
 
   const snap = await db.collection("users").doc(user.email).get();
+
   if(!snap.exists || snap.data().active !== true){
     alert("Unauthorized access");
     await auth.signOut();
