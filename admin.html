@@ -1,127 +1,73 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RCEM Admin Dashboard</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RCEM Admin Dashboard</title>
 
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: Arial, sans-serif;
-    }
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
+body{background:#f4f6f9;min-height:100vh}
 
-    body {
-      background: #f4f6f9;
-      min-height: 100vh;
-    }
+.header{
+  background:#0d47a1;color:#fff;
+  padding:15px 20px;
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap
+}
+.header h1{font-size:20px}
 
-    .header {
-      background: #0d47a1;
-      color: #fff;
-      padding: 15px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-    }
+.user-info{font-size:14px;margin-top:5px}
 
-    .header h1 { font-size: 20px; }
+.logout-btn{
+  background:#d32f2f;border:none;color:#fff;
+  padding:8px 14px;border-radius:5px;cursor:pointer;margin-top:5px
+}
 
-    .user-info {
-      font-size: 14px;
-      margin-top: 5px;
-    }
+.container{display:flex;min-height:calc(100vh - 70px)}
 
-    .logout-btn {
-      background: #d32f2f;
-      border: none;
-      color: #fff;
-      padding: 8px 14px;
-      border-radius: 5px;
-      cursor: pointer;
-      margin-top: 5px;
-    }
+.sidebar{
+  width:220px;background:#1565c0;color:#fff;padding:20px
+}
+.sidebar h2{font-size:18px;margin-bottom:20px}
 
-    .container {
-      display: flex;
-      min-height: calc(100vh - 70px);
-    }
+.sidebar a{
+  display:block;color:#fff;text-decoration:none;
+  padding:10px 0;font-size:15px;cursor:pointer
+}
+.sidebar a.hidden{display:none}
+.sidebar a:hover{
+  background:rgba(255,255,255,0.1);
+  padding-left:5px
+}
 
-    .sidebar {
-      width: 220px;
-      background: #1565c0;
-      color: #fff;
-      padding: 20px;
-    }
+.main{flex:1;padding:20px}
 
-    .sidebar h2 {
-      font-size: 18px;
-      margin-bottom: 20px;
-    }
+.cards{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:15px
+}
 
-    .sidebar a {
-      display: block;
-      color: #fff;
-      text-decoration: none;
-      padding: 10px 0;
-      font-size: 15px;
-      cursor: pointer;
-    }
+.card{
+  background:#fff;padding:20px;border-radius:10px;
+  box-shadow:0 4px 10px rgba(0,0,0,0.1)
+}
+.card h3{font-size:16px;color:#555;margin-bottom:10px}
+.card p{font-size:22px;font-weight:bold;color:#0d47a1}
 
-    .sidebar a:hover {
-      background: rgba(255,255,255,0.1);
-      padding-left: 5px;
-    }
-
-    .main {
-      flex: 1;
-      padding: 20px;
-    }
-
-    .cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 15px;
-    }
-
-    .card {
-      background: #fff;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    }
-
-    .card h3 {
-      font-size: 16px;
-      color: #555;
-      margin-bottom: 10px;
-    }
-
-    .card p {
-      font-size: 22px;
-      font-weight: bold;
-      color: #0d47a1;
-    }
-
-    @media (max-width: 768px) {
-      .container { flex-direction: column; }
-      .sidebar {
-        width: 100%;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-      }
-      .sidebar a {
-        flex: 1 1 45%;
-        text-align: center;
-        background: rgba(255,255,255,0.1);
-        border-radius: 5px;
-      }
-    }
-  </style>
+@media(max-width:768px){
+  .container{flex-direction:column}
+  .sidebar{
+    width:100%;display:flex;flex-wrap:wrap;gap:10px
+  }
+  .sidebar a{
+    flex:1 1 45%;
+    text-align:center;
+    background:rgba(255,255,255,0.1);
+    border-radius:5px
+  }
+}
+</style>
 </head>
 
 <body>
@@ -138,15 +84,18 @@
 
 <div class="container">
 
+  <!-- SIDEBAR -->
   <div class="sidebar">
     <h2>Menu</h2>
-    <a onclick="showDashboard()">Dashboard</a>
-    <a>Assignments</a>
-    <a>Staff</a>
-    <a href="venues.html">Venues</a>
-    <a>Monthly Accounts</a>
+    <a id="menuDashboard" onclick="showDashboard()">Dashboard</a>
+    <a id="menuAssignments">Assignments</a>
+    <a id="menuStaff">Staff</a>
+    <a id="menuVenues" href="venues.html">Venues</a>
+    <a id="menuAccounts">Monthly Accounts</a>
+    <a id="menuAdmins" href="admin-users.html">Admin Users</a>
   </div>
 
+  <!-- MAIN -->
   <div class="main">
     <div id="dashboardSection">
       <div class="cards">
@@ -178,55 +127,79 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyDK3dqXZuWaH3gctxURdOZc_Q1UfioesaA",
-    authDomain: "rcem-system.firebaseapp.com",
-    projectId: "rcem-system"
-  };
+firebase.initializeApp({
+  apiKey:"AIzaSyDK3dqXZuWaH3gctxURdOZc_Q1UfioesaA",
+  authDomain:"rcem-system.firebaseapp.com",
+  projectId:"rcem-system"
+});
 
-  if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
+const auth=firebase.auth();
+const db=firebase.firestore();
+
+auth.onAuthStateChanged(async user=>{
+  if(!user){location.href="index.html";return;}
+
+  adminEmail.innerText=user.email;
+
+  const doc=await db.collection("users").doc(user.email).get();
+
+  if(!doc.exists || !doc.data().active){
+    blockAccess();
+    return;
   }
 
-  const auth = firebase.auth();
-  const db = firebase.firestore();
+  applyRole(doc.data().role);
+});
 
-  auth.onAuthStateChanged(async user => {
-    if (!user) {
-      location.href = "index.html";
-      return;
-    }
+function applyRole(role){
+  document.querySelectorAll(".sidebar a")
+    .forEach(a=>a.classList.add("hidden"));
 
-    document.getElementById("adminEmail").innerText = user.email;
+  menuDashboard.classList.remove("hidden");
 
-    const snap = await db.collection("users").doc(user.email).get();
-
-    if (!snap.exists || !snap.data().active) {
-      alert(
-        "বর্তমানে এই অপশনে ঢোকার আপনার অনুমতি নেই。\n\n" +
-        "সাপোর্ট: admin@rcem-system.com\n" +
-        "ফোন: +8801926627000\n\n" +
-        "Rajshahi Catering & Event Management"
-      );
-      auth.signOut();
-      location.href = "index.html";
-      return;
-    }
-
-    const role = snap.data().role;
-    if (role !== "super_admin" && role !== "admin") {
-      alert("আপনার Admin Dashboard এ প্রবেশের অনুমতি নেই");
-      location.href = "index.html";
-    }
-  });
-
-  function logout() {
-    auth.signOut().then(() => location.href = "index.html");
+  if(role==="super_admin"){
+    showAll();
   }
-
-  function showDashboard() {
-    document.getElementById("dashboardSection").style.display = "block";
+  else if(role==="admin"){
+    showAll();
+    menuAdmins.classList.add("hidden");
   }
+  else if(role==="manager"){
+    menuVenues.classList.remove("hidden");
+  }
+  else if(role==="supervisor"){
+    // dashboard only
+  }
+  else{
+    blockAccess();
+  }
+}
+
+function showAll(){
+  document.querySelectorAll(".sidebar a")
+    .forEach(a=>a.classList.remove("hidden"));
+}
+
+function blockAccess(){
+  alert(
+`বর্তমানে এই অপশনে ঢোকার আপনার অনুমতি নেই।
+অনুগ্রহ করে সাপোর্টে যোগাযোগ করুন ।
+
+সাপোর্ট: admin@rcem-system.com
+ফোন: +8801926627000
+
+Rajshahi Catering & Event Management`
+  );
+  logout();
+}
+
+function logout(){
+  auth.signOut().then(()=>location.href="index.html");
+}
+
+function showDashboard(){
+  document.getElementById("dashboardSection").style.display="block";
+}
 </script>
 
 </body>
