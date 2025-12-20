@@ -20,6 +20,7 @@ button{padding:10px 18px;border:none;border-radius:22px;cursor:pointer;font-size
 .manager{background:#6a1b9a}
 .supervisor{background:#455a64}
 .inactive{opacity:.5}
+.perm label{display:block;font-size:14px;margin:4px 0}
 </style>
 </head>
 
@@ -35,12 +36,28 @@ button{padding:10px 18px;border:none;border-radius:22px;cursor:pointer;font-size
   <!-- ADD USER -->
   <div class="card">
     <h3>Add New User</h3>
+
     <input id="email" placeholder="User Email">
+
     <select id="role">
       <option value="admin">Admin</option>
       <option value="manager">Manager</option>
       <option value="supervisor">Supervisor</option>
     </select>
+
+    <!-- 🔐 PERMISSIONS (NEW – UI ONLY) -->
+    <div class="perm" id="permBox" style="display:none">
+      <b>Permissions</b>
+      <label><input type="checkbox" id="p_dashboard"> Dashboard</label>
+      <label><input type="checkbox" id="p_venues"> Venues View</label>
+      <label><input type="checkbox" id="p_venues_add"> Venues Add</label>
+      <label><input type="checkbox" id="p_venues_edit"> Venues Edit</label>
+      <label><input type="checkbox" id="p_staff"> Staff</label>
+      <label><input type="checkbox" id="p_assignments"> Assignments</label>
+      <label><input type="checkbox" id="p_accounts"> Accounts</label>
+      <label><input type="checkbox" id="p_user_management"> User Management</label>
+    </div>
+
     <button class="add" onclick="addUser()">Add User</button>
   </div>
 
@@ -81,17 +98,52 @@ function logout(){
   auth.signOut().then(()=>location.href="index.html");
 }
 
-/* ADD USER */
+/* ROLE → DEFAULT PERMISSIONS */
+role.onchange=()=>{
+  permBox.style.display="block";
+  setAll(false);
+
+  if(role.value==="admin"){
+    setAll(true);
+  }
+  if(role.value==="manager"){
+    p_dashboard.checked=true;
+    p_venues.checked=true;
+  }
+  if(role.value==="supervisor"){
+    p_venues.checked=true;
+  }
+};
+
+function setAll(v){
+  document.querySelectorAll(".perm input").forEach(c=>c.checked=v);
+}
+
+/* ADD USER + SAVE PERMISSIONS */
 function addUser(){
-  const email=document.getElementById("email").value.trim();
-  const role=document.getElementById("role").value;
-  if(!email){alert("Email required");return;}
-  db.collection("users").doc(email).set({
-    role:role,
+  const mail=email.value.trim();
+  if(!mail){alert("Email required");return;}
+
+  const permissions={
+    dashboard:p_dashboard.checked,
+    venues:p_venues.checked,
+    venues_add:p_venues_add.checked,
+    venues_edit:p_venues_edit.checked,
+    staff:p_staff.checked,
+    assignments:p_assignments.checked,
+    accounts:p_accounts.checked,
+    user_management:p_user_management.checked
+  };
+
+  db.collection("users").doc(mail).set({
+    role:role.value,
     active:true,
+    permissions:permissions,
     created:Date.now()
   });
+
   email.value="";
+  permBox.style.display="none";
 }
 
 /* TOGGLE ACTIVE */
