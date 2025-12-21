@@ -85,53 +85,50 @@ select,input{
 
 <div class="header">
   <div class="back" onclick="history.back()">← Back</div>
-  <h3>Create Assignment</h3>
+  <h3 id="pageTitle">Create Assignment</h3>
 </div>
 
 <div class="container">
   <div class="card">
 
-    <label>Assignment টাইপ</label>
-    <select id="type" onchange="switchType()">
-      <option value="venue">Venue ভিত্তিক</option>
-      <option value="order">Order / Event ভিত্তিক</option>
-    </select>
+<label>Assignment টাইপ</label>
+<select id="type" onchange="switchType()">
+  <option value="venue">Venue ভিত্তিক</option>
+  <option value="order">Order / Event ভিত্তিক</option>
+</select>
 
-    <!-- VENUE BASED -->
-    <div id="venueSection">
-      <label>Venue নির্বাচন করুন</label>
-      <select id="venueSelect"></select>
-    </div>
+<div id="venueSection">
+  <label>Venue নির্বাচন করুন</label>
+  <select id="venueSelect"></select>
+</div>
 
-    <!-- ORDER BASED -->
-    <div id="orderSection" class="hidden">
-      <label>Order / Event নাম</label>
-      <input id="orderName" placeholder="যেমন: রাজশাহী মেডিকেল কলেজ অনুষ্ঠান">
+<div id="orderSection" class="hidden">
+  <label>Order / Event নাম</label>
+  <input id="orderName">
 
-      <label>লোকেশন</label>
-      <input id="orderLocation" placeholder="লোকেশন লিখুন">
+  <label>লোকেশন</label>
+  <input id="orderLocation">
 
-      <label>কয়জন স্টাফ লাগবে</label>
-      <input id="requiredStaff" type="number" placeholder="সংখ্যা">
-    </div>
+  <label>কয়জন স্টাফ লাগবে</label>
+  <input id="requiredStaff" type="number">
+</div>
 
-    <label>Duty Date</label>
-    <input type="date" id="dutyDate">
+<label>Duty Date</label>
+<input type="date" id="dutyDate">
 
-    <!-- 🆕 SHIFT -->
-    <label>Shift</label>
-    <select id="shift">
-      <option value="">Shift নির্বাচন করুন</option>
-      <option value="day">Day (সকাল)</option>
-      <option value="night">Night (রাত)</option>
-    </select>
+<label>Shift</label>
+<select id="shift">
+  <option value="">Shift নির্বাচন করুন</option>
+  <option value="day">Day (সকাল)</option>
+  <option value="night">Night (রাত)</option>
+</select>
 
-    <label>Staff নির্বাচন (ঐচ্ছিক)</label>
-    <div class="staff-box" id="staffList">Loading...</div>
+<label>Staff নির্বাচন (ঐচ্ছিক)</label>
+<div class="staff-box" id="staffList">Loading...</div>
 
-    <button class="btn" onclick="saveAssignment()">Create Assignment</button>
+<button class="btn" onclick="saveAssignment()">Save Assignment</button>
 
-  </div>
+</div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -145,6 +142,12 @@ firebase.initializeApp({
 });
 
 const db = firebase.firestore();
+const params = new URLSearchParams(location.search);
+const editId = params.get("id");
+
+if(editId){
+  pageTitle.innerText = "Edit Assignment";
+}
 
 /* LOAD VENUES */
 db.collection("venues").orderBy("venue_name").get().then(snap=>{
@@ -168,13 +171,38 @@ db.collection("staffs").orderBy("name").get().then(snap=>{
   });
 });
 
-/* SWITCH TYPE */
+/* LOAD DATA FOR EDIT */
+if(editId){
+  db.collection("assignments").doc(editId).get().then(doc=>{
+    const a = doc.data();
+    type.value = a.type;
+    dutyDate.value = a.duty_date;
+    shift.value = a.shift || "";
+    if(a.type==="venue"){
+      venueSelect.value = a.venue_id;
+    }else{
+      switchType();
+      orderName.value = a.venue_name;
+      orderLocation.value = a.location || "";
+      requiredStaff.value = a.required_staff || 0;
+    }
+    setTimeout(()=>{
+      staffList.querySelectorAll("input").forEach(i=>{
+        if(a.staff_names?.includes(
+          staffCache.find(s=>s.id===i.value)?.name
+        )) i.checked=true;
+      });
+    },300);
+  });
+}
+
+/* SWITCH */
 function switchType(){
   venueSection.classList.toggle("hidden", type.value!=="venue");
   orderSection.classList.toggle("hidden", type.value!=="order");
 }
 
-/* SAVE ASSIGNMENT */
+/* SAVE */
 function saveAssignment(){
   if(!dutyDate.value){ alert("Duty Date দিন"); return; }
   if(!shift.value){ alert("Shift নির্বাচন করুন"); return; }
@@ -191,7 +219,7 @@ function saveAssignment(){
     shift:shift.value,
     staff_names:selectedStaff,
     status:"pending",
-    created:Date.now()
+    updated:Date.now()
   };
 
   if(type.value==="venue"){
@@ -205,10 +233,18 @@ function saveAssignment(){
     data.required_staff=Number(requiredStaff.value||0);
   }
 
-  db.collection("assignments").add(data).then(()=>{
-    alert("Assignment সফলভাবে তৈরি হয়েছে");
-    location.href="assignments.html";
-  });
+  if(editId){
+    db.collection("assignments").doc(editId).update(data).then(()=>{
+      alert("Assignment Updated");
+      location.href="assignments.html";
+    });
+  }else{
+    data.created=Date.now();
+    db.collection("assignments").add(data).then(()=>{
+      alert("Assignment Created");
+      location.href="assignments.html";
+    });
+  }
 }
 </script>
 
