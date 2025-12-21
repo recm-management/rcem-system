@@ -1,68 +1,189 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Staff List</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RCEM – Staff</title>
 
 <style>
-body{margin:0;font-family:Arial;background:#f4f6f9}
-.header{background:#1565c0;color:#fff;padding:14px;display:flex;justify-content:space-between}
-.search{padding:12px}
-.search input{width:100%;padding:12px;border-radius:25px;border:1px solid #ccc}
-.add-btn{margin:0 12px 12px;background:#2e7d32;color:#fff;border:none;padding:10px 18px;border-radius:20px}
-.card{background:#fff;margin:12px;border-radius:16px;padding:14px;display:flex;gap:12px;box-shadow:0 8px 18px rgba(0,0,0,.12)}
-.avatar{width:55px;height:55px;border-radius:50%;background:#e3f2fd;display:flex;align-items:center;justify-content:center;font-size:26px}
-.badge{padding:4px 10px;border-radius:12px;font-size:12px;color:#fff}
+*{box-sizing:border-box;font-family:Arial}
+body{margin:0;background:#f4f6f9}
+
+/* HEADER */
+.header{
+  background:linear-gradient(135deg,#0d47a1,#1976d2);
+  color:#fff;
+  padding:16px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center
+}
+.back{cursor:pointer}
+
+/* SEARCH */
+.search{padding:14px}
+.search input{
+  width:100%;
+  padding:13px 18px;
+  border-radius:30px;
+  border:1px solid #ccc;
+  font-size:15px
+}
+
+/* ADD */
+.top-actions{padding:0 16px}
+.add-btn{
+  padding:10px 18px;
+  border:none;
+  border-radius:22px;
+  background:linear-gradient(45deg,#2e7d32,#43a047);
+  color:#fff;
+  font-size:14px;
+  cursor:pointer
+}
+
+/* LIST */
+.container{padding:16px}
+
+/* CARD */
+.card{
+  background:#fff;
+  border-radius:18px;
+  padding:16px;
+  margin-bottom:14px;
+  box-shadow:0 10px 25px rgba(0,0,0,.12);
+  display:flex;
+  gap:14px
+}
+
+/* AVATAR */
+.avatar{
+  width:56px;
+  height:56px;
+  border-radius:50%;
+  background:#e3f2fd;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:26px;
+  color:#1976d2
+}
+
+/* INFO */
+.info{flex:1}
+.name{font-size:16px;font-weight:bold}
+.serial{color:#1976d2;font-weight:bold;margin-right:6px}
+.meta{font-size:14px;color:#555;margin-top:4px}
+.meta a{color:#1565c0;text-decoration:none}
+
+/* BADGE */
+.badge{
+  display:inline-block;
+  padding:4px 10px;
+  border-radius:12px;
+  font-size:12px;
+  margin-top:6px;
+  color:#fff
+}
 .leader{background:#6a1b9a}
-.member{background:#2e7d32}
 .second{background:#1565c0}
-.actions button{border:none;padding:8px 12px;border-radius:14px;margin-top:6px}
-.rate{background:#f9a825}
+.member{background:#2e7d32}
+.new{background:#757575}
+
+/* LEVEL */
+.level{
+  margin-top:6px;
+  background:#e3f2fd;
+  padding:5px 12px;
+  border-radius:12px;
+  font-size:13px;
+  display:inline-block
+}
+
+/* ACTIONS */
+.actions{
+  display:flex;
+  flex-direction:column;
+  gap:8px
+}
+.btn{
+  padding:8px 12px;
+  border:none;
+  border-radius:14px;
+  font-size:13px;
+  cursor:pointer
+}
 .edit{background:#1565c0;color:#fff}
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center}
-.box{background:#fff;padding:18px;border-radius:16px;width:90%;max-width:420px}
-.box input,.box select{width:100%;padding:12px;margin-bottom:10px;border-radius:12px;border:1px solid #ccc}
+.rate{background:#f9a825}
+
+/* MODAL */
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.6);
+  display:none;
+  align-items:center;
+  justify-content:center
+}
+.modal-box{
+  background:#fff;
+  padding:18px;
+  border-radius:18px;
+  width:100%;
+  max-width:420px
+}
+.modal-box input,.modal-box select{
+  width:100%;
+  padding:12px;
+  margin-bottom:12px;
+  border-radius:12px;
+  border:1px solid #ccc
+}
+.modal-box button{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:22px;
+  background:#2e7d32;
+  color:#fff;
+  font-size:15px
+}
+.cancel{text-align:center;margin-top:10px;color:#555;cursor:pointer}
 </style>
 </head>
 
 <body>
 
 <div class="header">
-  <span onclick="history.back()">← Back</span>
-  <b>Staff List</b>
+  <div class="back" onclick="history.back()">← Back</div>
+  <h3>Staff List</h3>
 </div>
 
 <div class="search">
-  <input id="search" placeholder="Search by name or phone" oninput="render()">
+  <input id="search" placeholder="🔍 Search by name or phone" oninput="render()">
 </div>
 
-<button id="addBtn" class="add-btn" onclick="openModal()">+ Add Staff</button>
+<div class="top-actions">
+  <button id="addBtn" class="add-btn" onclick="openModal()">+ Add Staff</button>
+</div>
 
-<div id="list"></div>
+<div class="container" id="list">Loading...</div>
 
 <!-- MODAL -->
 <div class="modal" id="modal">
-  <div class="box">
-    <h3 id="title">Add Staff</h3>
-
-    <input id="name" placeholder="Name">
-    <input id="phone" placeholder="Phone">
-    <input id="address" placeholder="Address">
-
-    <select id="badge">
+  <div class="modal-box">
+    <h3 id="modalTitle">Add Staff</h3>
+    <input id="staffName" placeholder="Name">
+    <input id="staffPhone" placeholder="Phone">
+    <input id="staffAddress" placeholder="Address">
+    <select id="staffBadge">
       <option value="new">New Member</option>
       <option value="member">Member</option>
       <option value="second_leader">Second Leader</option>
       <option value="leader">Leader</option>
     </select>
-
-    <!-- 🔥 CRITICAL FIX -->
-    <button type="button" onclick="save()" style="background:#2e7d32;color:#fff;border:none;padding:12px;border-radius:22px">
-      Save
-    </button>
-
-    <div onclick="closeModal()" style="text-align:center;margin-top:8px;color:#555">Cancel</div>
+    <button onclick="save()">Save</button>
+    <div class="cancel" onclick="closeModal()">Cancel</div>
   </div>
 </div>
 
@@ -80,42 +201,57 @@ firebase.initializeApp({
 const auth=firebase.auth();
 const db=firebase.firestore();
 
-let staffs=[], perms={}, editId=null, ready=false;
+let staffs=[];
+let perms={};
+let editId=null;
 
-auth.onAuthStateChanged(async u=>{
-  if(!u){location.href="index.html";return}
-  const d=(await db.collection("users").doc(u.email).get()).data()||{};
-  perms=d.permissions||{};
-  if(d.role==="super_admin") perms.staff_add=perms.staff_edit=true;
+auth.onAuthStateChanged(async user=>{
+  if(!user){location.href="index.html";return;}
+  const u=await db.collection("users").doc(user.email).get();
+  perms=u.data()?.permissions||{};
   if(!perms.staff_add) addBtn.style.display="none";
-  ready=true; render();
 });
 
 db.collection("staffs").onSnapshot(s=>{
-  staffs=[]; s.forEach(d=>staffs.push({id:d.id,...d.data()}));
+  staffs=[];
+  s.forEach(d=>staffs.push({id:d.id,...d.data()}));
+  staffs.sort((a,b)=>(b.level||0)-(a.level||0));
   render();
 });
 
 function render(){
-  if(!ready) return;
   list.innerHTML="";
-  let i=1, k=search.value.toLowerCase();
+  const k=search.value.toLowerCase();
+  let i=1;
+
   staffs.forEach(s=>{
-    if(!s.name?.toLowerCase().includes(k)&&!s.phone?.includes(k))return;
+    if(!s.name?.toLowerCase().includes(k) && !s.phone?.includes(k)) return;
+
+    const badgeMap={
+      leader:["Leader","leader"],
+      second_leader:["Second Leader","second"],
+      member:["Member","member"],
+      new:["New Member","new"]
+    };
+    const [bt,bc]=badgeMap[s.badge||"new"];
+
     list.innerHTML+=`
-    <div class="card">
-      <div class="avatar">👤</div>
-      <div style="flex:1">
-        <b>${i++}. ${s.name}</b><br>
-        📞 <a href="tel:${s.phone}">${s.phone}</a><br>
-        📍 ${s.address||"-"}<br>
-        <span class="badge leader">${s.badge||"Member"}</span>
+      <div class="card">
+        <div class="avatar">👤</div>
+        <div class="info">
+          <div class="name"><span class="serial">${i}.</span>${s.name}</div>
+          <div class="meta">📞 <a href="tel:${s.phone}">${s.phone}</a></div>
+          <div class="meta">📍 ${s.address||"-"}</div>
+          <span class="badge ${bc}">${bt}</span>
+          <div class="level">Level: ${s.level||0} / 100</div>
+        </div>
+        <div class="actions">
+          <button class="btn rate">Give Rating</button>
+          <button class="btn edit" onclick='openModal(${JSON.stringify(s).replace(/"/g,"&quot;")})'>Edit</button>
+        </div>
       </div>
-      <div class="actions">
-        <button class="rate">Rating</button>
-        ${perms.staff_edit?`<button class="edit" onclick='openModal(${JSON.stringify(s).replace(/"/g,"&quot;")})'>Edit</button>`:""}
-      </div>
-    </div>`;
+    `;
+    i++;
   });
 }
 
@@ -123,32 +259,46 @@ function openModal(s=null){
   modal.style.display="flex";
   if(s){
     editId=s.id;
-    title.innerText="Edit Staff";
-    name.value=s.name; phone.value=s.phone;
-    address.value=s.address||""; badge.value=s.badge||"new";
+    modalTitle.innerText="Edit Staff";
+    staffName.value=s.name||"";
+    staffPhone.value=s.phone||"";
+    staffAddress.value=s.address||"";
+    staffBadge.value=s.badge||"new";
   }else{
     editId=null;
-    title.innerText="Add Staff";
-    name.value=phone.value=address.value="";
-    badge.value="new";
+    modalTitle.innerText="Add Staff";
+    staffName.value=staffPhone.value=staffAddress.value="";
+    staffBadge.value="new";
   }
 }
+
 function closeModal(){modal.style.display="none"}
 
-function save(){
-  const n=name.value.trim(), p=phone.value.trim();
-  if(!n||!p){alert("Name এবং Phone দরকার");return}
-
-  const data={name:n,phone:p,address:address.value.trim(),badge:badge.value};
+async function save(){
+  if(!staffName.value.trim() || !staffPhone.value.trim()){
+    alert("Name এবং Phone দরকার");
+    return;
+  }
 
   if(editId){
-    if(!perms.staff_edit) return alert("No permission");
-    db.collection("staffs").doc(editId).update(data).then(closeModal);
+    await db.collection("staffs").doc(editId).update({
+      name:staffName.value,
+      phone:staffPhone.value,
+      address:staffAddress.value,
+      badge:staffBadge.value
+    });
   }else{
-    if(!perms.staff_add) return alert("No permission");
-    db.collection("staffs").add({...data,level:0,rating:0,created:Date.now()})
-      .then(closeModal);
+    await db.collection("staffs").add({
+      name:staffName.value,
+      phone:staffPhone.value,
+      address:staffAddress.value,
+      badge:staffBadge.value,
+      level:0,
+      active:true,
+      created:Date.now()
+    });
   }
+  closeModal();
 }
 </script>
 
