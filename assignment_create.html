@@ -15,22 +15,21 @@ body{margin:0;background:#f4f6f9}
   color:#fff;
   padding:16px;
   display:flex;
-  align-items:center;
-  justify-content:space-between
+  justify-content:space-between;
+  align-items:center
 }
 .back{cursor:pointer}
 
 /* FORM */
-.form{
-  padding:16px
-}
+.form{padding:16px}
 .card{
   background:#fff;
   border-radius:18px;
   padding:18px;
   box-shadow:0 10px 25px rgba(0,0,0,.12)
 }
-input,select{
+
+select,input{
   width:100%;
   padding:12px;
   margin-bottom:14px;
@@ -38,6 +37,24 @@ input,select{
   border:1px solid #ccc;
   font-size:15px
 }
+
+/* STAFF LIST */
+.staff-list{
+  border:1px solid #ddd;
+  border-radius:12px;
+  padding:10px;
+  max-height:200px;
+  overflow:auto;
+  margin-bottom:14px
+}
+.staff-item{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:6px;
+  font-size:14px
+}
+
 button{
   width:100%;
   padding:14px;
@@ -60,10 +77,22 @@ button{
 
 <div class="form">
   <div class="card">
-    <input id="venue" placeholder="Venue Name (হল / কমিউনিটি সেন্টার)">
-    <input id="date" type="date">
-    <input id="staff" placeholder="Staff Names (কমা দিয়ে লিখুন)">
+
+    <!-- VENUE SELECT -->
+    <select id="venueSelect">
+      <option value="">🏛️ Venue নির্বাচন করুন</option>
+    </select>
+
+    <!-- DATE -->
+    <input type="date" id="dutyDate">
+
+    <!-- STAFF LIST -->
+    <div class="staff-list" id="staffList">
+      Loading staff...
+    </div>
+
     <button onclick="save()">Create Assignment</button>
+
   </div>
 </div>
 
@@ -78,8 +107,8 @@ firebase.initializeApp({
   projectId:"rcem-system"
 });
 
-const auth=firebase.auth();
-const db=firebase.firestore();
+const auth = firebase.auth();
+const db = firebase.firestore();
 let perms={};
 
 auth.onAuthStateChanged(async user=>{
@@ -95,16 +124,52 @@ auth.onAuthStateChanged(async user=>{
   }
 });
 
+/* LOAD VENUES */
+db.collection("venues").where("active","==",true).onSnapshot(s=>{
+  venueSelect.innerHTML='<option value="">🏛️ Venue নির্বাচন করুন</option>';
+  s.forEach(d=>{
+    venueSelect.innerHTML+=`
+      <option value="${d.id}">${d.data().name}</option>
+    `;
+  });
+});
+
+/* LOAD STAFF */
+db.collection("staffs").where("active","==",true).onSnapshot(s=>{
+  staffList.innerHTML="";
+  s.forEach(d=>{
+    staffList.innerHTML+=`
+      <label class="staff-item">
+        <input type="checkbox" value="${d.id}" data-name="${d.data().name}">
+        ${d.data().name}
+      </label>
+    `;
+  });
+});
+
+/* SAVE */
 async function save(){
-  if(!venue.value || !date.value){
+  if(!venueSelect.value || !dutyDate.value){
     alert("Venue এবং Date দরকার");
     return;
   }
 
+  const staffChecked=[...document.querySelectorAll('#staffList input:checked')];
+  if(staffChecked.length===0){
+    alert("অন্তত ১ জন Staff নির্বাচন করুন");
+    return;
+  }
+
+  const staffIds = staffChecked.map(s=>s.value);
+  const staffNames = staffChecked.map(s=>s.dataset.name);
+  const venueName = venueSelect.options[venueSelect.selectedIndex].text;
+
   await db.collection("assignments").add({
-    venue_name: venue.value,
-    duty_date: date.value,
-    staff_names: staff.value ? staff.value.split(",").map(s=>s.trim()) : [],
+    venue_id: venueSelect.value,
+    venue_name: venueName,
+    duty_date: dutyDate.value,
+    staff_ids: staffIds,
+    staff_names: staffNames,
     status: "pending",
     created: Date.now()
   });
