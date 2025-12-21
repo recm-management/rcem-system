@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create Assignment</title>
+
+<style>
+*{box-sizing:border-box;font-family:Arial}
+body{margin:0;background:#f4f6f9}
+
+/* HEADER */
+.header{
+  background:linear-gradient(135deg,#0d47a1,#1976d2);
+  color:#fff;
+  padding:16px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between
+}
+.back{cursor:pointer}
+
+/* FORM */
+.form{
+  padding:16px
+}
+.card{
+  background:#fff;
+  border-radius:18px;
+  padding:18px;
+  box-shadow:0 10px 25px rgba(0,0,0,.12)
+}
+input,select{
+  width:100%;
+  padding:12px;
+  margin-bottom:14px;
+  border-radius:12px;
+  border:1px solid #ccc;
+  font-size:15px
+}
+button{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:24px;
+  background:linear-gradient(45deg,#2e7d32,#43a047);
+  color:#fff;
+  font-size:16px;
+  cursor:pointer
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <div class="back" onclick="history.back()">← Back</div>
+  <h3>Create Assignment</h3>
+</div>
+
+<div class="form">
+  <div class="card">
+    <input id="venue" placeholder="Venue Name (হল / কমিউনিটি সেন্টার)">
+    <input id="date" type="date">
+    <input id="staff" placeholder="Staff Names (কমা দিয়ে লিখুন)">
+    <button onclick="save()">Create Assignment</button>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyDK3dqXZuWaH3gctxURdOZc_Q1UfioesaA",
+  authDomain:"rcem-system.firebaseapp.com",
+  projectId:"rcem-system"
+});
+
+const auth=firebase.auth();
+const db=firebase.firestore();
+let perms={};
+
+auth.onAuthStateChanged(async user=>{
+  if(!user){
+    location.href="index.html";
+    return;
+  }
+  const u = await db.collection("users").doc(user.email).get();
+  perms = u.data()?.permissions || {};
+  if(!perms.assignments_add){
+    alert("আপনার Assignment Create permission নেই");
+    history.back();
+  }
+});
+
+async function save(){
+  if(!venue.value || !date.value){
+    alert("Venue এবং Date দরকার");
+    return;
+  }
+
+  await db.collection("assignments").add({
+    venue_name: venue.value,
+    duty_date: date.value,
+    staff_names: staff.value ? staff.value.split(",").map(s=>s.trim()) : [],
+    status: "pending",
+    created: Date.now()
+  });
+
+  alert("Assignment তৈরি হয়েছে");
+  location.href="assignments.html";
+}
+</script>
+
+</body>
+</html>
