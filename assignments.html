@@ -54,18 +54,16 @@ body{margin:0;background:#f4f6f9}
   margin:5px 0
 }
 
-/* BADGE */
 .badge{
   display:inline-block;
   margin-top:6px;
-  padding:4px 10px;
+  padding:5px 12px;
   border-radius:14px;
   font-size:12px;
   color:#fff
 }
 .pending{background:#f9a825}
 .completed{background:#2e7d32}
-.cancelled{background:#d32f2f}
 
 /* PROGRAM LIST */
 .programs{
@@ -84,9 +82,9 @@ body{margin:0;background:#f4f6f9}
 /* ACTIONS */
 .actions{
   display:flex;
-  flex-wrap:wrap;
   gap:8px;
-  margin-top:8px
+  margin-top:8px;
+  flex-wrap:wrap
 }
 .btn{
   padding:6px 12px;
@@ -98,7 +96,7 @@ body{margin:0;background:#f4f6f9}
 .edit{background:#1565c0;color:#fff}
 .delete{background:#d32f2f;color:#fff}
 .toggle{background:#607d8b;color:#fff}
-.status{background:#455a64;color:#fff}
+.staffBtn{background:#455a64;color:#fff}
 
 /* EMPTY */
 .empty{
@@ -109,6 +107,33 @@ body{margin:0;background:#f4f6f9}
   color:#777;
   box-shadow:0 8px 22px rgba(0,0,0,.12)
 }
+
+/* STAFF MODAL */
+#staffModal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.6);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:9999
+}
+#staffModal .box{
+  background:#fff;
+  width:100%;
+  max-width:420px;
+  border-radius:18px;
+  padding:18px;
+  box-shadow:0 10px 30px rgba(0,0,0,.3)
+}
+.staff-item{
+  padding:10px 0;
+  border-bottom:1px solid #eee
+}
+.staff-item:last-child{border-bottom:none}
+.staff-name{font-weight:bold}
+.staff-role{font-size:12px;color:#777}
+.staff-count{font-size:13px;margin-top:4px}
 </style>
 </head>
 
@@ -127,6 +152,16 @@ body{margin:0;background:#f4f6f9}
 
 <div class="container" id="list">Loading...</div>
 
+<!-- STAFF DETAILS MODAL -->
+<div id="staffModal">
+  <div class="box">
+    <h3>👥 Staff Details</h3>
+    <div id="staffModalBody"></div>
+    <button class="btn delete" style="width:100%;margin-top:14px"
+      onclick="closeStaffModal()">Close</button>
+  </div>
+</div>
+
 <!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -138,15 +173,13 @@ firebase.initializeApp({
   projectId:"rcem-system"
 });
 const db = firebase.firestore();
+let rawAssignments=[];
 
-let assignments=[];
-
-/* LOAD */
-db.collection("assignments")
-.orderBy("created","desc")
+/* LOAD ASSIGNMENTS */
+db.collection("assignments").orderBy("created","desc")
 .onSnapshot(snap=>{
-  assignments=[];
-  snap.forEach(d=>assignments.push({id:d.id,...d.data()}));
+  rawAssignments=[];
+  snap.forEach(d=>rawAssignments.push({id:d.id,...d.data()}));
   render();
 });
 
@@ -155,14 +188,14 @@ function render(){
   const list=document.getElementById("list");
   list.innerHTML="";
 
-  if(assignments.length===0){
+  if(rawAssignments.length===0){
     list.innerHTML=`<div class="empty">কোনো Assignment নেই</div>`;
     return;
   }
 
   const grouped={};
-  assignments.forEach(a=>{
-    const key=a.venue_name || "Unknown";
+  rawAssignments.forEach(a=>{
+    const key=a.venue_name || "অন্যান্য প্রোগ্রাম";
     if(!grouped[key]) grouped[key]=[];
     grouped[key].push(a);
   });
@@ -171,68 +204,75 @@ function render(){
     const programs=grouped[name];
 
     list.innerHTML+=`
-      <div class="card">
-        <div class="title">${name}</div>
-        <div class="meta">📌 Upcoming Programs: ${programs.length}</div>
+    <div class="card">
+      <div class="title">${name}</div>
+      <div class="meta">📌 Upcoming Programs: ${programs.length}</div>
 
-        <div class="actions">
-          <button class="btn toggle"
-            onclick="togglePrograms(this)">
-            Details
-          </button>
-        </div>
-
-        <div class="programs">
-          ${programs.map(p=>`
-            <div class="program">
-              📅 ${p.duty_date || "-"} |
-              🕒 ${p.shift || "-"} |
-              👥 ${p.total_staff || 0} জন
-              ${p.location ? `<br>📍 ${p.location}` : ""}
-
-              <br>
-              <span class="badge ${p.status}">
-                ${p.status.toUpperCase()}
-              </span>
-
-              <div class="actions">
-                <button class="btn edit"
-                  onclick="location.href='create-assignment.html?id=${p.id}'">
-                  Edit
-                </button>
-
-                <button class="btn delete"
-                  onclick="deleteAssignment('${p.id}')">
-                  Delete
-                </button>
-
-                <button class="btn status"
-                  onclick="changeStatus('${p.id}','completed')">
-                  Complete
-                </button>
-
-                <button class="btn status"
-                  onclick="changeStatus('${p.id}','cancelled')">
-                  Cancel
-                </button>
-              </div>
-            </div>
-          `).join("")}
-        </div>
+      <div class="actions">
+        <button class="btn toggle"
+          onclick="togglePrograms(this)">
+          Details
+        </button>
       </div>
-    `;
+
+      <div class="programs">
+        ${programs.map(p=>`
+          <div class="program">
+            📅 ${p.duty_date||"-"} |
+            🕒 ${p.shift||"-"} |
+            👥 ${p.total_staff||0} জন
+            <br>
+            <span class="badge ${p.status||"pending"}">
+              ${(p.status||"pending").toUpperCase()}
+            </span>
+
+            <div class="actions">
+              <button class="btn staffBtn"
+                onclick='openStaffModal(${JSON.stringify(p.staffs||[])})'>
+                Staff Details
+              </button>
+              <button class="btn edit"
+                onclick="location.href='create-assignment.html?id=${p.id}'">
+                Edit
+              </button>
+              <button class="btn delete"
+                onclick="deleteAssignment('${p.id}')">
+                Delete
+              </button>
+            </div>
+          </div>
+        `).join("")}
+      </div>
+    </div>`;
   });
 }
 
 function togglePrograms(btn){
   const box=btn.parentElement.nextElementSibling;
-  box.style.display = box.style.display==="block" ? "none" : "block";
+  box.style.display=box.style.display==="block"?"none":"block";
 }
 
-/* STATUS CHANGE */
-function changeStatus(id,status){
-  if(!confirm("Status পরিবর্তন করবেন?")) return;
-  db.collection("assignments").doc(id).update({status});
+/* STAFF MODAL */
+function openStaffModal(staffs){
+  const body=document.getElementById("staffModalBody");
+  body.innerHTML="";
+
+  if(!staffs.length){
+    body.innerHTML="<p>কোনো স্টাফ যুক্ত নেই</p>";
+  }else{
+    staffs.forEach(s=>{
+      body.innerHTML+=`
+        <div class="staff-item">
+          <div class="staff-name">${s.name}</div>
+          <div class="staff-role">${s.role}</div>
+          <div class="staff-count">👥 সদস্য: ${s.count}</div>
+        </div>`;
+    });
+  }
+  document.getElementById("staffModal").style.display="flex";
+}
+function closeStaffModal(){
+  document.getElementById("staffModal").style.display="none";
 }
 
 /* DELETE */
