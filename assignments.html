@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Assignments</title>
+<title>RCEM – Assignments</title>
 
 <style>
 *{box-sizing:border-box;font-family:Arial}
@@ -19,9 +19,9 @@ body{margin:0;background:#f4f6f9}
 }
 .back{cursor:pointer}
 
+.top-actions{padding:16px}
 .add-btn{
-  margin:16px;
-  padding:12px 24px;
+  padding:12px 22px;
   border:none;
   border-radius:25px;
   background:linear-gradient(45deg,#2e7d32,#43a047);
@@ -30,38 +30,43 @@ body{margin:0;background:#f4f6f9}
   cursor:pointer
 }
 
+.container{padding:16px}
+
 .card{
   background:#fff;
   border-radius:18px;
   padding:16px;
-  margin:16px;
+  margin-bottom:18px;
   box-shadow:0 8px 22px rgba(0,0,0,.12)
 }
+
 .title{
-  font-size:18px;
+  font-size:17px;
   font-weight:bold;
   margin-bottom:10px
 }
 
 .program{
-  background:#f6f8fb;
-  border-radius:14px;
+  background:#f5f7fb;
   padding:12px;
-  margin-bottom:12px
+  border-radius:12px;
+  margin-bottom:10px
 }
-.meta{
+
+.row{
   font-size:14px;
-  margin:4px 0
+  margin:5px 0;
+  color:#333
 }
 
 .badge{
   display:inline-block;
+  margin-top:10px;
   padding:6px 14px;
   border-radius:18px;
   font-size:12px;
-  background:#f9a825;
   color:#fff;
-  margin-top:6px
+  background:#f9a825
 }
 
 .actions{
@@ -69,22 +74,22 @@ body{margin:0;background:#f4f6f9}
   gap:10px;
   margin-top:10px
 }
+
 .edit-btn{
-  flex:1;
-  background:#1976d2;
-  color:#fff;
+  padding:8px 14px;
   border:none;
-  padding:8px;
-  border-radius:18px;
+  border-radius:14px;
+  background:#1e88e5;
+  color:#fff;
   cursor:pointer
 }
-.del-btn{
-  flex:1;
-  background:#d32f2f;
-  color:#fff;
+
+.delete-btn{
+  padding:8px 14px;
   border:none;
-  padding:8px;
-  border-radius:18px;
+  border-radius:14px;
+  background:#e53935;
+  color:#fff;
   cursor:pointer
 }
 </style>
@@ -97,12 +102,13 @@ body{margin:0;background:#f4f6f9}
   <h3>Assignments</h3>
 </div>
 
-<button class="add-btn" id="addBtn"
- onclick="location.href='create-assignment.html'">
- + Create Assignment
-</button>
+<div class="top-actions">
+  <button class="add-btn" onclick="location.href='create-assignment.html'">
+    + Create Assignment
+  </button>
+</div>
 
-<div id="list"></div>
+<div class="container" id="list">Loading...</div>
 
 <!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -116,97 +122,67 @@ firebase.initializeApp({
   projectId:"rcem-system"
 });
 
-const auth = firebase.auth();
 const db = firebase.firestore();
-
-let canEdit=false, canDelete=false;
-
-/* AUTH FIRST */
-auth.onAuthStateChanged(async user=>{
-  if(!user){
-    location.href="index.html";
-    return;
-  }
-
-  const u = await db.collection("users").doc(user.email).get();
-  const p = u.data()?.permissions || {};
-
-  canEdit   = p.assignments_edit === true;
-  canDelete = p.assignments_delete === true;
-
-  if(!p.assignments_add){
-    document.getElementById("addBtn").style.display="none";
-  }
-
-  loadAssignments(); // 🔥 auth শেষে লোড
-});
+const list = document.getElementById("list");
 
 /* LOAD ASSIGNMENTS */
-function loadAssignments(){
-  db.collection("assignments")
-  .orderBy("created","desc")
-  .onSnapshot(snap=>{
-    const grouped={};
+db.collection("assignments")
+.orderBy("created","desc")
+.onSnapshot(snap=>{
+  const grouped = {};
+  snap.forEach(doc=>{
+    const a = doc.data();
+    if(!grouped[a.venue_name]) grouped[a.venue_name]=[];
+    grouped[a.venue_name].push({id:doc.id,...a});
+  });
+  render(grouped);
+});
 
-    snap.forEach(d=>{
-      const a=d.data();
-      const venue=a.venue_name || "অন্যান্য";
-      if(!grouped[venue]) grouped[venue]=[];
-      grouped[venue].push({id:d.id,...a});
-    });
+function render(data){
+  list.innerHTML="";
+  Object.keys(data).forEach(venue=>{
+    const programs = data[venue];
 
-    const list=document.getElementById("list");
-    list.innerHTML="";
-
-    Object.keys(grouped).forEach(v=>{
-      list.innerHTML+=`
-        <div class="card">
-          <div class="title">${v}</div>
-
-          ${grouped[v].map(p=>{
-            const shiftText =
-              p.shift==="day" ? "🌞 দিন" :
-              p.shift==="night" ? "🌙 রাত" : "-";
-
-            return `
-            <div class="program">
-              <div class="meta">📅 ${p.duty_date || "-"}</div>
-              <div class="meta">⏰ ${shiftText}</div>
-              <div class="meta">👥 স্টাফ: ${p.staff_names?.length || 0}</div>
-
-              <span class="badge">ACTIVE</span>
-
-              ${(canEdit || canDelete)?`
-              <div class="actions">
-                ${canEdit?`
-                  <button class="edit-btn"
-                    onclick="editAssign('${p.id}')">
-                    ✏️ Edit
-                  </button>`:""}
-                ${canDelete?`
-                  <button class="del-btn"
-                    onclick="deleteAssign('${p.id}')">
-                    🗑 Delete
-                  </button>`:""}
-              </div>`:""}
+    list.innerHTML+=`
+      <div class="card">
+        <div class="title">${venue}</div>
+        ${programs.map(p=>`
+          <div class="program">
+            <div class="row">📅 ${p.duty_date || "-"}</div>
+            <div class="row">
+              ⏰ ${p.shift==="day"?"☀️ দিন":p.shift==="night"?"🌙 রাত":"-"}
             </div>
-            `;
-          }).join("")}
+            <div class="row">
+              👥 স্টাফ: ${p.assigned_count||0} / ${p.required_staff||0}
+            </div>
 
-        </div>
-      `;
-    });
+            <span class="badge">${(p.status||"active").toUpperCase()}</span>
+
+            <div class="actions">
+              <button class="edit-btn"
+                onclick="editAssignment('${p.id}')">
+                ✏️ Edit
+              </button>
+              <button class="delete-btn"
+                onclick="deleteAssignment('${p.id}')">
+                🗑 Delete
+              </button>
+            </div>
+          </div>
+        `).join("")}
+      </div>
+    `;
   });
 }
 
-/* EDIT */
-function editAssign(id){
-  location.href = `create-assignment.html?edit=${id}`;
+/* EDIT — ✅ REAL EDIT */
+function editAssignment(id){
+  location.href = "create-assignment.html?edit=" + id;
 }
 
 /* DELETE */
-function deleteAssign(id){
-  if(!confirm("এই Assignment ডিলিট করতে চান?")) return;
+function deleteAssignment(id){
+  if(!confirm("আপনি কি নিশ্চিত ডিলিট করবেন?")) return;
   db.collection("assignments").doc(id).delete();
 }
 </script>
