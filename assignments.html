@@ -86,7 +86,8 @@ body{margin:0;background:#f4f6f9}
 </div>
 
 <div class="top-actions">
-  <button id="addBtn" class="add-btn" onclick="location.href='assignment_create.html'">
+  <button id="addBtn" class="add-btn"
+    onclick="location.href='create-assignment.html'">
     + Create Assignment
   </button>
 </div>
@@ -99,7 +100,6 @@ body{margin:0;background:#f4f6f9}
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
-/* FIREBASE INIT */
 firebase.initializeApp({
   apiKey:"AIzaSyDK3dqXZuWaH3gctxURdOZc_Q1UfioesaA",
   authDomain:"rcem-system.firebaseapp.com",
@@ -112,7 +112,6 @@ const db = firebase.firestore();
 let assignments = [];
 let perms = {};
 
-/* AUTH + PERMISSION */
 auth.onAuthStateChanged(async user=>{
   if(!user){
     location.href="index.html";
@@ -126,7 +125,6 @@ auth.onAuthStateChanged(async user=>{
   }
 });
 
-/* LOAD ASSIGNMENTS */
 db.collection("assignments")
 .orderBy("created","desc")
 .onSnapshot(snap=>{
@@ -135,7 +133,6 @@ db.collection("assignments")
   render();
 });
 
-/* RENDER */
 function render(){
   list.innerHTML="";
 
@@ -151,7 +148,7 @@ function render(){
   assignments.forEach(a=>{
     list.innerHTML += `
       <div class="card">
-        <div class="title">${a.venue_name || "No Venue"}</div>
+        <div class="title">${a.venue_name || "Order / Custom Location"}</div>
         <div class="meta">📅 Duty Date: ${a.duty_date || "-"}</div>
         <div class="meta">👥 Staff: ${(a.staff_names || []).join(", ")}</div>
         <span class="badge ${a.status || "pending"}">
