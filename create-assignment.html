@@ -43,11 +43,12 @@ select,input{
   font-size:15px
 }
 
+/* ===== STAFF LIST ===== */
 .staff-box{
   margin-top:10px;
   border:1px solid #ddd;
   border-radius:12px;
-  max-height:240px;
+  max-height:260px;
   overflow:auto;
   background:#fafafa
 }
@@ -55,15 +56,48 @@ select,input{
 .staff-row{
   display:flex;
   align-items:center;
-  gap:12px;
+  justify-content:space-between;
+  gap:10px;
   padding:10px 14px;
-  border-bottom:1px solid #eee;
-  cursor:pointer
+  border-bottom:1px solid #eee
+}
+.staff-row:last-child{border-bottom:none}
+
+.staff-left{
+  display:flex;
+  gap:10px;
+  flex:1
 }
 
-.staff-row:hover{background:#f1f5ff}
-.staff-row input{width:18px;height:18px}
+.staff-text{
+  display:flex;
+  flex-direction:column
+}
 .staff-name{font-size:15px;color:#222}
+.staff-role{font-size:12px;color:#888}
+
+.counter{
+  display:flex;
+  align-items:center;
+  gap:6px
+}
+.counter button{
+  width:28px;
+  height:28px;
+  border:none;
+  border-radius:50%;
+  background:#e0e0e0;
+  font-size:16px;
+  cursor:pointer
+}
+.counter input{
+  width:40px;
+  text-align:center;
+  border-radius:8px;
+  border:1px solid #ccc;
+  padding:4px
+}
+/* ===================== */
 
 .btn{
   width:100%;
@@ -85,50 +119,52 @@ select,input{
 
 <div class="header">
   <div class="back" onclick="history.back()">← Back</div>
-  <h3 id="pageTitle">Create Assignment</h3>
+  <h3>Create Assignment</h3>
 </div>
 
 <div class="container">
   <div class="card">
 
-<label>Assignment টাইপ</label>
-<select id="type" onchange="switchType()">
-  <option value="venue">Venue ভিত্তিক</option>
-  <option value="order">Order / Event ভিত্তিক</option>
-</select>
+    <label>Assignment টাইপ</label>
+    <select id="type" onchange="switchType()">
+      <option value="venue">Venue ভিত্তিক</option>
+      <option value="order">Order / Event ভিত্তিক</option>
+    </select>
 
-<div id="venueSection">
-  <label>Venue নির্বাচন করুন</label>
-  <select id="venueSelect"></select>
-</div>
+    <!-- VENUE -->
+    <div id="venueSection">
+      <label>Venue নির্বাচন করুন</label>
+      <select id="venueSelect"></select>
+    </div>
 
-<div id="orderSection" class="hidden">
-  <label>Order / Event নাম</label>
-  <input id="orderName">
+    <!-- ORDER -->
+    <div id="orderSection" class="hidden">
+      <label>Order / Event নাম</label>
+      <input id="orderName">
 
-  <label>লোকেশন</label>
-  <input id="orderLocation">
+      <label>লোকেশন</label>
+      <input id="orderLocation">
 
-  <label>কয়জন স্টাফ লাগবে</label>
-  <input id="requiredStaff" type="number">
-</div>
+      <label>প্রয়োজনীয় স্টাফ</label>
+      <input id="requiredStaff" type="number">
+    </div>
 
-<label>Duty Date</label>
-<input type="date" id="dutyDate">
+    <label>Duty Date</label>
+    <input type="date" id="dutyDate">
 
-<label>Shift</label>
-<select id="shift">
-  <option value="">Shift নির্বাচন করুন</option>
-  <option value="day">Day (সকাল)</option>
-  <option value="night">Night (রাত)</option>
-</select>
+    <label>Shift</label>
+    <select id="shift">
+      <option value="">Shift নির্বাচন করুন</option>
+      <option value="day">Day (সকাল)</option>
+      <option value="night">Night (রাত)</option>
+    </select>
 
-<label>Staff নির্বাচন (ঐচ্ছিক)</label>
-<div class="staff-box" id="staffList">Loading...</div>
+    <label>Staff নির্বাচন</label>
+    <div class="staff-box" id="staffList">Loading...</div>
 
-<button class="btn" onclick="saveAssignment()">Save Assignment</button>
+    <button class="btn" onclick="saveAssignment()">Save Assignment</button>
 
-</div>
+  </div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -140,14 +176,7 @@ firebase.initializeApp({
   authDomain:"rcem-system.firebaseapp.com",
   projectId:"rcem-system"
 });
-
 const db = firebase.firestore();
-const params = new URLSearchParams(location.search);
-const editId = params.get("id");
-
-if(editId){
-  pageTitle.innerText = "Edit Assignment";
-}
 
 /* LOAD VENUES */
 db.collection("venues").orderBy("venue_name").get().then(snap=>{
@@ -157,94 +186,82 @@ db.collection("venues").orderBy("venue_name").get().then(snap=>{
   });
 });
 
-/* LOAD STAFF */
+/* LOAD STAFFS */
 let staffCache=[];
 db.collection("staffs").orderBy("name").get().then(snap=>{
   staffList.innerHTML="";
   snap.forEach(d=>{
-    staffCache.push({id:d.id,name:d.data().name});
+    const s=d.data();
+    staffCache.push({id:d.id,name:s.name,role:s.role||"Member"});
     staffList.innerHTML+=`
-      <label class="staff-row">
-        <input type="checkbox" value="${d.id}">
-        <span class="staff-name">${d.data().name}</span>
-      </label>`;
+      <div class="staff-row">
+        <div class="staff-left">
+          <input type="checkbox" value="${d.id}">
+          <div class="staff-text">
+            <span class="staff-name">${s.name}</span>
+            <span class="staff-role">${s.role||"Member"}</span>
+          </div>
+        </div>
+        <div class="counter">
+          <button onclick="changeCount('${d.id}',-1)">−</button>
+          <input id="count_${d.id}" type="number" value="1" min="1">
+          <button onclick="changeCount('${d.id}',1)">+</button>
+        </div>
+      </div>`;
   });
 });
 
-/* LOAD DATA FOR EDIT */
-if(editId){
-  db.collection("assignments").doc(editId).get().then(doc=>{
-    const a = doc.data();
-    type.value = a.type;
-    dutyDate.value = a.duty_date;
-    shift.value = a.shift || "";
-    if(a.type==="venue"){
-      venueSelect.value = a.venue_id;
-    }else{
-      switchType();
-      orderName.value = a.venue_name;
-      orderLocation.value = a.location || "";
-      requiredStaff.value = a.required_staff || 0;
-    }
-    setTimeout(()=>{
-      staffList.querySelectorAll("input").forEach(i=>{
-        if(a.staff_names?.includes(
-          staffCache.find(s=>s.id===i.value)?.name
-        )) i.checked=true;
-      });
-    },300);
-  });
+function changeCount(id,d){
+  const i=document.getElementById("count_"+id);
+  let v=parseInt(i.value||1)+d;
+  if(v<1)v=1;
+  i.value=v;
 }
 
-/* SWITCH */
 function switchType(){
-  venueSection.classList.toggle("hidden", type.value!=="venue");
-  orderSection.classList.toggle("hidden", type.value!=="order");
+  venueSection.classList.toggle("hidden",type.value!=="venue");
+  orderSection.classList.toggle("hidden",type.value!=="order");
 }
 
-/* SAVE */
 function saveAssignment(){
-  if(!dutyDate.value){ alert("Duty Date দিন"); return; }
-  if(!shift.value){ alert("Shift নির্বাচন করুন"); return; }
+  if(!dutyDate.value||!shift.value){
+    alert("Date ও Shift দিন");return;
+  }
 
-  const selectedStaff=[];
-  staffList.querySelectorAll("input:checked").forEach(c=>{
+  const staffs=[];
+  document.querySelectorAll("#staffList input[type=checkbox]:checked").forEach(c=>{
     const s=staffCache.find(x=>x.id===c.value);
-    if(s) selectedStaff.push(s.name);
+    staffs.push({
+      id:s.id,
+      name:s.name,
+      role:s.role,
+      count:parseInt(document.getElementById("count_"+c.value).value||1)
+    });
   });
 
   let data={
     type:type.value,
     duty_date:dutyDate.value,
     shift:shift.value,
-    staff_names:selectedStaff,
+    staffs:staffs,
     status:"pending",
-    updated:Date.now()
+    created:Date.now()
   };
 
   if(type.value==="venue"){
-    if(!venueSelect.value){ alert("Venue নির্বাচন করুন"); return; }
+    if(!venueSelect.value){alert("Venue দিন");return;}
     data.venue_id=venueSelect.value;
     data.venue_name=venueSelect.options[venueSelect.selectedIndex].text;
   }else{
-    if(!orderName.value){ alert("Order নাম লিখুন"); return; }
     data.venue_name=orderName.value;
     data.location=orderLocation.value;
     data.required_staff=Number(requiredStaff.value||0);
   }
 
-  if(editId){
-    db.collection("assignments").doc(editId).update(data).then(()=>{
-      alert("Assignment Updated");
-      location.href="assignments.html";
-    });
-  }else{
-    data.created=Date.now();
-    db.collection("assignments").add(data).then(()=>{
-      alert("Assignment Created");
-      location.href="assignments.html";
-    });
-  }
+  db.collection("assignments").add(data).then(()=>{
+    alert("Assignment Saved");
+    location.href="assignments.html";
+  });
 }
 </script>
 
