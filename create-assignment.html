@@ -27,12 +27,7 @@ body{margin:0;background:#f4f6f9}
   box-shadow:0 10px 25px rgba(0,0,0,.12)
 }
 
-label{
-  font-size:14px;
-  color:#555;
-  margin-top:14px;
-  display:block
-}
+label{font-size:14px;color:#555;margin-top:14px;display:block}
 
 select,input{
   width:100%;
@@ -66,57 +61,37 @@ select,input{
   display:flex;
   align-items:center;
   gap:10px;
-  min-width:0;
-  flex:1
+  flex:1;
+  min-width:0
 }
 
-.staff-left input[type=checkbox]{
-  width:16px;
-  height:16px;
-}
+.staff-left input{width:16px;height:16px}
 
 .staff-text{
   display:flex;
   flex-direction:column;
-  min-width:0;
-  max-width:160px
+  min-width:0
 }
-
 .staff-name{
   font-size:15px;
   white-space:nowrap;
   overflow:hidden;
   text-overflow:ellipsis
 }
-
 .staff-role{
   font-size:12px;
-  color:#888;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis
+  color:#888
 }
 
 /* COUNTER */
-.counter{
-  display:flex;
-  align-items:center;
-  gap:6px
-}
+.counter{display:flex;align-items:center;gap:6px}
 .counter button{
-  width:26px;
-  height:26px;
-  border:none;
-  border-radius:50%;
-  background:#e0e0e0;
-  font-size:16px
+  width:26px;height:26px;border:none;
+  border-radius:50%;background:#e0e0e0;font-size:16px
 }
 .counter input{
-  width:42px;
-  text-align:center;
-  border-radius:8px;
-  border:1px solid #ccc;
-  padding:4px
+  width:42px;text-align:center;
+  border-radius:8px;border:1px solid #ccc;padding:4px
 }
 
 .btn{
@@ -139,7 +114,7 @@ select,input{
 
 <div class="header">
   <div class="back" onclick="history.back()">← Back</div>
-  <h3>Create Assignment</h3>
+  <h3 id="pageTitle">Create Assignment</h3>
 </div>
 
 <div class="container">
@@ -194,7 +169,10 @@ firebase.initializeApp({
 });
 const db=firebase.firestore();
 
-let staffCache={};
+/* EDIT MODE */
+const params=new URLSearchParams(location.search);
+const editId=params.get("id");
+if(editId) document.getElementById("pageTitle").innerText="Edit Assignment";
 
 /* LOAD VENUES */
 db.collection("venues").orderBy("venue_name").get().then(s=>{
@@ -204,18 +182,15 @@ db.collection("venues").orderBy("venue_name").get().then(s=>{
   });
 });
 
-/* LOAD STAFFS (SOURCE OF TRUTH = FIRESTORE) */
+/* LOAD STAFFS (badge = role) */
+let staffCache={};
 db.collection("staffs").orderBy("name").get().then(snap=>{
   staffList.innerHTML="";
   snap.forEach(d=>{
     const s=d.data();
-    const role=s.role || s.title || s.designation || "Member";
+    const role=s.badge||"Member";
 
-    staffCache[d.id]={
-      id:d.id,
-      name:s.name,
-      role:role
-    };
+    staffCache[d.id]={id:d.id,name:s.name,role};
 
     staffList.innerHTML+=`
     <div class="staff-row">
@@ -233,6 +208,7 @@ db.collection("staffs").orderBy("name").get().then(snap=>{
       </div>
     </div>`;
   });
+  loadAssignment();
 });
 
 function changeCount(id,d){
@@ -247,20 +223,48 @@ function switchType(){
   orderSection.classList.toggle("hidden",type.value!=="order");
 }
 
+/* LOAD EXISTING ASSIGNMENT (EDIT) */
+function loadAssignment(){
+  if(!editId) return;
+  db.collection("assignments").doc(editId).get().then(doc=>{
+    if(!doc.exists) return;
+    const a=doc.data();
+
+    type.value=a.type;
+    dutyDate.value=a.duty_date;
+    shift.value=a.shift;
+    switchType();
+
+    if(a.type==="venue"){
+      venueSelect.value=a.venue_id;
+    }else{
+      orderName.value=a.venue_name||"";
+      orderLocation.value=a.location||"";
+      requiredStaff.value=a.required_staff||"";
+    }
+
+    (a.staffs||[]).forEach(s=>{
+      const cb=document.querySelector(`input[value="${s.id}"]`);
+      if(cb){
+        cb.checked=true;
+        document.getElementById("count_"+s.id).value=s.count||1;
+      }
+    });
+  });
+}
+
+/* SAVE */
 function saveAssignment(){
-  if(!dutyDate.value||!shift.value){
-    alert("Date ও Shift দিন");return;
-  }
+  if(!dutyDate.value||!shift.value){alert("Date ও Shift দিন");return;}
 
   const staffs=[];
-  document.querySelectorAll("#staffList input[type=checkbox]:checked")
-  .forEach(c=>{
+  document.querySelectorAll("#staffList input:checked").forEach(c=>{
     const s=staffCache[c.value];
     staffs.push({
       id:s.id,
       name:s.name,
       role:s.role,
-      count:parseInt(document.getElementById("count_"+c.value).value)
+      count:+document.getElementById("count_"+s.id).value
     });
   });
 
@@ -268,7 +272,7 @@ function saveAssignment(){
     type:type.value,
     duty_date:dutyDate.value,
     shift:shift.value,
-    staffs:staffs,
+    staffs,
     total_staff:staffs.reduce((t,s)=>t+s.count,0),
     status:"pending",
     created:Date.now()
@@ -281,11 +285,15 @@ function saveAssignment(){
   }else{
     data.venue_name=orderName.value;
     data.location=orderLocation.value;
-    data.required_staff=Number(requiredStaff.value||0);
+    data.required_staff=+requiredStaff.value||0;
   }
 
-  db.collection("assignments").add(data).then(()=>{
-    alert("Assignment Saved");
+  const ref = editId
+    ? db.collection("assignments").doc(editId).update(data)
+    : db.collection("assignments").add(data);
+
+  ref.then(()=>{
+    alert(editId?"Assignment Updated":"Assignment Saved");
     location.href="assignments.html";
   });
 }
