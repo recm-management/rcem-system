@@ -7,7 +7,7 @@
 
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:Arial,sans-serif}
-body{background:#f4f6f9;overflow-x:hidden}
+body{background:#f4f6f9}
 
 /* HEADER */
 .header{
@@ -20,122 +20,132 @@ body{background:#f4f6f9;overflow-x:hidden}
 }
 .menu-btn{font-size:26px;cursor:pointer}
 
-/* OVERLAY */
-.overlay{
-  position:fixed;inset:0;
-  background:rgba(0,0,0,.45);
-  opacity:0;pointer-events:none;
-  transition:.3s;z-index:10
-}
-.overlay.active{opacity:1;pointer-events:auto}
-
-/* SIDE MENU */
-.side-menu{
-  position:fixed;top:0;right:-280px;
-  width:260px;height:100%;
-  background:#fff;
-  box-shadow:-10px 0 25px rgba(0,0,0,.2);
-  transition:.35s;z-index:11;
-  display:flex;flex-direction:column
-}
-.side-menu.active{right:0}
-
-/* USER */
-.user-box{
-  padding:18px;background:#f1f5ff;
-  border-bottom:1px solid #ddd
-}
-.user-box b{font-size:14px;color:#555}
-.user-box span{font-size:13px;color:#0d47a1}
-
-/* MENU */
-.menu{flex:1;padding:10px}
-.menu a{
-  display:block;padding:14px 16px;margin-bottom:6px;
-  border-radius:12px;color:#333;text-decoration:none;
-  font-weight:500;transition:.25s
-}
-.menu a:hover{background:#e3f2fd;transform:translateX(6px)}
-
-.logout{
-  margin:15px;padding:12px;
-  border:none;border-radius:25px;
-  background:#d32f2f;color:#fff;font-size:15px
-}
-
-/* CONTENT */
+/* CONTAINER */
 .container{padding:18px}
+
+/* CARDS */
 .cards{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:15px
+  gap:14px
 }
 .card{
-  background:#fff;padding:20px;
+  background:#fff;
+  padding:18px;
   border-radius:18px;
+  box-shadow:0 8px 20px rgba(0,0,0,.12);
+  cursor:pointer
+}
+.card h3{font-size:14px;color:#666;margin-bottom:6px}
+.card p{font-size:26px;font-weight:bold}
+.blue p{color:#0d47a1}
+.green p{color:#2e7d32}
+.orange p{color:#ef6c00}
+.purple p{color:#6a1b9a}
+
+/* SECTION */
+.section{
+  margin-top:22px
+}
+.section h4{
+  font-size:16px;
+  margin-bottom:10px;
+  color:#333
+}
+
+/* LIST */
+.list{
+  background:#fff;
+  border-radius:16px;
   box-shadow:0 8px 20px rgba(0,0,0,.12)
 }
-.card h3{font-size:15px;color:#666;margin-bottom:8px}
-.card p{font-size:22px;font-weight:bold;color:#0d47a1}
+.item{
+  padding:14px 16px;
+  border-bottom:1px solid #eee;
+  font-size:14px
+}
+.item:last-child{border-bottom:none}
+.small{color:#666;font-size:13px}
+
+/* QUICK ACTIONS */
+.actions{
+  display:flex;
+  gap:10px;
+  margin-top:10px
+}
+.actions button{
+  flex:1;
+  padding:12px;
+  border:none;
+  border-radius:20px;
+  color:#fff;
+  font-size:14px;
+  cursor:pointer
+}
+.addA{background:#2e7d32}
+.addS{background:#1565c0}
+.addV{background:#6a1b9a}
 </style>
 </head>
 
 <body>
 
-<!-- HEADER -->
 <div class="header">
   <h2>RCEM Dashboard</h2>
-  <div class="menu-btn" onclick="openMenu()">☰</div>
+  <div class="menu-btn">☰</div>
 </div>
 
-<div class="overlay" id="overlay" onclick="closeMenu()"></div>
-
-<div class="side-menu" id="sideMenu">
-  <div class="user-box">
-    <b>Logged in as</b>
-    <span id="userEmail">Loading...</span>
-  </div>
-
-  <div class="menu">
-    <a id="menu_dashboard" href="admin.html">Dashboard</a>
-    <a id="menu_assignments" href="assignments.html">Assignments</a>
-    <a id="menu_staff" href="staff.html">Staff</a>
-    <a id="menu_venues" href="venues.html">Venues</a>
-    <a id="menu_accounts" href="monthly-accounts.html">Monthly Accounts</a>
-    <a id="menu_users" href="admin-users.html">Admin Users</a>
-  </div>
-
-  <button class="logout" onclick="logout()">Logout</button>
-</div>
-
-<!-- DASHBOARD -->
 <div class="container">
+
+  <!-- MAIN STATS -->
   <div class="cards">
-    <div class="card">
+    <div class="card blue" onclick="location.href='assignments.html'">
       <h3>Total Assignments</h3>
       <p id="totalAssignments">0</p>
     </div>
 
-    <div class="card">
+    <div class="card purple" onclick="location.href='staff.html'">
       <h3>Total Staff</h3>
       <p id="totalStaff">0</p>
     </div>
 
-    <div class="card">
-      <h3>This Month Income</h3>
-      <p>৳ 1,25,000</p>
+    <div class="card orange">
+      <h3>Pending Assignments</h3>
+      <p id="pendingAssignments">0</p>
     </div>
 
-    <div class="card">
-      <h3>Profit</h3>
-      <p>৳ 32,000</p>
+    <div class="card green">
+      <h3>Completed Assignments</h3>
+      <p id="completedAssignments">0</p>
     </div>
   </div>
+
+  <!-- TODAY -->
+  <div class="section">
+    <h4>📅 Today’s Assignments</h4>
+    <div class="list" id="todayList">Loading...</div>
+  </div>
+
+  <!-- UPCOMING -->
+  <div class="section">
+    <h4>⏳ Upcoming (Next 7 Days)</h4>
+    <div class="list" id="upcomingList">Loading...</div>
+  </div>
+
+  <!-- QUICK ACTIONS -->
+  <div class="section">
+    <h4>⚡ Quick Actions</h4>
+    <div class="actions">
+      <button class="addA" onclick="location.href='create-assignment.html'">+ Assignment</button>
+      <button class="addS" onclick="location.href='staff.html'">+ Staff</button>
+      <button class="addV" onclick="location.href='venues.html'">+ Venue</button>
+    </div>
+  </div>
+
 </div>
 
 <!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
@@ -144,52 +154,53 @@ firebase.initializeApp({
   authDomain:"rcem-system.firebaseapp.com",
   projectId:"rcem-system"
 });
-
-const auth=firebase.auth();
 const db=firebase.firestore();
 
-/* 🔥 REAL-TIME TOTAL ASSIGNMENTS */
-db.collection("assignments").onSnapshot(snap=>{
-  document.getElementById("totalAssignments").innerText = snap.size;
+const today=new Date().toISOString().split("T")[0];
+
+/* STAFF COUNT */
+db.collection("staffs").onSnapshot(s=>{
+  totalStaff.innerText=s.size;
 });
 
-/* 🔥 REAL-TIME TOTAL STAFF */
-db.collection("staffs").onSnapshot(snap=>{
-  document.getElementById("totalStaff").innerText = snap.size;
+/* ASSIGNMENTS */
+db.collection("assignments").onSnapshot(s=>{
+  let total=0,pending=0,completed=0;
+  let todayHTML="",upHTML="";
+  const now=new Date();
+  const limit=new Date();limit.setDate(now.getDate()+7);
+
+  s.forEach(d=>{
+    const a=d.data();
+    total++;
+    if(a.status==="completed") completed++;
+    else pending++;
+
+    if(a.duty_date===today){
+      todayHTML+=`
+        <div class="item">
+          ${a.venue_name}
+          <div class="small">${a.shift}</div>
+        </div>`;
+    }
+
+    const ad=new Date(a.duty_date);
+    if(ad>=now && ad<=limit){
+      upHTML+=`
+        <div class="item">
+          ${a.venue_name}
+          <div class="small">${a.duty_date} • ${a.shift}</div>
+        </div>`;
+    }
+  });
+
+  totalAssignments.innerText=total;
+  pendingAssignments.innerText=pending;
+  completedAssignments.innerText=completed;
+
+  todayList.innerHTML=todayHTML||"<div class='item small'>No assignments today</div>";
+  upcomingList.innerHTML=upHTML||"<div class='item small'>No upcoming events</div>";
 });
-
-/* AUTH & PERMISSION */
-auth.onAuthStateChanged(async user=>{
-  if(!user){ location.href="index.html"; return; }
-
-  userEmail.innerText=user.email;
-  const snap = await db.collection("users").doc(user.email).get();
-
-  if(!snap.exists || snap.data().active !== true){
-    alert("Unauthorized access");
-    await auth.signOut();
-    location.href="index.html";
-    return;
-  }
-
-  const role = snap.data().role;
-  if(role==="super_admin") return;
-
-  const p = snap.data().permissions || {};
-  hideMenu("menu_dashboard", p.dashboard);
-  hideMenu("menu_assignments", p.assignments);
-  hideMenu("menu_staff", p.staff);
-  hideMenu("menu_venues", p.venues);
-  hideMenu("menu_accounts", p.accounts);
-  hideMenu("menu_users", p.user_management);
-});
-
-function hideMenu(id, allow){
-  if(!allow) document.getElementById(id).style.display="none";
-}
-function openMenu(){sideMenu.classList.add("active");overlay.classList.add("active")}
-function closeMenu(){sideMenu.classList.remove("active");overlay.classList.remove("active")}
-function logout(){auth.signOut().then(()=>location.href="index.html")}
 </script>
 
 </body>
