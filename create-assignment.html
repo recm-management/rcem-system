@@ -57,29 +57,53 @@ select,input{
   display:flex;
   align-items:center;
   justify-content:space-between;
-  gap:10px;
-  padding:10px 14px;
+  padding:10px 12px;
   border-bottom:1px solid #eee
 }
 .staff-row:last-child{border-bottom:none}
 
 .staff-left{
   display:flex;
+  align-items:center;
   gap:10px;
-  flex:1
+  flex:1;
+  min-width:0;
+}
+
+.staff-left input[type=checkbox]{
+  width:16px;
+  height:16px;
+  flex-shrink:0;
 }
 
 .staff-text{
   display:flex;
-  flex-direction:column
+  flex-direction:column;
+  min-width:0;
 }
-.staff-name{font-size:15px;color:#222}
-.staff-role{font-size:12px;color:#888}
 
+.staff-name{
+  font-size:15px;
+  color:#222;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.staff-role{
+  font-size:12px;
+  color:#888;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+/* COUNTER */
 .counter{
   display:flex;
   align-items:center;
-  gap:6px
+  gap:6px;
+  flex-shrink:0;
 }
 .counter button{
   width:28px;
@@ -91,7 +115,7 @@ select,input{
   cursor:pointer
 }
 .counter input{
-  width:40px;
+  width:42px;
   text-align:center;
   border-radius:8px;
   border:1px solid #ccc;
@@ -131,20 +155,16 @@ select,input{
       <option value="order">Order / Event ভিত্তিক</option>
     </select>
 
-    <!-- VENUE -->
     <div id="venueSection">
       <label>Venue নির্বাচন করুন</label>
       <select id="venueSelect"></select>
     </div>
 
-    <!-- ORDER -->
     <div id="orderSection" class="hidden">
       <label>Order / Event নাম</label>
       <input id="orderName">
-
       <label>লোকেশন</label>
       <input id="orderLocation">
-
       <label>প্রয়োজনীয় স্টাফ</label>
       <input id="requiredStaff" type="number">
     </div>
@@ -186,20 +206,25 @@ db.collection("venues").orderBy("venue_name").get().then(snap=>{
   });
 });
 
-/* LOAD STAFFS */
+/* LOAD STAFFS – ROLE 100% FIRESTORE MATCH */
 let staffCache=[];
 db.collection("staffs").orderBy("name").get().then(snap=>{
   staffList.innerHTML="";
   snap.forEach(d=>{
     const s=d.data();
-    staffCache.push({id:d.id,name:s.name,role:s.role||"Member"});
+    staffCache.push({
+      id:d.id,
+      name:s.name,
+      role:s.role || "Member"
+    });
+
     staffList.innerHTML+=`
       <div class="staff-row">
         <div class="staff-left">
           <input type="checkbox" value="${d.id}">
           <div class="staff-text">
             <span class="staff-name">${s.name}</span>
-            <span class="staff-role">${s.role||"Member"}</span>
+            <span class="staff-role">${s.role || "Member"}</span>
           </div>
         </div>
         <div class="counter">
