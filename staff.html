@@ -31,21 +31,18 @@ body{margin:0;background:#f4f6f9}
 }
 
 /* ADD */
-.top-actions{padding:0 16px}
+.top-actions{padding:0 16px 10px}
 .add-btn{
   padding:10px 18px;
   border:none;
   border-radius:22px;
   background:linear-gradient(45deg,#2e7d32,#43a047);
   color:#fff;
-  font-size:14px;
   cursor:pointer
 }
 
 /* LIST */
 .container{padding:16px}
-
-/* CARD */
 .card{
   background:#fff;
   border-radius:18px;
@@ -58,22 +55,17 @@ body{margin:0;background:#f4f6f9}
 
 /* AVATAR */
 .avatar{
-  width:56px;
-  height:56px;
-  border-radius:50%;
+  width:56px;height:56px;border-radius:50%;
   background:#e3f2fd;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:26px;
-  color:#1976d2
+  display:flex;align-items:center;justify-content:center;
+  font-size:26px;color:#1976d2
 }
 
 /* INFO */
 .info{flex:1}
-.name{font-size:16px;font-weight:bold}
-.serial{color:#1976d2;font-weight:bold;margin-right:6px}
-.meta{font-size:14px;color:#555;margin-top:4px}
+.name{font-size:17px;font-weight:bold}
+.serial{color:#1976d2;margin-right:6px}
+.meta{font-size:14px;color:#555;margin:3px 0}
 .meta a{color:#1565c0;text-decoration:none}
 
 /* BADGE */
@@ -82,8 +74,8 @@ body{margin:0;background:#f4f6f9}
   padding:4px 10px;
   border-radius:12px;
   font-size:12px;
-  margin-top:6px;
-  color:#fff
+  color:#fff;
+  margin-top:5px
 }
 .leader{background:#6a1b9a}
 .second{background:#1565c0}
@@ -92,11 +84,11 @@ body{margin:0;background:#f4f6f9}
 
 /* LEVEL */
 .level{
-  margin-top:6px;
   background:#e3f2fd;
-  padding:5px 12px;
+  padding:5px 10px;
   border-radius:12px;
   font-size:13px;
+  margin-top:6px;
   display:inline-block
 }
 
@@ -110,29 +102,26 @@ body{margin:0;background:#f4f6f9}
   padding:8px 12px;
   border:none;
   border-radius:14px;
-  font-size:13px;
-  cursor:pointer
+  cursor:pointer;
+  font-size:13px
 }
 .edit{background:#1565c0;color:#fff}
 .rate{background:#f9a825}
 
 /* MODAL */
 .modal{
-  position:fixed;
-  inset:0;
+  position:fixed;inset:0;
   background:rgba(0,0,0,.6);
-  display:none;
-  align-items:center;
-  justify-content:center
+  display:none;align-items:center;justify-content:center;
+  padding:12px
 }
 .modal-box{
   background:#fff;
   padding:18px;
   border-radius:18px;
-  width:100%;
-  max-width:420px
+  width:100%;max-width:420px
 }
-.modal-box input,.modal-box select{
+.modal-box input,select{
   width:100%;
   padding:12px;
   margin-bottom:12px;
@@ -145,10 +134,9 @@ body{margin:0;background:#f4f6f9}
   border:none;
   border-radius:22px;
   background:#2e7d32;
-  color:#fff;
-  font-size:15px
+  color:#fff
 }
-.cancel{text-align:center;margin-top:10px;color:#555;cursor:pointer}
+.cancel{text-align:center;margin-top:10px;cursor:pointer}
 </style>
 </head>
 
@@ -173,10 +161,10 @@ body{margin:0;background:#f4f6f9}
 <div class="modal" id="modal">
   <div class="modal-box">
     <h3 id="modalTitle">Add Staff</h3>
-    <input id="staffName" placeholder="Name">
-    <input id="staffPhone" placeholder="Phone">
-    <input id="staffAddress" placeholder="Address">
-    <select id="staffBadge">
+    <input id="name" placeholder="Name">
+    <input id="phone" placeholder="Phone">
+    <input id="address" placeholder="Address">
+    <select id="badge">
       <option value="new">New Member</option>
       <option value="member">Member</option>
       <option value="second_leader">Second Leader</option>
@@ -187,6 +175,7 @@ body{margin:0;background:#f4f6f9}
   </div>
 </div>
 
+<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -201,17 +190,21 @@ firebase.initializeApp({
 const auth=firebase.auth();
 const db=firebase.firestore();
 
-let staffs=[];
-let perms={};
-let editId=null;
+let staffs=[], perms={}, editId=null;
 
+/* AUTH */
 auth.onAuthStateChanged(async user=>{
   if(!user){location.href="index.html";return;}
   const u=await db.collection("users").doc(user.email).get();
   perms=u.data()?.permissions||{};
+  if(u.data()?.role==="super_admin"){
+    perms.staff_add=true;
+    perms.staff_edit=true;
+  }
   if(!perms.staff_add) addBtn.style.display="none";
 });
 
+/* LOAD STAFF */
 db.collection("staffs").onSnapshot(s=>{
   staffs=[];
   s.forEach(d=>staffs.push({id:d.id,...d.data()}));
@@ -219,86 +212,85 @@ db.collection("staffs").onSnapshot(s=>{
   render();
 });
 
+/* RENDER */
 function render(){
-  list.innerHTML="";
   const k=search.value.toLowerCase();
+  list.innerHTML="";
   let i=1;
 
   staffs.forEach(s=>{
     if(!s.name?.toLowerCase().includes(k) && !s.phone?.includes(k)) return;
 
-    const badgeMap={
+    const map={
       leader:["Leader","leader"],
       second_leader:["Second Leader","second"],
       member:["Member","member"],
       new:["New Member","new"]
     };
-    const [bt,bc]=badgeMap[s.badge||"new"];
+    const [txt,cls]=map[s.badge||"new"];
 
     list.innerHTML+=`
-      <div class="card">
-        <div class="avatar">👤</div>
-        <div class="info">
-          <div class="name"><span class="serial">${i}.</span>${s.name}</div>
-          <div class="meta">📞 <a href="tel:${s.phone}">${s.phone}</a></div>
-          <div class="meta">📍 ${s.address||"-"}</div>
-          <span class="badge ${bc}">${bt}</span>
-          <div class="level">Level: ${s.level||0} / 100</div>
-        </div>
-        <div class="actions">
-          <button class="btn rate">Give Rating</button>
-          <button class="btn edit" onclick='openModal(${JSON.stringify(s).replace(/"/g,"&quot;")})'>Edit</button>
-        </div>
+    <div class="card">
+      <div class="avatar">👤</div>
+      <div class="info">
+        <div class="name"><span class="serial">${i++}.</span>${s.name}</div>
+        <div class="meta">📞 <a href="tel:${s.phone}">${s.phone}</a></div>
+        <div class="meta">📍 ${s.address||"-"}</div>
+        <span class="badge ${cls}">${txt}</span>
+        <div class="level">Level: ${s.level||0} / 100</div>
       </div>
-    `;
-    i++;
+      <div class="actions">
+        <button class="btn rate">Give Rating</button>
+        ${perms.staff_edit ? `
+        <button class="btn edit"
+          onclick="openModal(${JSON.stringify(s).replace(/"/g,'&quot;')})">
+          Edit
+        </button>` : ``}
+      </div>
+    </div>`;
   });
 }
 
+/* MODAL */
 function openModal(s=null){
   modal.style.display="flex";
   if(s){
     editId=s.id;
     modalTitle.innerText="Edit Staff";
-    staffName.value=s.name||"";
-    staffPhone.value=s.phone||"";
-    staffAddress.value=s.address||"";
-    staffBadge.value=s.badge||"new";
+    name.value=s.name;
+    phone.value=s.phone;
+    address.value=s.address||"";
+    badge.value=s.badge||"new";
   }else{
     editId=null;
     modalTitle.innerText="Add Staff";
-    staffName.value=staffPhone.value=staffAddress.value="";
-    staffBadge.value="new";
+    name.value=phone.value=address.value="";
+    badge.value="new";
   }
 }
-
 function closeModal(){modal.style.display="none"}
 
-async function save(){
-  if(!staffName.value.trim() || !staffPhone.value.trim()){
-    alert("Name এবং Phone দরকার");
-    return;
-  }
+/* SAVE */
+function save(){
+  const data={
+    name:name.value.trim(),
+    phone:phone.value.trim(),
+    address:address.value.trim(),
+    badge:badge.value
+  };
+  if(!data.name||!data.phone){alert("Name এবং Phone দরকার");return;}
 
   if(editId){
-    await db.collection("staffs").doc(editId).update({
-      name:staffName.value,
-      phone:staffPhone.value,
-      address:staffAddress.value,
-      badge:staffBadge.value
-    });
+    if(!perms.staff_edit){alert("No Edit Permission");return;}
+    db.collection("staffs").doc(editId).update(data).then(closeModal);
   }else{
-    await db.collection("staffs").add({
-      name:staffName.value,
-      phone:staffPhone.value,
-      address:staffAddress.value,
-      badge:staffBadge.value,
-      level:0,
-      active:true,
-      created:Date.now()
-    });
+    if(!perms.staff_add){alert("No Add Permission");return;}
+    db.collection("staffs").add({
+      ...data,
+      rating:0,total_reviews:0,level:0,
+      active:true,created:Date.now()
+    }).then(closeModal);
   }
-  closeModal();
 }
 </script>
 
