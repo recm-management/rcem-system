@@ -9,7 +9,6 @@
 *{box-sizing:border-box;font-family:Arial}
 body{margin:0;background:#f4f6f9}
 
-/* HEADER */
 .header{
   background:#0d47a1;
   color:#fff;
@@ -20,7 +19,6 @@ body{margin:0;background:#f4f6f9}
 }
 .back{cursor:pointer}
 
-/* TOP */
 .top-actions{padding:16px}
 .add-btn{
   padding:12px 22px;
@@ -32,10 +30,8 @@ body{margin:0;background:#f4f6f9}
   cursor:pointer
 }
 
-/* LIST */
 .container{padding:16px}
 
-/* CARD */
 .card{
   background:#fff;
   border-radius:18px;
@@ -43,32 +39,27 @@ body{margin:0;background:#f4f6f9}
   margin-bottom:14px;
   box-shadow:0 8px 22px rgba(0,0,0,.12)
 }
-.title{
-  font-size:17px;
-  font-weight:bold;
-  margin-bottom:6px
-}
-.meta{
-  font-size:14px;
-  color:#555;
-  margin:5px 0
+.title{font-size:17px;font-weight:bold;margin-bottom:8px}
+.meta{font-size:14px;color:#555;margin:4px 0}
+
+.program{
+  margin-top:10px;
+  padding:10px;
+  background:#f1f3f6;
+  border-radius:12px;
+  font-size:14px
 }
 
-/* STATUS BADGE */
 .badge{
   display:inline-block;
   margin-top:10px;
   padding:6px 14px;
   border-radius:18px;
   font-size:12px;
-  color:#fff
+  color:#fff;
+  background:#f9a825
 }
-.pending{background:#f9a825}
-.open{background:#f9a825}
-.completed{background:#2e7d32}
-.assigned{background:#1565c0}
 
-/* EMPTY */
 .empty{
   background:#fff;
   padding:26px;
@@ -88,107 +79,66 @@ body{margin:0;background:#f4f6f9}
 </div>
 
 <div class="top-actions">
-  <button id="addBtn" class="add-btn"
-    onclick="location.href='create-assignment.html'">
+  <button class="add-btn" onclick="location.href='create-assignment.html'">
     + Create Assignment
   </button>
 </div>
 
 <div class="container" id="list">Loading...</div>
 
-<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
-/* FIREBASE INIT */
 firebase.initializeApp({
   apiKey:"AIzaSyDK3dqXZuWaH3gctxURdOZc_Q1UfioesaA",
   authDomain:"rcem-system.firebaseapp.com",
   projectId:"rcem-system"
 });
 
-const auth = firebase.auth();
 const db = firebase.firestore();
+const list = document.getElementById("list");
 
-let assignments = [];
-let venuesMap = {};
-let perms = {};
-
-/* AUTH + PERMISSION */
-auth.onAuthStateChanged(async user=>{
-  if(!user){
-    location.href="index.html";
-    return;
-  }
-  const u = await db.collection("users").doc(user.email).get();
-  perms = u.data()?.permissions || {};
-  if(!perms.assignments_add){
-    document.getElementById("addBtn").style.display="none";
-  }
-});
-
-/* LOAD VENUES FIRST */
-db.collection("venues").onSnapshot(vsnap=>{
-  venuesMap = {};
-  vsnap.forEach(v=>{
-    venuesMap[v.id] = v.data();
-  });
-});
-
-/* LOAD ASSIGNMENTS */
-db.collection("assignments")
-.orderBy("created","desc")
-.onSnapshot(snap=>{
-  assignments=[];
-  snap.forEach(d=>{
-    assignments.push({id:d.id,...d.data()});
-  });
-  render();
-});
-
-/* RENDER */
-async function render(){
-  const list = document.getElementById("list");
+db.collection("venues").onSnapshot(async snap=>{
   list.innerHTML="";
-
-  if(assignments.length === 0){
-    list.innerHTML = `
-      <div class="empty">
-        এখনো কোনো Assignment তৈরি হয়নি
-      </div>
-    `;
+  if(snap.empty){
+    list.innerHTML=`<div class="empty">কোনো Assignment নেই</div>`;
     return;
   }
 
-  for(const a of assignments){
+  for(const v of snap.docs){
+    const venue = v.data();
 
-    /* venue info */
-    const venue = venuesMap[a.venue_id] || {};
-    const titleText = venue.venue_name || venue.location || "নেই";
-
-    /* assigned staff count */
-    const staffSnap = await db.collection("assignment_staffs")
-      .where("assignment_id","==",a.id)
+    const progSnap = await db
+      .collection("venues")
+      .doc(v.id)
+      .collection("programs")
+      .orderBy("date","asc")
       .get();
 
-    const assignedCount = staffSnap.size;
+    if(progSnap.empty) continue;
+
+    let programsHTML = "";
+    progSnap.forEach(p=>{
+      const pr = p.data();
+      programsHTML += `
+        <div class="program">
+          📅 ${pr.date || "-"}<br>
+          ⏰ ${pr.time || "-"}<br>
+          👥 প্রয়োজনীয় স্টাফ: ${pr.staff_required || 0}
+        </div>
+      `;
+    });
 
     list.innerHTML += `
       <div class="card">
-        <div class="title">${titleText}</div>
-        <div class="meta">📅 Duty Date: ${a.date || "-"}</div>
-        <div class="meta">⏰ Time: ${a.time || "-"}</div>
-        <div class="meta">👥 Assigned Staff: ${assignedCount}</div>
-        <div class="meta">🔢 প্রয়োজনীয় স্টাফ: ${a.staff_required || 0}</div>
-        <span class="badge ${a.status || "pending"}">
-          ${(a.status || "pending").toUpperCase()}
-        </span>
+        <div class="title">${venue.venue_name}</div>
+        ${programsHTML}
+        <span class="badge">ACTIVE</span>
       </div>
     `;
   }
-}
+});
 </script>
 
 </body>
