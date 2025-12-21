@@ -8,32 +8,30 @@
 <style>
 body{margin:0;font-family:Arial;background:#f4f6f9}
 .header{
-  background:#0d47a1;color:#fff;padding:15px;
-  display:flex;align-items:center;gap:10px
+  background:#0d47a1;color:#fff;padding:16px;
+  display:flex;align-items:center;gap:12px
 }
-.container{padding:15px}
+.container{padding:16px}
 .card{
-  background:#fff;padding:16px;border-radius:16px;
-  box-shadow:0 8px 20px rgba(0,0,0,.12)
+  background:#fff;padding:18px;border-radius:18px;
+  box-shadow:0 8px 22px rgba(0,0,0,.12)
 }
 select,input{
   width:100%;padding:12px;margin-bottom:12px;
   border-radius:12px;border:1px solid #ccc;font-size:15px
 }
 .staff-box{
-  max-height:200px;overflow:auto;
-  border:1px solid #ccc;border-radius:12px;
-  padding:10px;margin-bottom:15px
+  border:1px solid #ddd;border-radius:14px;
+  padding:12px;max-height:220px;overflow:auto
 }
-.staff-row{
-  display:flex;align-items:center;gap:8px;
-  padding:6px 0
+.staff-item{
+  display:flex;align-items:center;gap:10px;
+  padding:6px 0;font-size:15px
 }
 .btn{
   width:100%;padding:14px;border:none;
-  border-radius:25px;font-size:16px;
-  background:linear-gradient(45deg,#2e7d32,#43a047);
-  color:#fff;cursor:pointer
+  border-radius:26px;background:#2e7d32;
+  color:#fff;font-size:16px;cursor:pointer;margin-top:12px
 }
 .hidden{display:none}
 </style>
@@ -42,40 +40,40 @@ select,input{
 <body>
 
 <div class="header">
-  <button onclick="history.back()">⬅ Back</button>
+  <span onclick="history.back()" style="cursor:pointer">← Back</span>
   <h3>Create Assignment</h3>
 </div>
 
 <div class="container">
-<div class="card">
+  <div class="card">
 
-  <!-- Assignment Type -->
-  <select id="atype" onchange="typeChange()">
-    <option value="">Assignment টাইপ নির্বাচন করুন</option>
-    <option value="venue">Venue ভিত্তিক</option>
-    <option value="order">Order / Event ভিত্তিক</option>
-  </select>
+    <!-- ASSIGNMENT TYPE -->
+    <select id="type" onchange="toggleType()">
+      <option value="">Assignment টাইপ নির্বাচন করুন</option>
+      <option value="venue">Venue Assignment</option>
+      <option value="custom">Custom / Order Assignment</option>
+    </select>
 
-  <!-- Venue Select -->
-  <select id="venueSelect" class="hidden"></select>
+    <!-- VENUE SELECT -->
+    <select id="venueSelect" class="hidden"></select>
 
-  <!-- Order Inputs -->
-  <input id="eventName" class="hidden" placeholder="Event / Place নাম">
-  <input id="eventAddress" class="hidden" placeholder="ঠিকানা">
-  <input id="eventDate" class="hidden" type="date">
-  <input id="needStaff" class="hidden" type="number" placeholder="কয়জন স্টাফ লাগবে">
+    <!-- CUSTOM PLACE -->
+    <input id="customPlace" class="hidden"
+      placeholder="অনুষ্ঠান / জায়গার নাম লিখুন">
 
-  <!-- Staff -->
-  <div class="staff-box" id="staffBox">
-    Loading staff...
+    <!-- DUTY DATE -->
+    <input type="date" id="dutyDate">
+
+    <!-- STAFF -->
+    <div class="staff-box" id="staffBox">Loading staff...</div>
+
+    <button class="btn" onclick="save()">Create Assignment</button>
+
   </div>
-
-  <button class="btn" onclick="saveAssignment()">Create Assignment</button>
-
-</div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
@@ -84,85 +82,88 @@ firebase.initializeApp({
   authDomain:"rcem-system.firebaseapp.com",
   projectId:"rcem-system"
 });
+
+const auth=firebase.auth();
 const db=firebase.firestore();
 
-const atype=document.getElementById("atype");
-const venueSelect=document.getElementById("venueSelect");
-const eventName=document.getElementById("eventName");
-const eventAddress=document.getElementById("eventAddress");
-const eventDate=document.getElementById("eventDate");
-const needStaff=document.getElementById("needStaff");
-const staffBox=document.getElementById("staffBox");
+let staffs=[], venues=[];
 
-let staffList=[];
+/* LOAD DATA */
+db.collection("staffs").onSnapshot(s=>{
+  staffs=[];
+  s.forEach(d=>staffs.push({id:d.id,...d.data()}));
+  renderStaff();
+});
 
-/* Type change */
-function typeChange(){
-  const t=atype.value;
+db.collection("venues").where("active","==",true).onSnapshot(s=>{
+  venues=[];
+  s.forEach(d=>venues.push({id:d.id,...d.data()}));
+  renderVenues();
+});
+
+/* UI LOGIC */
+function toggleType(){
+  const t=type.value;
   venueSelect.classList.toggle("hidden",t!=="venue");
-  eventName.classList.toggle("hidden",t!=="order");
-  eventAddress.classList.toggle("hidden",t!=="order");
-  eventDate.classList.toggle("hidden",t!=="order");
-  needStaff.classList.toggle("hidden",t!=="order");
+  customPlace.classList.toggle("hidden",t!=="custom");
 }
 
-/* Load Venues */
-db.collection("venues").where("active","==",true)
-.onSnapshot(s=>{
-  venueSelect.innerHTML='<option value="">Venue নির্বাচন করুন</option>';
-  s.forEach(d=>{
+function renderVenues(){
+  venueSelect.innerHTML="<option value=''>Venue নির্বাচন করুন</option>";
+  venues.forEach(v=>{
     venueSelect.innerHTML+=
-      `<option value="${d.id}">${d.data().venue_name}</option>`;
+      `<option value="${v.id}">${v.venue_name}</option>`;
   });
-});
+}
 
-/* Load Staff */
-db.collection("staffs").onSnapshot(s=>{
-  staffList=[];
+function renderStaff(){
   staffBox.innerHTML="";
-  s.forEach(d=>{
-    staffList.push(d.id);
+  staffs.forEach(s=>{
     staffBox.innerHTML+=`
-      <div class="staff-row">
-        <input type="checkbox" value="${d.id}">
-        ${d.data().name}
-      </div>`;
+      <label class="staff-item">
+        <input type="checkbox" value="${s.id}">
+        ${s.name}
+      </label>`;
   });
-});
+}
 
-/* Save Assignment */
-function saveAssignment(){
-  const selectedStaff=[...staffBox.querySelectorAll("input:checked")]
-    .map(i=>i.value);
+/* SAVE ASSIGNMENT */
+async function save(){
+  if(!type.value){alert("Assignment টাইপ নির্বাচন করুন");return;}
+  if(!dutyDate.value){alert("Duty date দিন");return;}
 
-  if(selectedStaff.length===0){
-    alert("কমপক্ষে একজন স্টাফ নির্বাচন করুন");
-    return;
-  }
+  let staffIds=[], staffNames=[];
+  staffBox.querySelectorAll("input:checked").forEach(i=>{
+    const st=staffs.find(s=>s.id===i.value);
+    if(st){staffIds.push(st.id);staffNames.push(st.name);}
+  });
+  if(staffIds.length===0){alert("স্টাফ নির্বাচন করুন");return;}
 
-  let payload={
-    type:atype.value,
-    staffIds:selectedStaff,
-    createdAt:firebase.firestore.FieldValue.serverTimestamp()
+  let data={
+    assignment_type:type.value,
+    duty_date:dutyDate.value,
+    staff_ids:staffIds,
+    staff_names:staffNames,
+    status:"pending",
+    created:Date.now()
   };
 
-  if(atype.value==="venue"){
+  if(type.value==="venue"){
     if(!venueSelect.value){alert("Venue নির্বাচন করুন");return;}
-    payload.venueId=venueSelect.value;
+    const v=venues.find(x=>x.id===venueSelect.value);
+    data.venue_id=v.id;
+    data.venue_name=v.venue_name;
   }else{
-    if(!eventName.value || !eventDate.value){
-      alert("Event তথ্য পূরণ করুন");return;
+    if(!customPlace.value.trim()){
+      alert("জায়গার নাম লিখুন");return;
     }
-    payload.eventName=eventName.value;
-    payload.address=eventAddress.value;
-    payload.date=eventDate.value;
-    payload.needStaff=needStaff.value||0;
+    data.custom_place=customPlace.value.trim();
+    data.venue_name=customPlace.value.trim();
   }
 
-  db.collection("assignments").add(payload).then(()=>{
-    alert("Assignment সফলভাবে তৈরি হয়েছে");
-    history.back();
-  });
+  await db.collection("assignments").add(data);
+  alert("Assignment তৈরি হয়েছে");
+  history.back();
 }
 </script>
 
