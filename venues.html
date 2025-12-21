@@ -143,7 +143,7 @@ auth.onAuthStateChanged(async user=>{
 
   const snap = await db.collection("users").doc(user.email).get();
   if(!snap.exists || snap.data().active!==true){
-    alert("এই অপশনে ঢোকার অনুমতি নেই");
+    alert("এই অপশনে আপনার ঢোকার অনুমতি নেই");
     await auth.signOut();
     location.href="index.html";
     return;
