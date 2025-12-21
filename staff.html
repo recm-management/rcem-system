@@ -215,7 +215,6 @@ auth.onAuthStateChanged(async user=>{
 db.collection("staffs").onSnapshot(s=>{
   staffs=[];
   s.forEach(d=>staffs.push({id:d.id,...d.data()}));
-  staffs.sort((a,b)=>(b.level||0)-(a.level||0));
   render();
 });
 
@@ -247,7 +246,10 @@ function render(){
         </div>
         <div class="actions">
           <button class="btn rate">Give Rating</button>
-          <button class="btn edit" onclick='openModal(${JSON.stringify(s).replace(/"/g,"&quot;")})'>Edit</button>
+          ${perms.staff_edit ? 
+            `<button class="btn edit" onclick='openModal(${JSON.stringify(s).replace(/"/g,"&quot;")})'>Edit</button>` 
+            : ""
+          }
         </div>
       </div>
     `;
@@ -281,6 +283,10 @@ async function save(){
   }
 
   if(editId){
+    if(!perms.staff_edit){
+      alert("আপনার Staff Edit permission নেই");
+      return;
+    }
     await db.collection("staffs").doc(editId).update({
       name:staffName.value,
       phone:staffPhone.value,
