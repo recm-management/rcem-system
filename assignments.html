@@ -9,50 +9,86 @@
 *{box-sizing:border-box;font-family:Arial}
 body{margin:0;background:#f4f6f9}
 
+/* HEADER */
 .header{
   background:linear-gradient(135deg,#0d47a1,#1976d2);
-  color:#fff;padding:16px;
-  display:flex;justify-content:space-between;align-items:center
+  color:#fff;
+  padding:16px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center
 }
 .back{cursor:pointer}
 
+/* TOP */
+.top-actions{padding:16px}
+.add-btn{
+  padding:10px 18px;
+  border:none;
+  border-radius:22px;
+  background:linear-gradient(45deg,#2e7d32,#43a047);
+  color:#fff;
+  font-size:14px;
+  cursor:pointer
+}
+
+/* LIST */
 .container{padding:16px}
 
+/* CARD */
 .card{
-  background:#fff;border-radius:16px;
-  padding:16px;margin-bottom:14px;
-  box-shadow:0 8px 20px rgba(0,0,0,.12)
+  background:#fff;
+  border-radius:18px;
+  padding:16px;
+  margin-bottom:14px;
+  box-shadow:0 10px 25px rgba(0,0,0,.12)
 }
-.card h3{margin:0;font-size:17px}
-.meta{font-size:14px;color:#555;margin:6px 0}
-
-.status{
+.title{font-weight:bold;font-size:16px}
+.meta{font-size:14px;color:#555;margin-top:6px}
+.badge{
   display:inline-block;
+  margin-top:8px;
   padding:4px 10px;
   border-radius:12px;
-  font-size:13px;color:#fff
+  font-size:12px;
+  color:#fff
 }
 .pending{background:#f9a825}
 .completed{background:#2e7d32}
 
-.amount{
-  display:flex;justify-content:space-between;
-  margin-top:10px;font-size:14px
+/* MODAL */
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.6);
+  display:none;
+  align-items:center;
+  justify-content:center
 }
-
-.actions{
-  margin-top:12px;
-  display:flex;gap:8px
+.modal-box{
+  background:#fff;
+  padding:18px;
+  border-radius:18px;
+  width:100%;
+  max-width:420px
 }
-.btn{
-  border:none;border-radius:20px;
-  padding:6px 14px;
-  font-size:13px;cursor:pointer
+.modal-box input, .modal-box select{
+  width:100%;
+  padding:12px;
+  margin-bottom:12px;
+  border-radius:12px;
+  border:1px solid #ccc
 }
-.complete{background:#2e7d32;color:#fff}
-.delete{background:#d32f2f;color:#fff}
-
-.empty{text-align:center;color:#777;margin-top:50px}
+.modal-box button{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:22px;
+  background:#2e7d32;
+  color:#fff;
+  font-size:15px
+}
+.cancel{text-align:center;margin-top:10px;color:#555;cursor:pointer}
 </style>
 </head>
 
@@ -63,7 +99,25 @@ body{margin:0;background:#f4f6f9}
   <h3>Assignments</h3>
 </div>
 
+<div class="top-actions">
+  <button id="addBtn" class="add-btn" onclick="openModal()">+ Create Assignment</button>
+</div>
+
 <div class="container" id="list">Loading...</div>
+
+<!-- MODAL -->
+<div class="modal" id="modal">
+  <div class="modal-box">
+    <h3>Create Assignment</h3>
+
+    <input id="venueName" placeholder="Venue Name">
+    <input id="dutyDate" type="date">
+    <input id="staffNames" placeholder="Staff Names (comma separated)">
+
+    <button onclick="save()">Save Assignment</button>
+    <div class="cancel" onclick="closeModal()">Cancel</div>
+  </div>
+</div>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -76,94 +130,85 @@ firebase.initializeApp({
   projectId:"rcem-system"
 });
 
-const auth=firebase.auth();
-const db=firebase.firestore();
+const auth = firebase.auth();
+const db = firebase.firestore();
 
-let perms={}, role="";
+let perms = {};
+let assignments = [];
 
-/* AUTH + LOAD PERMISSIONS */
 auth.onAuthStateChanged(async user=>{
-  if(!user){location.href="index.html";return;}
+  if(!user){ location.href="index.html"; return; }
 
-  const snap=await db.collection("users").doc(user.email).get();
-  if(!snap.exists || snap.data().permissions?.assignments!==true){
-    alert("Assignments দেখার অনুমতি নেই");
-    location.href="admin.html";
-    return;
+  const u = await db.collection("users").doc(user.email).get();
+  perms = u.data()?.permissions || {};
+
+  if(!perms.assignments_add){
+    document.getElementById("addBtn").style.display="none";
   }
-
-  perms=snap.data().permissions || {};
-  role=snap.data().role || "";
 });
 
-/* LOAD ASSIGNMENTS */
 db.collection("assignments")
-.orderBy("created","desc")
-.onSnapshot(s=>{
+.orderBy("created_at","desc")
+.onSnapshot(snap=>{
+  assignments=[];
+  snap.forEach(d=>assignments.push({id:d.id,...d.data()}));
+  render();
+});
+
+function render(){
   list.innerHTML="";
-  if(s.empty){
-    list.innerHTML=`<div class="empty">No assignments found</div>`;
+  if(assignments.length===0){
+    list.innerHTML="<p>No assignments found</p>";
     return;
   }
 
-  s.forEach(d=>{
-    const a=d.data();
-
-    let actionsHTML="";
-
-    if(perms.assignments_edit || role==="super_admin"){
-      actionsHTML+=`
-        <button class="btn complete"
-          onclick="markCompleted('${d.id}')">Complete</button>
-      `;
-    }
-
-    if(role==="super_admin"){
-      actionsHTML+=`
-        <button class="btn delete"
-          onclick="deleteAssign('${d.id}')">Delete</button>
-      `;
-    }
-
+  assignments.forEach(a=>{
     list.innerHTML+=`
       <div class="card">
-        <h3>${a.venue_name}</h3>
-        <div class="meta">📅 ${a.event_date}</div>
-        <div class="meta">👥 ${a.staff_ids.join(", ")}</div>
-
-        <span class="status ${a.status}">
+        <div class="title">${a.venue_name}</div>
+        <div class="meta">📅 Duty Date: ${a.duty_date}</div>
+        <div class="meta">👥 Staff: ${a.staff_names.join(", ")}</div>
+        <span class="badge ${a.status}">
           ${a.status.toUpperCase()}
         </span>
-
-        <div class="amount">
-          <div>Total: ৳ ${a.total_amount}</div>
-          <div>Advance: ৳ ${a.advance}</div>
-          <div>Due: ৳ ${a.due}</div>
-        </div>
-
-        <div class="actions">${actionsHTML}</div>
       </div>
     `;
   });
-});
-
-/* ACTIONS */
-function markCompleted(id){
-  if(!perms.assignments_edit && role!=="super_admin"){
-    alert("Permission নেই");
-    return;
-  }
-  db.collection("assignments").doc(id).update({status:"completed"});
 }
 
-function deleteAssign(id){
-  if(role!=="super_admin"){
-    alert("Delete শুধুমাত্র Super Admin");
+function openModal(){
+  modal.style.display="flex";
+  venueName.value="";
+  dutyDate.value="";
+  staffNames.value="";
+}
+
+function closeModal(){
+  modal.style.display="none";
+}
+
+async function save(){
+  if(!venueName.value || !dutyDate.value || !staffNames.value){
+    alert("সব ফিল্ড পূরণ করো");
     return;
   }
-  if(confirm("Delete assignment?")){
-    db.collection("assignments").doc(id).delete();
+
+  if(!perms.assignments_add){
+    alert("আপনার Assignment Create permission নেই");
+    return;
   }
+
+  await db.collection("assignments").add({
+    venue_name: venueName.value,
+    duty_date: dutyDate.value,
+    staff_names: staffNames.value.split(",").map(s=>s.trim()),
+    status: "pending",
+    created_by: auth.currentUser.email,
+    created_at: Date.now(),
+    active: true
+  });
+
+  closeModal();
 }
 </script>
 
