@@ -18,84 +18,52 @@ body{background:#f4f6f9;overflow-x:hidden}
   justify-content:space-between;
   align-items:center
 }
-.menu-btn{
-  font-size:26px;
-  cursor:pointer;
-  user-select:none
-}
+.menu-btn{font-size:26px;cursor:pointer}
 
 /* OVERLAY */
 .overlay{
-  position:fixed;
-  inset:0;
+  position:fixed;inset:0;
   background:rgba(0,0,0,.45);
-  opacity:0;
-  pointer-events:none;
-  transition:.3s;
-  z-index:10
+  opacity:0;pointer-events:none;
+  transition:.3s;z-index:10
 }
-.overlay.active{
-  opacity:1;
-  pointer-events:auto
-}
+.overlay.active{opacity:1;pointer-events:auto}
 
-/* SLIDE MENU */
+/* SIDE MENU */
 .side-menu{
-  position:fixed;
-  top:0;right:-280px;
-  width:260px;
-  height:100%;
+  position:fixed;top:0;right:-280px;
+  width:260px;height:100%;
   background:#fff;
   box-shadow:-10px 0 25px rgba(0,0,0,.2);
-  transition:.35s ease;
-  z-index:11;
-  display:flex;
-  flex-direction:column
+  transition:.35s;z-index:11;
+  display:flex;flex-direction:column
 }
 .side-menu.active{right:0}
 
-/* USER INFO */
+/* USER */
 .user-box{
-  padding:18px;
-  background:#f1f5ff;
+  padding:18px;background:#f1f5ff;
   border-bottom:1px solid #ddd
 }
-.user-box b{display:block;font-size:14px;color:#555}
+.user-box b{font-size:14px;color:#555}
 .user-box span{font-size:13px;color:#0d47a1}
 
-/* MENU ITEMS */
-.menu{
-  flex:1;
-  padding:10px
-}
+/* MENU */
+.menu{flex:1;padding:10px}
 .menu a{
-  display:block;
-  padding:14px 16px;
-  margin-bottom:6px;
-  border-radius:12px;
-  color:#333;
-  text-decoration:none;
-  font-weight:500;
-  transition:.25s
+  display:block;padding:14px 16px;margin-bottom:6px;
+  border-radius:12px;color:#333;text-decoration:none;
+  font-weight:500;transition:.25s
 }
-.menu a:hover{
-  background:#e3f2fd;
-  transform:translateX(6px)
-}
+.menu a:hover{background:#e3f2fd;transform:translateX(6px)}
 
-/* LOGOUT */
 .logout{
-  margin:15px;
-  padding:12px;
-  border:none;
-  border-radius:25px;
-  background:#d32f2f;
-  color:#fff;
-  font-size:15px;
-  cursor:pointer
+  margin:15px;padding:12px;
+  border:none;border-radius:25px;
+  background:#d32f2f;color:#fff;font-size:15px
 }
 
-/* DASHBOARD CONTENT */
+/* CONTENT */
 .container{padding:18px}
 .cards{
   display:grid;
@@ -103,8 +71,7 @@ body{background:#f4f6f9;overflow-x:hidden}
   gap:15px
 }
 .card{
-  background:#fff;
-  padding:20px;
+  background:#fff;padding:20px;
   border-radius:18px;
   box-shadow:0 8px 20px rgba(0,0,0,.12)
 }
@@ -121,10 +88,8 @@ body{background:#f4f6f9;overflow-x:hidden}
   <div class="menu-btn" onclick="openMenu()">☰</div>
 </div>
 
-<!-- OVERLAY -->
 <div class="overlay" id="overlay" onclick="closeMenu()"></div>
 
-<!-- SIDE MENU -->
 <div class="side-menu" id="sideMenu">
   <div class="user-box">
     <b>Logged in as</b>
@@ -143,21 +108,24 @@ body{background:#f4f6f9;overflow-x:hidden}
   <button class="logout" onclick="logout()">Logout</button>
 </div>
 
-<!-- CONTENT -->
+<!-- DASHBOARD -->
 <div class="container">
   <div class="cards">
     <div class="card">
       <h3>Total Assignments</h3>
-      <p>12</p>
+      <p id="totalAssignments">0</p>
     </div>
+
     <div class="card">
       <h3>Total Staff</h3>
-      <p>85</p>
+      <p id="totalStaff">0</p>
     </div>
+
     <div class="card">
       <h3>This Month Income</h3>
       <p>৳ 1,25,000</p>
     </div>
+
     <div class="card">
       <h3>Profit</h3>
       <p>৳ 32,000</p>
@@ -180,14 +148,21 @@ firebase.initializeApp({
 const auth=firebase.auth();
 const db=firebase.firestore();
 
+/* 🔥 REAL-TIME TOTAL ASSIGNMENTS */
+db.collection("assignments").onSnapshot(snap=>{
+  document.getElementById("totalAssignments").innerText = snap.size;
+});
+
+/* 🔥 REAL-TIME TOTAL STAFF */
+db.collection("staffs").onSnapshot(snap=>{
+  document.getElementById("totalStaff").innerText = snap.size;
+});
+
+/* AUTH & PERMISSION */
 auth.onAuthStateChanged(async user=>{
-  if(!user){
-    location.href="index.html";
-    return;
-  }
+  if(!user){ location.href="index.html"; return; }
 
-  document.getElementById("userEmail").innerText=user.email;
-
+  userEmail.innerText=user.email;
   const snap = await db.collection("users").doc(user.email).get();
 
   if(!snap.exists || snap.data().active !== true){
@@ -198,10 +173,9 @@ auth.onAuthStateChanged(async user=>{
   }
 
   const role = snap.data().role;
-  if(role === "super_admin") return;
+  if(role==="super_admin") return;
 
   const p = snap.data().permissions || {};
-
   hideMenu("menu_dashboard", p.dashboard);
   hideMenu("menu_assignments", p.assignments);
   hideMenu("menu_staff", p.staff);
@@ -211,22 +185,11 @@ auth.onAuthStateChanged(async user=>{
 });
 
 function hideMenu(id, allow){
-  const el=document.getElementById(id);
-  if(!el) return;
-  if(!allow) el.style.display="none";
+  if(!allow) document.getElementById(id).style.display="none";
 }
-
-function openMenu(){
-  sideMenu.classList.add("active");
-  overlay.classList.add("active");
-}
-function closeMenu(){
-  sideMenu.classList.remove("active");
-  overlay.classList.remove("active");
-}
-function logout(){
-  auth.signOut().then(()=>location.href="index.html");
-}
+function openMenu(){sideMenu.classList.add("active");overlay.classList.add("active")}
+function closeMenu(){sideMenu.classList.remove("active");overlay.classList.remove("active")}
+function logout(){auth.signOut().then(()=>location.href="index.html")}
 </script>
 
 </body>
