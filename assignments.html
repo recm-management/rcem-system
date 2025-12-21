@@ -9,14 +9,12 @@
 *{box-sizing:border-box;font-family:Arial}
 body{margin:0;background:#f4f6f9}
 
-/* HEADER */
 .header{
   background:#0d47a1;color:#fff;padding:16px;
   display:flex;align-items:center;justify-content:space-between
 }
 .back{cursor:pointer}
 
-/* TOP */
 .top-actions{padding:16px}
 .add-btn{
   padding:12px 22px;border:none;border-radius:25px;
@@ -24,10 +22,8 @@ body{margin:0;background:#f4f6f9}
   color:#fff;font-size:15px;cursor:pointer
 }
 
-/* LIST */
 .container{padding:16px}
 
-/* CARD */
 .card{
   background:#fff;border-radius:18px;padding:16px;
   margin-bottom:14px;box-shadow:0 8px 22px rgba(0,0,0,.12)
@@ -35,34 +31,27 @@ body{margin:0;background:#f4f6f9}
 .title{font-size:17px;font-weight:bold}
 .meta{font-size:14px;color:#555;margin:5px 0}
 
-/* PROGRAM LIST */
 .programs{margin-top:12px;border-top:1px dashed #ddd;padding-top:10px;display:none}
-.program{
-  padding:10px;border-bottom:1px solid #eee;font-size:14px
-}
-.program.cancelled{background:#fdecea}
+.program{padding:10px;border-bottom:1px solid #eee;font-size:14px}
 
-/* BADGE */
 .badge{
   display:inline-block;padding:4px 10px;border-radius:12px;
   font-size:12px;color:#fff;margin-top:6px
 }
 .pending{background:#f9a825}
 .completed{background:#2e7d32}
-.cancelled-badge{background:#d32f2f}
+.cancelled{background:#d32f2f}
 
-/* ACTIONS */
 .actions{display:flex;gap:8px;margin-top:8px}
 .btn{
   padding:6px 12px;border:none;border-radius:14px;
   font-size:13px;cursor:pointer
 }
 .edit{background:#1565c0;color:#fff}
+.delete{background:#d32f2f;color:#fff}
 .complete{background:#2e7d32;color:#fff}
-.cancel{background:#d32f2f;color:#fff}
 .toggle{background:#607d8b;color:#fff}
 
-/* EMPTY */
 .empty{
   background:#fff;padding:26px;border-radius:18px;
   text-align:center;color:#777;
@@ -96,13 +85,12 @@ firebase.initializeApp({
   projectId:"rcem-system"
 });
 const db=firebase.firestore();
-
 let raw=[];
 
-/* LOAD */
 db.collection("assignments").orderBy("created","desc")
 .onSnapshot(s=>{
-  raw=[];s.forEach(d=>raw.push({id:d.id,...d.data()}));
+  raw=[];
+  s.forEach(d=>raw.push({id:d.id,...d.data()}));
   render();
 });
 
@@ -136,30 +124,20 @@ function render(){
 
         <div class="programs">
           ${arr.map(p=>`
-            <div class="program ${p.status==='cancelled'?'cancelled':''}">
-              📅 ${p.duty_date||'-'} | 🕒 ${p.shift||'-'} |
-              👥 ${p.total_staff||0} জন
+            <div class="program">
+              📅 ${p.duty_date||'-'} | 🕒 ${p.shift||'-'}
               <br>
-              <span class="badge ${
-                p.status==='completed'?'completed':
-                p.status==='cancelled'?'cancelled-badge':'pending'
-              }">
-                ${p.status.toUpperCase()}
+              <span class="badge ${p.status||'pending'}">
+                ${(p.status||'pending').toUpperCase()}
               </span>
 
               <div class="actions">
                 <button class="btn edit"
-                  onclick="location.href='create-assignment.html?id=${p.id}'">
-                  Edit
-                </button>
+                  onclick="editAssignment('${p.id}')">Edit</button>
+                <button class="btn delete"
+                  onclick="deleteAssignment('${p.id}')">Delete</button>
                 <button class="btn complete"
-                  onclick="setStatus('${p.id}','completed')">
-                  Complete
-                </button>
-                <button class="btn cancel"
-                  onclick="setStatus('${p.id}','cancelled')">
-                  Cancel
-                </button>
+                  onclick="setStatus('${p.id}','completed')">Complete</button>
               </div>
             </div>
           `).join("")}
@@ -169,7 +147,15 @@ function render(){
   });
 }
 
-/* STATUS CHANGE */
+function editAssignment(id){
+  location.href = `create-assignment.html?id=${id}`;
+}
+
+function deleteAssignment(id){
+  if(!confirm("এই Assignment ডিলিট করবেন?")) return;
+  db.collection("assignments").doc(id).delete();
+}
+
 function setStatus(id,status){
   if(!confirm("আপনি কি নিশ্চিত?")) return;
   db.collection("assignments").doc(id).update({status});
