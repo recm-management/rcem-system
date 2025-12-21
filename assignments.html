@@ -42,11 +42,12 @@ body{margin:0;background:#f4f6f9}
   font-weight:bold;
   margin-bottom:10px
 }
+
 .program{
   background:#f6f8fb;
   border-radius:14px;
   padding:12px;
-  margin-bottom:10px
+  margin-bottom:12px
 }
 .meta{
   font-size:14px;
@@ -60,7 +61,7 @@ body{margin:0;background:#f4f6f9}
   font-size:12px;
   background:#f9a825;
   color:#fff;
-  margin-top:8px
+  margin-top:6px
 }
 
 .actions{
@@ -115,78 +116,97 @@ firebase.initializeApp({
   projectId:"rcem-system"
 });
 
-const auth=firebase.auth();
-const db=firebase.firestore();
+const auth = firebase.auth();
+const db = firebase.firestore();
 
 let canEdit=false, canDelete=false;
 
-/* AUTH */
+/* AUTH FIRST */
 auth.onAuthStateChanged(async user=>{
-  if(!user){ location.href="index.html"; return; }
+  if(!user){
+    location.href="index.html";
+    return;
+  }
 
-  const u=await db.collection("users").doc(user.email).get();
-  const p=u.data()?.permissions || {};
+  const u = await db.collection("users").doc(user.email).get();
+  const p = u.data()?.permissions || {};
 
-  canEdit = p.assignments_edit === true;
+  canEdit   = p.assignments_edit === true;
   canDelete = p.assignments_delete === true;
 
-  if(!p.assignments_add)
+  if(!p.assignments_add){
     document.getElementById("addBtn").style.display="none";
+  }
+
+  loadAssignments(); // 🔥 auth শেষে লোড
 });
 
-/* LOAD */
-db.collection("assignments")
-.orderBy("created","desc")
-.onSnapshot(snap=>{
-  const grouped={};
+/* LOAD ASSIGNMENTS */
+function loadAssignments(){
+  db.collection("assignments")
+  .orderBy("created","desc")
+  .onSnapshot(snap=>{
+    const grouped={};
 
-  snap.forEach(d=>{
-    const a=d.data();
-    const venue=a.venue_name || "অন্যান্য";
-    if(!grouped[venue]) grouped[venue]=[];
-    grouped[venue].push({id:d.id,...a});
+    snap.forEach(d=>{
+      const a=d.data();
+      const venue=a.venue_name || "অন্যান্য";
+      if(!grouped[venue]) grouped[venue]=[];
+      grouped[venue].push({id:d.id,...a});
+    });
+
+    const list=document.getElementById("list");
+    list.innerHTML="";
+
+    Object.keys(grouped).forEach(v=>{
+      list.innerHTML+=`
+        <div class="card">
+          <div class="title">${v}</div>
+
+          ${grouped[v].map(p=>{
+            const shiftText =
+              p.shift==="day" ? "🌞 দিন" :
+              p.shift==="night" ? "🌙 রাত" : "-";
+
+            return `
+            <div class="program">
+              <div class="meta">📅 ${p.duty_date || "-"}</div>
+              <div class="meta">⏰ ${shiftText}</div>
+              <div class="meta">👥 স্টাফ: ${p.staff_names?.length || 0}</div>
+
+              <span class="badge">ACTIVE</span>
+
+              ${(canEdit || canDelete)?`
+              <div class="actions">
+                ${canEdit?`
+                  <button class="edit-btn"
+                    onclick="editAssign('${p.id}')">
+                    ✏️ Edit
+                  </button>`:""}
+                ${canDelete?`
+                  <button class="del-btn"
+                    onclick="deleteAssign('${p.id}')">
+                    🗑 Delete
+                  </button>`:""}
+              </div>`:""}
+            </div>
+            `;
+          }).join("")}
+
+        </div>
+      `;
+    });
   });
-
-  const list=document.getElementById("list");
-  list.innerHTML="";
-
-  Object.keys(grouped).forEach(v=>{
-    list.innerHTML+=`
-      <div class="card">
-        <div class="title">${v}</div>
-
-        ${grouped[v].map(p=>`
-          <div class="program">
-            <div class="meta">📅 ${p.duty_date || "-"}</div>
-            <div class="meta">👥 স্টাফ: ${(p.staff_names?.length)||0}</div>
-
-            <span class="badge">ACTIVE</span>
-
-            ${(canEdit || canDelete)?`
-            <div class="actions">
-              ${canEdit?`
-                <button class="edit-btn"
-                  onclick="editAssign('${p.id}')">✏️ Edit</button>`:""}
-              ${canDelete?`
-                <button class="del-btn"
-                  onclick="deleteAssign('${p.id}')">🗑 Delete</button>`:""}
-            </div>`:""}
-          </div>
-        `).join("")}
-
-      </div>
-    `;
-  });
-});
+}
 
 /* EDIT */
 function editAssign(id){
-  location.href=`create-assignment.html?edit=${id}`;
+  location.href = `create-assignment.html?edit=${id}`;
 }
 
 /* DELETE */
 function deleteAssign(id){
-  if(!confirm("ডিলিট করতে চান?")) return;
+  if(!confirm("এই Assignment ডিলিট করতে চান?")) return;
   db.collection("assignments").doc(id).delete();
 }
 </script>
