@@ -1,78 +1,192 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RCEM – Assignments</title>
+
+<style>
+*{box-sizing:border-box;font-family:Arial}
+body{margin:0;background:#f4f6f9}
+
+/* HEADER */
+.header{
+  background:#0d47a1;
+  color:#fff;
+  padding:16px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between
+}
+.back{cursor:pointer}
+
+/* TOP */
+.top-actions{padding:16px}
+.add-btn{
+  padding:12px 22px;
+  border:none;
+  border-radius:25px;
+  background:linear-gradient(45deg,#2e7d32,#43a047);
+  color:#fff;
+  font-size:15px;
+  cursor:pointer
+}
+
+/* LIST */
+.container{padding:16px}
+
+/* CARD */
+.card{
+  background:#fff;
+  border-radius:18px;
+  padding:16px;
+  margin-bottom:16px;
+  box-shadow:0 8px 22px rgba(0,0,0,.12)
+}
+.title{
+  font-size:17px;
+  font-weight:bold;
+  margin-bottom:10px
+}
+.program{
+  background:#f5f7fb;
+  border-radius:12px;
+  padding:10px 12px;
+  margin-bottom:8px;
+  font-size:14px
+}
+
+/* STATUS BADGE */
+.badge{
+  display:inline-block;
+  margin-top:10px;
+  padding:6px 14px;
+  border-radius:18px;
+  font-size:12px;
+  color:#fff
+}
+.active{background:#f9a825}
+.completed{background:#2e7d32}
+
+/* EMPTY */
+.empty{
+  background:#fff;
+  padding:26px;
+  border-radius:18px;
+  text-align:center;
+  color:#777;
+  box-shadow:0 8px 22px rgba(0,0,0,.12)
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <div class="back" onclick="history.back()">← Back</div>
+  <h3>Assignments</h3>
+</div>
+
+<div class="top-actions">
+  <button id="addBtn" class="add-btn"
+    onclick="location.href='create-assignment.html'">
+    + Create Assignment
+  </button>
+</div>
+
+<div class="container" id="list">Loading...</div>
+
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
 <script>
+firebase.initializeApp({
+  apiKey:"AIzaSyDK3dqXZuWaH3gctxURdOZc_Q1UfioesaA",
+  authDomain:"rcem-system.firebaseapp.com",
+  projectId:"rcem-system"
+});
+
+const auth = firebase.auth();
 const db = firebase.firestore();
 
+let perms = {};
+let programs = [];
+
+/* AUTH */
+auth.onAuthStateChanged(async user=>{
+  if(!user){
+    location.href="index.html";
+    return;
+  }
+  const u = await db.collection("users").doc(user.email).get();
+  perms = u.data()?.permissions || {};
+  if(!perms.assignments_add){
+    document.getElementById("addBtn").style.display="none";
+  }
+});
+
+/* LOAD PROGRAMS */
 db.collection("assignments")
-  .orderBy("date")
-  .onSnapshot(async snap => {
+.orderBy("created","desc")
+.onSnapshot(snap=>{
+  programs=[];
+  snap.forEach(d=>{
+    programs.push({id:d.id,...d.data()});
+  });
+  render();
+});
 
-    const venueMap = {};
+/* RENDER */
+function render(){
+  const list = document.getElementById("list");
+  list.innerHTML="";
 
-    snap.forEach(doc => {
-      const a = doc.data();
-      a.id = doc.id;
+  if(programs.length===0){
+    list.innerHTML=`<div class="empty">এখনো কোনো Assignment নেই</div>`;
+    return;
+  }
 
-      if (!venueMap[a.venue_id]) {
-        venueMap[a.venue_id] = {
-          venue_name: a.venue_name,
-          programs: []
-        };
-      }
-
-      venueMap[a.venue_id].programs.push(a);
-    });
-
-    renderVenues(venueMap);
+  /* GROUP BY VENUE */
+  const grouped = {};
+  programs.forEach(p=>{
+    if(!grouped[p.venue_id]){
+      grouped[p.venue_id]={
+        venue_name:p.venue_name,
+        programs:[]
+      };
+    }
+    grouped[p.venue_id].programs.push(p);
   });
 
-async function renderVenues(map) {
-  const list = document.getElementById("list");
-  list.innerHTML = "";
+  Object.values(grouped).forEach(v=>{
+    let html = `
+      <div class="card">
+        <div class="title">${v.venue_name}</div>
+    `;
 
-  for (const vid in map) {
-    const venue = map[vid];
-    const count = venue.programs.length;
-
-    let programsHTML = "";
-
-    venue.programs.forEach(p => {
-      programsHTML += `
-        <div class="sub-card">
-          <div>📅 ${p.date}</div>
-          <div>🕒 ${p.shift === "day" ? "Day" : "Night"}</div>
-          <div>👥 প্রয়োজনীয় স্টাফ: ${p.staff_required || 0}</div>
-          <div class="actions">
-            <button onclick="editProgram('${p.id}')">✏️ Edit</button>
-            <button onclick="deleteProgram('${p.id}')">🗑 Delete</button>
-          </div>
+    v.programs.forEach(p=>{
+      html += `
+        <div class="program">
+          📅 ${p.duty_date || "-"} <br>
+          🕒 ${p.time || "-"} <br>
+          👥 প্রয়োজনীয় স্টাফ: ${p.required_staff || 0}
         </div>
       `;
     });
 
-    list.innerHTML += `
-      <div class="card">
-        <div class="title">${venue.venue_name}</div>
-        <div class="meta">
-          Upcoming Programs: <b>${count}</b>
-        </div>
-
-        <details>
-          <summary>প্রোগ্রাম দেখুন</summary>
-          ${programsHTML}
-        </details>
-
-        <span class="badge active">ACTIVE</span>
+    html += `
+      <span class="badge active">
+        ACTIVE (${v.programs.length})
+      </span>
       </div>
     `;
-  }
-}
 
-function editProgram(id) {
-  location.href = "create-assignment.html?id=" + id;
-}
-
-function deleteProgram(id) {
-  if (!confirm("এই প্রোগ্রাম ডিলিট করবেন?")) return;
-
-  db.collection("assignments").doc(id).delete();
+    list.innerHTML += html;
+  });
 }
 </script>
+
+</body>
+</html>
