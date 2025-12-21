@@ -1,131 +1,49 @@
-<!DOCTYPE html>
-<html lang="bn">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RCEM – Assignments</title>
-
-<style>
-*{box-sizing:border-box;font-family:Arial}
-body{margin:0;background:#f4f6f9}
-
-.header{
-  background:#0d47a1;
-  color:#fff;
-  padding:16px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between
-}
-.back{cursor:pointer}
-
-.top-actions{padding:16px}
-.add-btn{
-  padding:12px 22px;
-  border:none;
-  border-radius:25px;
-  background:linear-gradient(45deg,#2e7d32,#43a047);
-  color:#fff;
-  font-size:15px;
-  cursor:pointer
-}
-
-.container{padding:16px}
-
-.card{
-  background:#fff;
-  border-radius:18px;
-  padding:16px;
-  margin-bottom:14px;
-  box-shadow:0 8px 22px rgba(0,0,0,.12)
-}
-.title{font-size:17px;font-weight:bold;margin-bottom:8px}
-.meta{font-size:14px;color:#555;margin:4px 0}
-
-.program{
-  margin-top:10px;
-  padding:10px;
-  background:#f1f3f6;
-  border-radius:12px;
-  font-size:14px
-}
-
-.badge{
-  display:inline-block;
-  margin-top:10px;
-  padding:6px 14px;
-  border-radius:18px;
-  font-size:12px;
-  color:#fff;
-  background:#f9a825
-}
-
-.empty{
-  background:#fff;
-  padding:26px;
-  border-radius:18px;
-  text-align:center;
-  color:#777;
-  box-shadow:0 8px 22px rgba(0,0,0,.12)
-}
-</style>
-</head>
-
-<body>
-
-<div class="header">
-  <div class="back" onclick="history.back()">← Back</div>
-  <h3>Assignments</h3>
-</div>
-
-<div class="top-actions">
-  <button class="add-btn" onclick="location.href='create-assignment.html'">
-    + Create Assignment
-  </button>
-</div>
-
-<div class="container" id="list">Loading...</div>
-
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
 <script>
-firebase.initializeApp({
-  apiKey:"AIzaSyDK3dqXZuWaH3gctxURdOZc_Q1UfioesaA",
-  authDomain:"rcem-system.firebaseapp.com",
-  projectId:"rcem-system"
-});
-
 const db = firebase.firestore();
-const list = document.getElementById("list");
 
-db.collection("venues").onSnapshot(async snap=>{
-  list.innerHTML="";
-  if(snap.empty){
-    list.innerHTML=`<div class="empty">কোনো Assignment নেই</div>`;
-    return;
-  }
+db.collection("assignments")
+  .orderBy("date")
+  .onSnapshot(async snap => {
 
-  for(const v of snap.docs){
-    const venue = v.data();
+    const venueMap = {};
 
-    const progSnap = await db
-      .collection("venues")
-      .doc(v.id)
-      .collection("programs")
-      .orderBy("date","asc")
-      .get();
+    snap.forEach(doc => {
+      const a = doc.data();
+      a.id = doc.id;
 
-    if(progSnap.empty) continue;
+      if (!venueMap[a.venue_id]) {
+        venueMap[a.venue_id] = {
+          venue_name: a.venue_name,
+          programs: []
+        };
+      }
+
+      venueMap[a.venue_id].programs.push(a);
+    });
+
+    renderVenues(venueMap);
+  });
+
+async function renderVenues(map) {
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+
+  for (const vid in map) {
+    const venue = map[vid];
+    const count = venue.programs.length;
 
     let programsHTML = "";
-    progSnap.forEach(p=>{
-      const pr = p.data();
+
+    venue.programs.forEach(p => {
       programsHTML += `
-        <div class="program">
-          📅 ${pr.date || "-"}<br>
-          ⏰ ${pr.time || "-"}<br>
-          👥 প্রয়োজনীয় স্টাফ: ${pr.staff_required || 0}
+        <div class="sub-card">
+          <div>📅 ${p.date}</div>
+          <div>🕒 ${p.shift === "day" ? "Day" : "Night"}</div>
+          <div>👥 প্রয়োজনীয় স্টাফ: ${p.staff_required || 0}</div>
+          <div class="actions">
+            <button onclick="editProgram('${p.id}')">✏️ Edit</button>
+            <button onclick="deleteProgram('${p.id}')">🗑 Delete</button>
+          </div>
         </div>
       `;
     });
@@ -133,13 +51,28 @@ db.collection("venues").onSnapshot(async snap=>{
     list.innerHTML += `
       <div class="card">
         <div class="title">${venue.venue_name}</div>
-        ${programsHTML}
-        <span class="badge">ACTIVE</span>
+        <div class="meta">
+          Upcoming Programs: <b>${count}</b>
+        </div>
+
+        <details>
+          <summary>প্রোগ্রাম দেখুন</summary>
+          ${programsHTML}
+        </details>
+
+        <span class="badge active">ACTIVE</span>
       </div>
     `;
   }
-});
-</script>
+}
 
-</body>
-</html>
+function editProgram(id) {
+  location.href = "create-assignment.html?id=" + id;
+}
+
+function deleteProgram(id) {
+  if (!confirm("এই প্রোগ্রাম ডিলিট করবেন?")) return;
+
+  db.collection("assignments").doc(id).delete();
+}
+</script>
