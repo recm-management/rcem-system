@@ -51,8 +51,21 @@ body{margin:0;background:#f4f6f9}
 .meta{
   font-size:14px;
   color:#555;
-  margin:4px 0
+  margin:5px 0
 }
+
+/* BADGE */
+.badge{
+  display:inline-block;
+  margin-top:6px;
+  padding:4px 10px;
+  border-radius:14px;
+  font-size:12px;
+  color:#fff
+}
+.pending{background:#f9a825}
+.completed{background:#2e7d32}
+.cancelled{background:#d32f2f}
 
 /* PROGRAM LIST */
 .programs{
@@ -68,23 +81,11 @@ body{margin:0;background:#f4f6f9}
 }
 .program:last-child{border-bottom:none}
 
-/* BADGE */
-.badge{
-  display:inline-block;
-  margin-top:6px;
-  padding:4px 12px;
-  border-radius:14px;
-  font-size:12px;
-  color:#fff
-}
-.pending{background:#f9a825}
-.completed{background:#2e7d32}
-.cancelled{background:#d32f2f}
-
 /* ACTIONS */
 .actions{
   display:flex;
-  gap:10px;
+  flex-wrap:wrap;
+  gap:8px;
   margin-top:8px
 }
 .btn{
@@ -97,6 +98,7 @@ body{margin:0;background:#f4f6f9}
 .edit{background:#1565c0;color:#fff}
 .delete{background:#d32f2f;color:#fff}
 .toggle{background:#607d8b;color:#fff}
+.status{background:#455a64;color:#fff}
 
 /* EMPTY */
 .empty{
@@ -118,14 +120,14 @@ body{margin:0;background:#f4f6f9}
 </div>
 
 <div class="top-actions">
-  <button class="add-btn"
-    onclick="location.href='create-assignment.html'">
+  <button class="add-btn" onclick="location.href='create-assignment.html'">
     + Create Assignment
   </button>
 </div>
 
 <div class="container" id="list">Loading...</div>
 
+<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
@@ -135,11 +137,11 @@ firebase.initializeApp({
   authDomain:"rcem-system.firebaseapp.com",
   projectId:"rcem-system"
 });
-const db=firebase.firestore();
+const db = firebase.firestore();
 
 let assignments=[];
 
-/* LOAD ALL ASSIGNMENTS */
+/* LOAD */
 db.collection("assignments")
 .orderBy("created","desc")
 .onSnapshot(snap=>{
@@ -148,7 +150,7 @@ db.collection("assignments")
   render();
 });
 
-/* RENDER GROUPED BY VENUE / ORDER */
+/* RENDER */
 function render(){
   const list=document.getElementById("list");
   list.innerHTML="";
@@ -159,9 +161,8 @@ function render(){
   }
 
   const grouped={};
-
   assignments.forEach(a=>{
-    const key=a.venue_name||"অনির্ধারিত";
+    const key=a.venue_name || "Unknown";
     if(!grouped[key]) grouped[key]=[];
     grouped[key].push(a);
   });
@@ -182,48 +183,56 @@ function render(){
         </div>
 
         <div class="programs">
-          ${programs.map(p=>renderProgram(p)).join("")}
+          ${programs.map(p=>`
+            <div class="program">
+              📅 ${p.duty_date || "-"} |
+              🕒 ${p.shift || "-"} |
+              👥 ${p.total_staff || 0} জন
+              ${p.location ? `<br>📍 ${p.location}` : ""}
+
+              <br>
+              <span class="badge ${p.status}">
+                ${p.status.toUpperCase()}
+              </span>
+
+              <div class="actions">
+                <button class="btn edit"
+                  onclick="location.href='create-assignment.html?id=${p.id}'">
+                  Edit
+                </button>
+
+                <button class="btn delete"
+                  onclick="deleteAssignment('${p.id}')">
+                  Delete
+                </button>
+
+                <button class="btn status"
+                  onclick="changeStatus('${p.id}','completed')">
+                  Complete
+                </button>
+
+                <button class="btn status"
+                  onclick="changeStatus('${p.id}','cancelled')">
+                  Cancel
+                </button>
+              </div>
+            </div>
+          `).join("")}
         </div>
       </div>
     `;
   });
 }
 
-function renderProgram(p){
-  return `
-    <div class="program">
-      📅 ${p.duty_date || "-"} |
-      🕒 ${p.shift || "-"} |
-      👥 ${p.total_staff || 0} জন
-      ${p.location ? `<br>📍 ${p.location}` : ""}
-
-      <div>
-        ${(p.staffs||[]).map(s=>`
-          ▸ ${s.name} (${s.role}) × ${s.count}
-        `).join("<br>")}
-      </div>
-
-      <span class="badge ${p.status||"pending"}">
-        ${(p.status||"pending").toUpperCase()}
-      </span>
-
-      <div class="actions">
-        <button class="btn edit"
-          onclick="location.href='create-assignment.html?id=${p.id}'">
-          Edit
-        </button>
-        <button class="btn delete"
-          onclick="deleteAssignment('${p.id}')">
-          Delete
-        </button>
-      </div>
-    </div>
-  `;
-}
-
 function togglePrograms(btn){
   const box=btn.parentElement.nextElementSibling;
-  box.style.display=box.style.display==="block"?"none":"block";
+  box.style.display = box.style.display==="block" ? "none" : "block";
+}
+
+/* STATUS CHANGE */
+function changeStatus(id,status){
+  if(!confirm("Status পরিবর্তন করবেন?")) return;
+  db.collection("assignments").doc(id).update({status});
 }
 
 /* DELETE */
