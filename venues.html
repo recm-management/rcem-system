@@ -8,29 +8,73 @@
 <style>
 *{box-sizing:border-box}
 body{margin:0;font-family:Arial;background:#f4f6f9}
-.header{background:#0d47a1;color:#fff;padding:15px;display:flex;justify-content:space-between;align-items:center}
+
+.header{
+  background:#0d47a1;color:#fff;padding:15px;
+  display:flex;justify-content:space-between;align-items:center
+}
 .container{padding:15px}
-.btn{padding:10px 18px;border:none;border-radius:22px;color:#fff;cursor:pointer;font-size:14px}
+
+.btn{
+  padding:10px 18px;border:none;border-radius:22px;
+  color:#fff;cursor:pointer;font-size:14px;margin-right:6px
+}
 .add{background:linear-gradient(45deg,#2e7d32,#43a047)}
 .toggle{background:linear-gradient(45deg,#f9a825,#fbc02d);color:#000}
 .edit{background:linear-gradient(45deg,#1565c0,#1e88e5)}
 .child{background:linear-gradient(45deg,#6a1b9a,#8e24aa)}
 .logout{background:#d32f2f}
-.card{background:#fff;padding:16px;border-radius:18px;margin-bottom:16px;box-shadow:0 10px 25px rgba(0,0,0,.12)}
-.status-row{display:flex;align-items:center;gap:8px;margin:6px 0;font-weight:bold}
+
+.card{
+  background:#fff;padding:16px;border-radius:18px;
+  margin-bottom:16px;
+  box-shadow:0 10px 25px rgba(0,0,0,.12)
+}
+
+.status-row{
+  display:flex;align-items:center;gap:8px;
+  margin:6px 0;font-weight:bold
+}
 .dot{width:12px;height:12px;border-radius:50%}
-.active{background:#2e7d32}
-.inactive{background:#d32f2f}
+.active{background:#2e7d32;box-shadow:0 0 6px #2e7d32}
+.inactive{background:#d32f2f;box-shadow:0 0 6px #d32f2f}
+
 .meta{font-size:14px;color:#555;margin:4px 0}
-.highlight{background:yellow}
-.search-box{width:100%;padding:12px 16px;margin:15px 0;border-radius:25px;border:1px solid #ccc;font-size:15px}
-.filter{display:flex;align-items:center;gap:8px;margin-bottom:15px;font-weight:bold}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:15px 0}
-.stat{background:#fff;padding:12px;border-radius:14px;text-align:center;box-shadow:0 6px 15px rgba(0,0,0,.12)}
+
+.search-box{
+  width:100%;padding:12px 16px;margin:15px 0;
+  border-radius:25px;border:1px solid #ccc;font-size:15px
+}
+.filter{
+  display:flex;align-items:center;gap:8px;
+  margin-bottom:15px;font-weight:bold
+}
+
+.stats{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:10px;margin:15px 0
+}
+.stat{
+  background:#fff;padding:12px;border-radius:14px;
+  text-align:center;
+  box-shadow:0 6px 15px rgba(0,0,0,.12)
+}
 .stat b{font-size:20px}
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:12px}
-.modal-box{background:#fff;padding:18px;border-radius:18px;width:100%;max-width:420px}
-.modal-box input{width:100%;padding:12px;margin-bottom:12px;border-radius:12px;border:1px solid #ccc;font-size:15px}
+
+.modal{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.6);
+  display:none;align-items:center;justify-content:center;
+  padding:12px
+}
+.modal-box{
+  background:#fff;padding:18px;border-radius:18px;
+  width:100%;max-width:420px
+}
+.modal-box input{
+  width:100%;padding:12px;margin-bottom:12px;
+  border-radius:12px;border:1px solid #ccc;font-size:15px
+}
 </style>
 </head>
 
@@ -56,7 +100,8 @@ body{margin:0;font-family:Arial;background:#f4f6f9}
     oninput="render()">
 
   <div class="filter">
-    <input type="checkbox" id="onlyActive" onchange="render()"> Show Active Only
+    <input type="checkbox" id="onlyActive" onchange="render()">
+    Show Active Only
   </div>
 
   <div id="venueList">Loading...</div>
@@ -69,7 +114,8 @@ body{margin:0;font-family:Arial;background:#f4f6f9}
     <input id="vlocation" placeholder="Address">
     <input id="vcontact" placeholder="Mobile">
     <button class="btn add" style="width:100%" onclick="save()">Save</button>
-    <p style="text-align:center;cursor:pointer;margin-top:10px" onclick="closeModal()">Cancel</p>
+    <p style="text-align:center;cursor:pointer;margin-top:10px"
+       onclick="closeModal()">Cancel</p>
   </div>
 </div>
 
@@ -92,12 +138,15 @@ let editId=null;
 let perms={};
 
 auth.onAuthStateChanged(async user=>{
-  if(!user){location.href="index.html";return;}
-  const snap=await db.collection("users").doc(user.email).get();
-  perms=snap.data()?.permissions||{};
+  if(!user){ location.href="index.html"; return; }
+
+  const snap = await db.collection("users").doc(user.email).get();
+  perms = snap.data()?.permissions || {};
 });
 
-function logout(){auth.signOut().then(()=>location.href="index.html");}
+function logout(){
+  auth.signOut().then(()=>location.href="index.html");
+}
 
 function openModal(v=null){
   modal.style.display="flex";
@@ -110,19 +159,21 @@ function openModal(v=null){
   }else{
     editId=null;
     modalTitle.innerText="Add Venue";
-    vname.value=vlocation.value=vcontact.value="";
+    vname.value="";vlocation.value="";vcontact.value="";
   }
 }
-function closeModal(){modal.style.display="none";}
+function closeModal(){ modal.style.display="none"; }
 
 function save(){
   if(editId){
+    if(!perms.venues_edit){ alert("Edit permission নেই"); return; }
     db.collection("venues").doc(editId).update({
       venue_name:vname.value,
       location:vlocation.value,
       contact:vcontact.value
     });
   }else{
+    if(!perms.venues_add){ alert("Add permission নেই"); return; }
     db.collection("venues").add({
       venue_name:vname.value,
       location:vlocation.value,
@@ -134,12 +185,16 @@ function save(){
 }
 
 function toggle(id,val){
+  if(!perms.venues_edit){ alert("Permission নেই"); return; }
   db.collection("venues").doc(id).update({active:!val});
 }
 
-function highlight(t,k){
-  if(!k) return t;
-  return t.replace(new RegExp(k,"gi"),m=>`<span class="highlight">${m}</span>`);
+function openRestaurants(id){
+  if(!perms.venues_view){
+    alert("Restaurant / Hall দেখার permission নেই");
+    return;
+  }
+  location.href=`venue-restaurants.html?venue=${id}`;
 }
 
 function render(){
@@ -149,29 +204,33 @@ function render(){
   let t=0,a=0,i=0,serial=1;
 
   data.forEach(v=>{
-    t++; v.active?a++:i++;
-
+    t++; v.active ? a++ : i++;
     if(only && !v.active) return;
-
     if(
-      !(v.venue_name||"").toLowerCase().includes(k) &&
+      !v.venue_name.toLowerCase().includes(k) &&
       !(v.contact||"").includes(k) &&
       !(v.location||"").toLowerCase().includes(k)
     ) return;
 
     venueList.innerHTML+=`
       <div class="card">
-        <b>${serial}. ${highlight(v.venue_name||"",k)}</b>
+        <b>${serial}. ${v.venue_name}</b>
         <div class="status-row">
           <div class="dot ${v.active?"active":"inactive"}"></div>
           ${v.active?"Active":"Inactive"}
         </div>
-        <div class="meta">📞 ${highlight(v.contact||"",k)}</div>
-        <div class="meta">📍 ${highlight(v.location||"",k)}</div>
-        <br>
-        <button class="btn edit" onclick='openModal(${JSON.stringify(v)})'>Edit</button>
-        <button class="btn toggle" onclick='toggle("${v.id}",${v.active})'>Toggle</button>
-      </div>`;
+        <div class="meta">📞 ${v.contact||"-"}</div>
+        <div class="meta">📍 ${v.location||"-"}</div><br>
+
+        <button class="btn child" onclick='openRestaurants("${v.id}")'>
+          Restaurants / Halls
+        </button>
+        ${perms.venues_edit ? `
+          <button class="btn edit" onclick='openModal(${JSON.stringify(v)})'>Edit</button>
+          <button class="btn toggle" onclick='toggle("${v.id}",${v.active})'>Toggle</button>
+        ` : ``}
+      </div>
+    `;
     serial++;
   });
 
