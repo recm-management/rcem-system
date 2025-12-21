@@ -103,6 +103,7 @@ if(!venueId){
   history.back();
 }
 
+  
 /* LOAD VENUE NAME */
 db.collection("venues").doc(venueId).get().then(d=>{
   if(d.exists) venueName.innerText=d.data().name;
