@@ -9,7 +9,6 @@
 *{box-sizing:border-box;font-family:Arial}
 body{margin:0;background:#f4f6f9}
 
-/* HEADER */
 .header{
   background:#0d47a1;
   color:#fff;
@@ -20,7 +19,6 @@ body{margin:0;background:#f4f6f9}
 }
 .back{cursor:pointer}
 
-/* TOP */
 .top-actions{padding:16px}
 .add-btn{
   padding:12px 22px;
@@ -32,10 +30,8 @@ body{margin:0;background:#f4f6f9}
   cursor:pointer
 }
 
-/* CONTAINER */
 .container{padding:16px}
 
-/* VENUE CARD */
 .card{
   background:#fff;
   border-radius:18px;
@@ -50,7 +46,6 @@ body{margin:0;background:#f4f6f9}
   margin-bottom:10px
 }
 
-/* PROGRAM ROW */
 .program{
   background:#f5f7fb;
   border-radius:12px;
@@ -64,7 +59,6 @@ body{margin:0;background:#f4f6f9}
   color:#333
 }
 
-/* BADGE + ACTIONS */
 .footer{
   display:flex;
   justify-content:space-between;
@@ -91,7 +85,6 @@ body{margin:0;background:#f4f6f9}
 .edit{background:#1976d2;color:#fff}
 .delete{background:#d32f2f;color:#fff}
 
-/* EMPTY */
 .empty{
   background:#fff;
   padding:26px;
@@ -118,9 +111,7 @@ body{margin:0;background:#f4f6f9}
 
 <div class="container" id="list">Loading...</div>
 
-<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
@@ -132,23 +123,24 @@ firebase.initializeApp({
 
 const db = firebase.firestore();
 
-/* LOAD ALL DATA */
 Promise.all([
   db.collection("venues").get(),
-  db.collection("assignments").get(),
+  db.collection("assignments").orderBy("created","desc").get(),
   db.collection("assignment_staffs").get()
 ]).then(([vSnap,aSnap,sSnap])=>{
 
-  const venues = {};
-  vSnap.forEach(d=>venues[d.id]=d.data().venue_name);
+  const venues={};
+  vSnap.forEach(d=>{
+    venues[d.id]=d.data().venue_name;
+  });
 
-  const staffCount = {};
+  const staffCount={};
   sSnap.forEach(d=>{
     const a=d.data().assignment_id;
     staffCount[a]=(staffCount[a]||0)+1;
   });
 
-  const grouped = {};
+  const grouped={};
   aSnap.forEach(d=>{
     const a=d.data();
     if(!grouped[a.venue_id]) grouped[a.venue_id]=[];
@@ -162,7 +154,6 @@ Promise.all([
   render(grouped,venues);
 });
 
-/* RENDER */
 function render(data,venues){
   const list=document.getElementById("list");
   list.innerHTML="";
@@ -172,48 +163,43 @@ function render(data,venues){
     return;
   }
 
-  Object.keys(data).forEach(venueId=>{
-    const programs=data[venueId];
-    const venueName=venues[venueId]||"নাম নেই";
-
+  Object.keys(data).forEach(vid=>{
+    const venueName=venues[vid]||"নাম নেই";
     let html=`<div class="card">
       <div class="title">${venueName}</div>`;
 
-    programs
-      .sort((a,b)=>a.date.localeCompare(b.date))
-      .forEach(p=>{
-        const shift=p.shift==="day"?"🌞 দিন":p.shift==="night"?"🌙 রাত":"-";
-        html+=`
-        <div class="program">
-          <div class="meta">📅 ${p.date}</div>
-          <div class="meta">⏰ ${shift}</div>
-          <div class="meta">👥 স্টাফ: ${p.assigned} / ${p.staff_required||0}</div>
+    data[vid].forEach(p=>{
+      const shift = p.time?.includes("রাত") ? "🌙 রাত" :
+                    p.time?.includes("সকাল") ? "🌞 দিন" : "-";
 
-          <div class="footer">
-            <span class="badge">ACTIVE</span>
-            <div class="actions">
-              <button class="edit" onclick="editProgram('${p.id}')">Edit</button>
-              <button class="delete" onclick="deleteProgram('${p.id}')">Delete</button>
-            </div>
+      html+=`
+      <div class="program">
+        <div class="meta">📅 ${p.date || "-"}</div>
+        <div class="meta">⏰ ${shift}</div>
+        <div class="meta">👥 স্টাফ: ${p.assigned} / ${p.staff_required || 0}</div>
+
+        <div class="footer">
+          <span class="badge">ACTIVE</span>
+          <div class="actions">
+            <button class="edit" onclick="editAssign('${p.id}')">Edit</button>
+            <button class="delete" onclick="delAssign('${p.id}')">Delete</button>
           </div>
-        </div>`;
-      });
+        </div>
+      </div>`;
+    });
 
     html+=`</div>`;
     list.innerHTML+=html;
   });
 }
 
-/* ACTIONS */
-function editProgram(id){
+function editAssign(id){
   location.href="create-assignment.html?edit="+id;
 }
 
-function deleteProgram(id){
-  if(!confirm("এই প্রোগ্রামটি ডিলিট করতে চান?")) return;
-  db.collection("assignments").doc(id).delete().then(()=>{
-    location.reload();
-  });
+function delAssign(id){
+  if(!confirm("ডিলিট করতে চান?")) return;
+  db.collection("assignments").doc(id).delete().then(()=>location.reload());
 }
 </script>
 
