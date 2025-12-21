@@ -9,52 +9,102 @@
 *{box-sizing:border-box;font-family:Arial}
 body{margin:0;background:#f4f6f9}
 
+/* HEADER */
 .header{
-  background:#0d47a1;color:#fff;padding:16px;
-  display:flex;align-items:center;justify-content:space-between
+  background:#0d47a1;
+  color:#fff;
+  padding:16px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between
 }
 .back{cursor:pointer}
 
+/* TOP */
 .top-actions{padding:16px}
 .add-btn{
-  padding:12px 22px;border:none;border-radius:25px;
+  padding:12px 22px;
+  border:none;
+  border-radius:25px;
   background:linear-gradient(45deg,#2e7d32,#43a047);
-  color:#fff;font-size:15px;cursor:pointer
+  color:#fff;
+  font-size:15px;
+  cursor:pointer
 }
 
+/* LIST */
 .container{padding:16px}
 
+/* CARD */
 .card{
-  background:#fff;border-radius:18px;padding:16px;
-  margin-bottom:14px;box-shadow:0 8px 22px rgba(0,0,0,.12)
+  background:#fff;
+  border-radius:18px;
+  padding:16px;
+  margin-bottom:14px;
+  box-shadow:0 8px 22px rgba(0,0,0,.12)
 }
-.title{font-size:17px;font-weight:bold}
-.meta{font-size:14px;color:#555;margin:5px 0}
+.title{
+  font-size:17px;
+  font-weight:bold;
+  margin-bottom:6px
+}
+.meta{
+  font-size:14px;
+  color:#555;
+  margin:4px 0
+}
 
-.programs{margin-top:12px;border-top:1px dashed #ddd;padding-top:10px;display:none}
-.program{padding:10px;border-bottom:1px solid #eee;font-size:14px}
+/* PROGRAM LIST */
+.programs{
+  margin-top:12px;
+  border-top:1px dashed #ddd;
+  padding-top:10px;
+  display:none
+}
+.program{
+  padding:10px 0;
+  border-bottom:1px solid #eee;
+  font-size:14px
+}
+.program:last-child{border-bottom:none}
 
+/* BADGE */
 .badge{
-  display:inline-block;padding:4px 10px;border-radius:12px;
-  font-size:12px;color:#fff;margin-top:6px
+  display:inline-block;
+  margin-top:6px;
+  padding:4px 12px;
+  border-radius:14px;
+  font-size:12px;
+  color:#fff
 }
 .pending{background:#f9a825}
 .completed{background:#2e7d32}
 .cancelled{background:#d32f2f}
 
-.actions{display:flex;gap:8px;margin-top:8px}
+/* ACTIONS */
+.actions{
+  display:flex;
+  gap:10px;
+  margin-top:8px
+}
 .btn{
-  padding:6px 12px;border:none;border-radius:14px;
-  font-size:13px;cursor:pointer
+  padding:6px 12px;
+  border:none;
+  border-radius:14px;
+  font-size:13px;
+  cursor:pointer
 }
 .edit{background:#1565c0;color:#fff}
 .delete{background:#d32f2f;color:#fff}
-.complete{background:#2e7d32;color:#fff}
 .toggle{background:#607d8b;color:#fff}
 
+/* EMPTY */
 .empty{
-  background:#fff;padding:26px;border-radius:18px;
-  text-align:center;color:#777;
+  background:#fff;
+  padding:26px;
+  border-radius:18px;
+  text-align:center;
+  color:#777;
   box-shadow:0 8px 22px rgba(0,0,0,.12)
 }
 </style>
@@ -68,7 +118,8 @@ body{margin:0;background:#f4f6f9}
 </div>
 
 <div class="top-actions">
-  <button class="add-btn" onclick="location.href='create-assignment.html'">
+  <button class="add-btn"
+    onclick="location.href='create-assignment.html'">
     + Create Assignment
   </button>
 </div>
@@ -85,80 +136,100 @@ firebase.initializeApp({
   projectId:"rcem-system"
 });
 const db=firebase.firestore();
-let raw=[];
 
-db.collection("assignments").orderBy("created","desc")
-.onSnapshot(s=>{
-  raw=[];
-  s.forEach(d=>raw.push({id:d.id,...d.data()}));
+let assignments=[];
+
+/* LOAD ALL ASSIGNMENTS */
+db.collection("assignments")
+.orderBy("created","desc")
+.onSnapshot(snap=>{
+  assignments=[];
+  snap.forEach(d=>assignments.push({id:d.id,...d.data()}));
   render();
 });
 
+/* RENDER GROUPED BY VENUE / ORDER */
 function render(){
+  const list=document.getElementById("list");
   list.innerHTML="";
-  if(!raw.length){
+
+  if(assignments.length===0){
     list.innerHTML=`<div class="empty">কোনো Assignment নেই</div>`;
     return;
   }
 
   const grouped={};
-  raw.forEach(a=>{
-    if(!grouped[a.venue_name]) grouped[a.venue_name]=[];
-    grouped[a.venue_name].push(a);
+
+  assignments.forEach(a=>{
+    const key=a.venue_name||"অনির্ধারিত";
+    if(!grouped[key]) grouped[key]=[];
+    grouped[key].push(a);
   });
 
   Object.keys(grouped).forEach(name=>{
-    const arr=grouped[name];
+    const programs=grouped[name];
+
     list.innerHTML+=`
       <div class="card">
         <div class="title">${name}</div>
-        <div class="meta">📌 Upcoming Programs: ${arr.length}</div>
+        <div class="meta">📌 Upcoming Programs: ${programs.length}</div>
 
         <div class="actions">
           <button class="btn toggle"
-            onclick="this.parentElement.nextElementSibling.style.display=
-            this.parentElement.nextElementSibling.style.display==='block'?'none':'block'">
+            onclick="togglePrograms(this)">
             Details
           </button>
         </div>
 
         <div class="programs">
-          ${arr.map(p=>`
-            <div class="program">
-              📅 ${p.duty_date||'-'} | 🕒 ${p.shift||'-'}
-              <br>
-              <span class="badge ${p.status||'pending'}">
-                ${(p.status||'pending').toUpperCase()}
-              </span>
-
-              <div class="actions">
-                <button class="btn edit"
-                  onclick="editAssignment('${p.id}')">Edit</button>
-                <button class="btn delete"
-                  onclick="deleteAssignment('${p.id}')">Delete</button>
-                <button class="btn complete"
-                  onclick="setStatus('${p.id}','completed')">Complete</button>
-              </div>
-            </div>
-          `).join("")}
+          ${programs.map(p=>renderProgram(p)).join("")}
         </div>
       </div>
     `;
   });
 }
 
-function editAssignment(id){
-  location.href = `create-assignment.html?id=${id}`;
+function renderProgram(p){
+  return `
+    <div class="program">
+      📅 ${p.duty_date || "-"} |
+      🕒 ${p.shift || "-"} |
+      👥 ${p.total_staff || 0} জন
+      ${p.location ? `<br>📍 ${p.location}` : ""}
+
+      <div>
+        ${(p.staffs||[]).map(s=>`
+          ▸ ${s.name} (${s.role}) × ${s.count}
+        `).join("<br>")}
+      </div>
+
+      <span class="badge ${p.status||"pending"}">
+        ${(p.status||"pending").toUpperCase()}
+      </span>
+
+      <div class="actions">
+        <button class="btn edit"
+          onclick="location.href='create-assignment.html?id=${p.id}'">
+          Edit
+        </button>
+        <button class="btn delete"
+          onclick="deleteAssignment('${p.id}')">
+          Delete
+        </button>
+      </div>
+    </div>
+  `;
 }
 
+function togglePrograms(btn){
+  const box=btn.parentElement.nextElementSibling;
+  box.style.display=box.style.display==="block"?"none":"block";
+}
+
+/* DELETE */
 function deleteAssignment(id){
   if(!confirm("এই Assignment ডিলিট করবেন?")) return;
   db.collection("assignments").doc(id).delete();
-}
-
-function setStatus(id,status){
-  if(!confirm("আপনি কি নিশ্চিত?")) return;
-  db.collection("assignments").doc(id).update({status});
 }
 </script>
 
