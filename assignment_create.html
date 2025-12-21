@@ -43,18 +43,19 @@ select,input{
   border:1px solid #ddd;
   border-radius:12px;
   padding:10px;
-  max-height:200px;
-  overflow:auto;
+  max-height:220px;
+  overflow-y:auto;
   margin-bottom:14px
 }
 .staff-item{
   display:flex;
   align-items:center;
-  gap:8px;
-  margin-bottom:6px;
+  gap:10px;
+  padding:6px 4px;
   font-size:14px
 }
 
+/* BUTTON */
 button{
   width:100%;
   padding:14px;
@@ -79,16 +80,20 @@ button{
   <div class="card">
 
     <!-- VENUE SELECT -->
-    <select id="venueSelect">
+    <select id="venueSelect" onchange="checkCustomVenue()">
       <option value="">🏛️ Venue নির্বাচন করুন</option>
+      <option value="__custom__">➕ অপরিচিত ভেন্য যুক্ত করুন</option>
     </select>
+
+    <!-- CUSTOM VENUE -->
+    <input id="customVenue" placeholder="নতুন ভেন্য নাম লিখুন" style="display:none">
 
     <!-- DATE -->
     <input type="date" id="dutyDate">
 
-    <!-- STAFF LIST -->
+    <!-- STAFF -->
     <div class="staff-list" id="staffList">
-      Loading staff...
+      Staff লোড হচ্ছে...
     </div>
 
     <button onclick="save()">Create Assignment</button>
@@ -107,30 +112,32 @@ firebase.initializeApp({
   projectId:"rcem-system"
 });
 
-const auth = firebase.auth();
-const db = firebase.firestore();
+const auth=firebase.auth();
+const db=firebase.firestore();
 let perms={};
 
 auth.onAuthStateChanged(async user=>{
-  if(!user){
-    location.href="index.html";
-    return;
-  }
-  const u = await db.collection("users").doc(user.email).get();
-  perms = u.data()?.permissions || {};
+  if(!user){location.href="index.html";return;}
+  const u=await db.collection("users").doc(user.email).get();
+  perms=u.data()?.permissions||{};
   if(!perms.assignments_add){
-    alert("আপনার Assignment Create permission নেই");
+    alert("Assignment create permission নেই");
     history.back();
   }
 });
 
 /* LOAD VENUES */
-db.collection("venues").where("active","==",true).onSnapshot(s=>{
-  venueSelect.innerHTML='<option value="">🏛️ Venue নির্বাচন করুন</option>';
+db.collection("venues").onSnapshot(s=>{
+  venueSelect.innerHTML=`
+    <option value="">🏛️ Venue নির্বাচন করুন</option>
+    <option value="__custom__">➕ অপরিচিত ভেন্য যুক্ত করুন</option>
+  `;
   s.forEach(d=>{
-    venueSelect.innerHTML+=`
-      <option value="${d.id}">${d.data().name}</option>
-    `;
+    const v=d.data();
+    const name=v.name || v.venue_name || v.title;
+    if(name){
+      venueSelect.innerHTML+=`<option value="${d.id}">${name}</option>`;
+    }
   });
 });
 
@@ -147,11 +154,36 @@ db.collection("staffs").where("active","==",true).onSnapshot(s=>{
   });
 });
 
+/* CUSTOM VENUE TOGGLE */
+function checkCustomVenue(){
+  customVenue.style.display =
+    venueSelect.value==="__custom__" ? "block" : "none";
+}
+
 /* SAVE */
 async function save(){
-  if(!venueSelect.value || !dutyDate.value){
-    alert("Venue এবং Date দরকার");
+  let venueId=venueSelect.value;
+  let venueName="";
+
+  if(!venueId || !dutyDate.value){
+    alert("Venue ও Date দরকার");
     return;
+  }
+
+  if(venueId==="__custom__"){
+    if(!customVenue.value.trim()){
+      alert("নতুন ভেন্য নাম লিখুন");
+      return;
+    }
+    const v=await db.collection("venues").add({
+      name:customVenue.value,
+      active:true,
+      created:Date.now()
+    });
+    venueId=v.id;
+    venueName=customVenue.value;
+  }else{
+    venueName=venueSelect.options[venueSelect.selectedIndex].text;
   }
 
   const staffChecked=[...document.querySelectorAll('#staffList input:checked')];
@@ -160,21 +192,17 @@ async function save(){
     return;
   }
 
-  const staffIds = staffChecked.map(s=>s.value);
-  const staffNames = staffChecked.map(s=>s.dataset.name);
-  const venueName = venueSelect.options[venueSelect.selectedIndex].text;
-
   await db.collection("assignments").add({
-    venue_id: venueSelect.value,
-    venue_name: venueName,
-    duty_date: dutyDate.value,
-    staff_ids: staffIds,
-    staff_names: staffNames,
-    status: "pending",
-    created: Date.now()
+    venue_id:venueId,
+    venue_name:venueName,
+    duty_date:dutyDate.value,
+    staff_ids:staffChecked.map(s=>s.value),
+    staff_names:staffChecked.map(s=>s.dataset.name),
+    status:"pending",
+    created:Date.now()
   });
 
-  alert("Assignment তৈরি হয়েছে");
+  alert("Assignment সফলভাবে তৈরি হয়েছে");
   location.href="assignments.html";
 }
 </script>
