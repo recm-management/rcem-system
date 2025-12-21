@@ -15,8 +15,8 @@ body{margin:0;background:#f4f6f9}
   color:#fff;
   padding:16px;
   display:flex;
-  align-items:center;
-  justify-content:space-between
+  justify-content:space-between;
+  align-items:center
 }
 .back{cursor:pointer}
 
@@ -32,58 +32,64 @@ body{margin:0;background:#f4f6f9}
   cursor:pointer
 }
 
-/* LIST */
+/* CONTAINER */
 .container{padding:16px}
 
-/* CARD */
+/* VENUE CARD */
 .card{
   background:#fff;
   border-radius:18px;
   padding:16px;
-  margin-bottom:16px;
+  margin-bottom:18px;
   box-shadow:0 8px 22px rgba(0,0,0,.12)
 }
+
 .title{
-  font-size:17px;
+  font-size:18px;
   font-weight:bold;
   margin-bottom:10px
 }
 
+/* PROGRAM ROW */
 .program{
   background:#f5f7fb;
   border-radius:12px;
-  padding:10px 12px;
-  margin-bottom:8px;
-  font-size:14px
+  padding:12px;
+  margin-bottom:10px
 }
 
-/* ACTIONS */
-.actions{
+.meta{
+  font-size:14px;
+  margin:4px 0;
+  color:#333
+}
+
+/* BADGE + ACTIONS */
+.footer{
   display:flex;
-  gap:10px;
+  justify-content:space-between;
+  align-items:center;
   margin-top:10px
 }
-.action-btn{
-  padding:6px 14px;
-  border:none;
-  border-radius:16px;
-  font-size:12px;
-  cursor:pointer;
-  color:#fff
-}
-.edit{background:#1976d2}
-.delete{background:#d32f2f}
 
-/* STATUS */
 .badge{
-  display:inline-block;
-  margin-top:10px;
   padding:6px 14px;
   border-radius:18px;
   font-size:12px;
   color:#fff;
   background:#f9a825
 }
+
+.actions button{
+  border:none;
+  border-radius:12px;
+  padding:6px 12px;
+  margin-left:6px;
+  cursor:pointer;
+  font-size:12px
+}
+.edit{background:#1976d2;color:#fff}
+.delete{background:#d32f2f;color:#fff}
 
 /* EMPTY */
 .empty{
@@ -105,8 +111,7 @@ body{margin:0;background:#f4f6f9}
 </div>
 
 <div class="top-actions">
-  <button id="addBtn" class="add-btn"
-    onclick="location.href='create-assignment.html'">
+  <button class="add-btn" onclick="location.href='create-assignment.html'">
     + Create Assignment
   </button>
 </div>
@@ -125,81 +130,74 @@ firebase.initializeApp({
   projectId:"rcem-system"
 });
 
-const auth = firebase.auth();
 const db = firebase.firestore();
 
-let perms = {};
-let programs = [];
+/* LOAD ALL DATA */
+Promise.all([
+  db.collection("venues").get(),
+  db.collection("assignments").get(),
+  db.collection("assignment_staffs").get()
+]).then(([vSnap,aSnap,sSnap])=>{
 
-/* AUTH */
-auth.onAuthStateChanged(async user=>{
-  if(!user){ location.href="index.html"; return; }
-  const u = await db.collection("users").doc(user.email).get();
-  perms = u.data()?.permissions || {};
-  if(!perms.assignments_add){
-    document.getElementById("addBtn").style.display="none";
-  }
+  const venues = {};
+  vSnap.forEach(d=>venues[d.id]=d.data().venue_name);
+
+  const staffCount = {};
+  sSnap.forEach(d=>{
+    const a=d.data().assignment_id;
+    staffCount[a]=(staffCount[a]||0)+1;
+  });
+
+  const grouped = {};
+  aSnap.forEach(d=>{
+    const a=d.data();
+    if(!grouped[a.venue_id]) grouped[a.venue_id]=[];
+    grouped[a.venue_id].push({
+      id:d.id,
+      ...a,
+      assigned:staffCount[d.id]||0
+    });
+  });
+
+  render(grouped,venues);
 });
-
-/* LOAD */
-db.collection("assignments").orderBy("created","desc")
-.onSnapshot(snap=>{
-  programs=[];
-  snap.forEach(d=>programs.push({id:d.id,...d.data()}));
-  render();
-});
-
-function shiftText(s){
-  if(s==="day") return "🌞 দিন";
-  if(s==="night") return "🌙 রাত";
-  if(s==="full") return "🌗 দিন + রাত";
-  return "-";
-}
 
 /* RENDER */
-function render(){
+function render(data,venues){
   const list=document.getElementById("list");
   list.innerHTML="";
 
-  if(programs.length===0){
-    list.innerHTML=`<div class="empty">এখনো কোনো Assignment নেই</div>`;
+  if(!Object.keys(data).length){
+    list.innerHTML=`<div class="empty">কোনো Assignment নেই</div>`;
     return;
   }
 
-  const grouped={};
-  programs.forEach(p=>{
-    if(!grouped[p.venue_id]){
-      grouped[p.venue_id]={venue:p.venue_name,items:[]};
-    }
-    grouped[p.venue_id].items.push(p);
-  });
+  Object.keys(data).forEach(venueId=>{
+    const programs=data[venueId];
+    const venueName=venues[venueId]||"নাম নেই";
 
-  Object.values(grouped).forEach(v=>{
     let html=`<div class="card">
-      <div class="title">${v.venue}</div>`;
+      <div class="title">${venueName}</div>`;
 
-    v.items.forEach(p=>{
-      html+=`
+    programs
+      .sort((a,b)=>a.date.localeCompare(b.date))
+      .forEach(p=>{
+        const shift=p.shift==="day"?"🌞 দিন":p.shift==="night"?"🌙 রাত":"-";
+        html+=`
         <div class="program">
-          📅 ${p.duty_date || "-"} <br>
-          🕒 ${shiftText(p.shift)} <br>
-          👥 স্টাফ: ${p.assigned_count || 0} / ${p.required_staff || 0}
+          <div class="meta">📅 ${p.date}</div>
+          <div class="meta">⏰ ${shift}</div>
+          <div class="meta">👥 স্টাফ: ${p.assigned} / ${p.staff_required||0}</div>
+
+          <div class="footer">
+            <span class="badge">ACTIVE</span>
+            <div class="actions">
+              <button class="edit" onclick="editProgram('${p.id}')">Edit</button>
+              <button class="delete" onclick="deleteProgram('${p.id}')">Delete</button>
+            </div>
+          </div>
         </div>`;
-    });
-
-    html+=`
-      <span class="badge">ACTIVE (${v.items.length})</span>`;
-
-    if(perms.assignments_edit || perms.assignments_delete){
-      html+=`<div class="actions">`;
-      if(perms.assignments_edit){
-        html+=`<button class="action-btn edit" onclick="edit('${v.items[0].id}')">Edit</button>`;
-      }
-      if(perms.assignments_delete){
-        html+=`<button class="action-btn delete" onclick="del('${v.items[0].id}')">Delete</button>`;
-      }
-      html+=`</div>`;
-    }
+      });
 
     html+=`</div>`;
     list.innerHTML+=html;
@@ -207,13 +205,15 @@ function render(){
 }
 
 /* ACTIONS */
-function edit(id){
+function editProgram(id){
   location.href="create-assignment.html?edit="+id;
 }
-function del(id){
-  if(confirm("ডিলিট করতে চান?")){
-    db.collection("assignments").doc(id).delete();
-  }
+
+function deleteProgram(id){
+  if(!confirm("এই প্রোগ্রামটি ডিলিট করতে চান?")) return;
+  db.collection("assignments").doc(id).delete().then(()=>{
+    location.reload();
+  });
 }
 </script>
 
