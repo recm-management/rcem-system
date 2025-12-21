@@ -1,95 +1,177 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RCEM Dashboard</title>
+<title>RCEM Admin Dashboard</title>
 
 <style>
-*{box-sizing:border-box;margin:0;padding:0;font-family:Arial}
-body{background:#f4f6f9}
+:root{
+  --primary:#0d47a1;
+  --primary-dark:#0a3578;
+  --accent:#2e7d32;
+  --bg:#f4f6f9;
+  --card:#ffffff;
+  --text:#333;
+  --muted:#777;
+  --danger:#d32f2f;
+}
+
+/* RESET */
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
+body{background:var(--bg);overflow-x:hidden}
 
 /* HEADER */
 .header{
-  background:linear-gradient(135deg,#0d47a1,#1976d2);
+  background:linear-gradient(135deg,var(--primary),#1976d2);
   color:#fff;
   padding:16px;
   display:flex;
+  align-items:center;
   justify-content:space-between;
-  align-items:center
+  position:sticky;
+  top:0;
+  z-index:20
 }
-.menu-btn{font-size:26px;cursor:pointer}
+.menu-btn{
+  font-size:26px;
+  cursor:pointer;
+  transition:.25s
+}
+.menu-btn:active{transform:scale(.9)}
 
 /* OVERLAY */
 .overlay{
-  position:fixed;inset:0;
+  position:fixed;
+  inset:0;
   background:rgba(0,0,0,.45);
-  opacity:0;pointer-events:none;
-  transition:.3s;z-index:10
+  opacity:0;
+  pointer-events:none;
+  transition:.3s;
+  z-index:30
 }
-.overlay.active{opacity:1;pointer-events:auto}
+.overlay.show{
+  opacity:1;
+  pointer-events:auto
+}
 
 /* SIDE MENU */
 .side-menu{
-  position:fixed;top:0;right:-280px;
-  width:260px;height:100%;
+  position:fixed;
+  top:0;
+  right:-280px;
+  width:260px;
+  height:100%;
   background:#fff;
-  box-shadow:-10px 0 25px rgba(0,0,0,.2);
-  transition:.35s ease;
-  z-index:11;
-  display:flex;flex-direction:column
+  box-shadow:-10px 0 30px rgba(0,0,0,.25);
+  transition:.35s cubic-bezier(.4,0,.2,1);
+  z-index:40;
+  display:flex;
+  flex-direction:column
 }
-.side-menu.active{right:0}
+.side-menu.show{right:0}
 
-/* USER */
+/* USER BOX */
 .user-box{
   padding:18px;
   background:#f1f5ff;
   border-bottom:1px solid #ddd
 }
+.user-box b{font-size:13px;color:var(--muted)}
+.user-box span{font-size:14px;color:var(--primary);font-weight:bold}
 
 /* MENU */
-.menu{flex:1;padding:10px}
+.menu{flex:1;padding:12px}
 .menu a{
-  display:block;padding:14px 16px;
+  display:block;
+  padding:14px 16px;
   margin-bottom:6px;
-  border-radius:12px;
-  color:#333;text-decoration:none;
+  border-radius:14px;
+  text-decoration:none;
+  color:var(--text);
+  font-weight:500;
   transition:.25s
 }
-.menu a:hover{background:#e3f2fd;transform:translateX(6px)}
+.menu a:hover{
+  background:#e3f2fd;
+  transform:translateX(6px)
+}
 
+/* LOGOUT */
 .logout{
-  margin:15px;padding:12px;
-  border:none;border-radius:25px;
-  background:#d32f2f;color:#fff
+  margin:14px;
+  padding:12px;
+  border:none;
+  border-radius:25px;
+  background:var(--danger);
+  color:#fff;
+  font-size:15px;
+  cursor:pointer
 }
 
 /* CONTENT */
 .container{padding:18px}
+
+/* CARDS */
 .cards{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:15px
+  gap:16px
 }
 .card{
-  background:#fff;
+  background:var(--card);
   padding:20px;
   border-radius:18px;
+  box-shadow:0 10px 25px rgba(0,0,0,.12);
+  transition:.25s;
+  cursor:pointer
+}
+.card:hover{
+  transform:translateY(-6px);
+  box-shadow:0 14px 35px rgba(0,0,0,.18)
+}
+.card h3{font-size:14px;color:var(--muted);margin-bottom:8px}
+.card p{font-size:26px;font-weight:bold;color:var(--primary)}
+
+/* SECTION */
+.section{margin-top:26px}
+.section h4{
+  font-size:16px;
+  margin-bottom:10px;
+  color:var(--text)
+}
+
+/* LIST */
+.list{
+  background:#fff;
+  border-radius:16px;
+  overflow:hidden;
   box-shadow:0 8px 20px rgba(0,0,0,.12)
 }
-.card h3{font-size:14px;color:#666;margin-bottom:6px}
-.card p{font-size:24px;font-weight:bold;color:#0d47a1}
+.item{
+  padding:14px 16px;
+  border-bottom:1px solid #eee
+}
+.item:last-child{border-bottom:none}
+.small{font-size:13px;color:var(--muted)}
 
 /* UPCOMING */
 .upcoming{
-  margin-top:20px;
-  animation:fadeIn .6s ease
+  background:#fff;
+  border-radius:18px;
+  padding:18px;
+  box-shadow:0 8px 20px rgba(0,0,0,.12)
 }
-.venue-name{
+.venue{
   font-size:18px;
   font-weight:bold;
-  color:#0d47a1
+  color:var(--primary)
+}
+.countdown{
+  font-size:20px;
+  font-weight:bold;
+  color:var(--danger);
+  margin-top:6px
 }
 .blink{
   animation:blink 1s infinite
@@ -99,17 +181,24 @@ body{background:#f4f6f9}
   50%{opacity:.2}
   100%{opacity:1}
 }
-.countdown{
-  font-size:20px;
-  font-weight:bold;
-  color:#d32f2f;
-  margin-top:8px
-}
 
-@keyframes fadeIn{
-  from{opacity:0;transform:translateY(10px)}
-  to{opacity:1;transform:none}
+/* ACTIONS */
+.actions{
+  display:flex;
+  gap:12px
 }
+.actions button{
+  flex:1;
+  padding:14px;
+  border:none;
+  border-radius:22px;
+  color:#fff;
+  font-size:15px;
+  cursor:pointer
+}
+.addA{background:linear-gradient(45deg,#2e7d32,#43a047)}
+.addS{background:linear-gradient(45deg,#1565c0,#1e88e5)}
+.addV{background:linear-gradient(45deg,#6a1b9a,#8e24aa)}
 </style>
 </head>
 
@@ -133,6 +222,8 @@ body{background:#f4f6f9}
     <a href="assignments.html">Assignments</a>
     <a href="staff.html">Staff</a>
     <a href="venues.html">Venues</a>
+    <a href="monthly-accounts.html">Monthly Accounts</a>
+    <a href="admin-users.html">Admin Users</a>
   </div>
 
   <button class="logout" onclick="logout()">Logout</button>
@@ -141,24 +232,48 @@ body{background:#f4f6f9}
 <div class="container">
 
   <div class="cards">
-    <div class="card"><h3>Total Assignments</h3><p id="totalAssignments">0</p></div>
-    <div class="card"><h3>Total Staff</h3><p id="totalStaff">0</p></div>
-    <div class="card"><h3>Pending</h3><p id="pending">0</p></div>
-    <div class="card"><h3>Completed</h3><p id="completed">0</p></div>
+    <div class="card" onclick="location.href='assignments.html'">
+      <h3>Total Assignments</h3><p id="totalAssignments">0</p>
+    </div>
+    <div class="card" onclick="location.href='staff.html'">
+      <h3>Total Staff</h3><p id="totalStaff">0</p>
+    </div>
+    <div class="card" onclick="location.href='assignments.html?status=pending'">
+      <h3>Pending</h3><p id="pendingAssignments">0</p>
+    </div>
+    <div class="card" onclick="location.href='assignments.html?status=completed'">
+      <h3>Completed</h3><p id="completedAssignments">0</p>
+    </div>
   </div>
 
-  <div class="card upcoming">
-    <h3>⏳ Upcoming Assignment</h3>
-    <div id="venue" class="venue-name">Loading...</div>
-    <div id="countdown" class="countdown">--</div>
-    <div id="totalUpcoming" style="margin-top:6px;color:#666"></div>
+  <div class="section">
+    <h4>⏳ Upcoming Assignment</h4>
+    <div class="upcoming">
+      <div class="venue" id="upVenue">Loading...</div>
+      <div class="countdown" id="upCountdown">--</div>
+      <div class="small" id="upTotal"></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h4>📅 Today’s Assignments</h4>
+    <div class="list" id="todayList">Loading...</div>
+  </div>
+
+  <div class="section">
+    <h4>⚡ Quick Actions</h4>
+    <div class="actions">
+      <button class="addA" onclick="location.href='create-assignment.html'">+ Assignment</button>
+      <button class="addS" onclick="location.href='staff.html'">+ Staff</button>
+      <button class="addV" onclick="location.href='venues.html'">+ Venue</button>
+    </div>
   </div>
 
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
 firebase.initializeApp({
@@ -167,77 +282,82 @@ firebase.initializeApp({
   projectId:"rcem-system"
 });
 
-const db=firebase.firestore();
 const auth=firebase.auth();
+const db=firebase.firestore();
+
+function openMenu(){
+  sideMenu.classList.add("show");
+  overlay.classList.add("show");
+}
+function closeMenu(){
+  sideMenu.classList.remove("show");
+  overlay.classList.remove("show");
+}
+function logout(){
+  auth.signOut().then(()=>location.href="index.html");
+}
 
 auth.onAuthStateChanged(u=>{
   if(!u){location.href="index.html";return;}
   userEmail.innerText=u.email;
 });
 
-/* REALTIME COUNTS */
-db.collection("assignments").onSnapshot(s=>{
-  totalAssignments.innerText=s.size;
-  let p=0,c=0;
-  s.forEach(d=>{
-    d.data().status==="completed"?c++:p++;
-  });
-  pending.innerText=p;
-  completed.innerText=c;
-});
+/* STAFF COUNT */
 db.collection("staffs").onSnapshot(s=>totalStaff.innerText=s.size);
 
-/* UPCOMING + COUNTDOWN */
+/* ASSIGNMENTS + TODAY + UPCOMING */
 let timer;
 db.collection("assignments").onSnapshot(snap=>{
+  let total=0,p=0,c=0;
+  let todayHTML="";
+  const today=new Date().toISOString().split("T")[0];
   const now=new Date();
-  const list=[];
+  const upcoming=[];
+
   snap.forEach(d=>{
     const a=d.data();
+    total++;
+    if(a.status==="completed") c++; else p++;
+
+    if(a.duty_date===today){
+      todayHTML+=`<div class="item">${a.venue_name}<div class="small">${a.shift}</div></div>`;
+    }
+
     let t;
     if(a.shift==="day") t=new Date(a.duty_date+"T11:00:00");
     else t=new Date(a.duty_date+"T18:00:00");
-    if(t>now) list.push({...a,t});
+
+    if(t>now) upcoming.push({...a,t});
   });
 
-  if(list.length===0){
-    venue.innerText="No upcoming assignment";
-    countdown.innerText="--";
-    totalUpcoming.innerText="";
+  totalAssignments.innerText=total;
+  pendingAssignments.innerText=p;
+  completedAssignments.innerText=c;
+  todayList.innerHTML=todayHTML||"<div class='item small'>No assignments today</div>";
+
+  if(upcoming.length===0){
+    upVenue.innerText="No upcoming assignment";
+    upCountdown.innerText="--";
+    upTotal.innerText="";
     return;
   }
 
-  list.sort((a,b)=>a.t-b.t);
-  const n=list[0];
-  venue.innerText=n.venue_name;
-  totalUpcoming.innerText="Total Upcoming: "+list.length;
+  upcoming.sort((a,b)=>a.t-b.t);
+  const n=upcoming[0];
+  upVenue.innerText=n.venue_name;
+  upTotal.innerText="Total upcoming: "+upcoming.length;
 
   clearInterval(timer);
   timer=setInterval(()=>{
     const diff=n.t-new Date();
-    if(diff<=0){countdown.innerText="Starting now";return;}
+    if(diff<=0){upCountdown.innerText="Starting now";return;}
     const h=Math.floor(diff/36e5);
     const m=Math.floor(diff%36e5/6e4);
     const s=Math.floor(diff%6e4/1000);
-    countdown.innerText=`${h}h ${m}m ${s}s`;
-
-    if(diff<=3600000){
-      venue.classList.add("blink");
-    }
+    upCountdown.innerText=`${h}h ${m}m ${s}s`;
+    if(diff<=3600000) upVenue.classList.add("blink");
   },1000);
 });
-
-function openMenu(){
-  sideMenu.classList.add("active");
-  overlay.classList.add("active");
-}
-function closeMenu(){
-  sideMenu.classList.remove("active");
-  overlay.classList.remove("active");
-}
-function logout(){
-  auth.signOut().then(()=>location.href="index.html");
-}
 </script>
 
 </body>
