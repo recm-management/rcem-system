@@ -6,133 +6,233 @@
 <title>RCEM Admin Dashboard</title>
 
 <style>
-*{box-sizing:border-box;margin:0;padding:0;font-family:Arial,sans-serif}
-body{background:#f4f6f9}
+:root{
+  --primary:#0d47a1;
+  --primary-dark:#0a3578;
+  --accent:#2e7d32;
+  --bg:#f4f6f9;
+  --card:#ffffff;
+  --text:#333;
+  --muted:#777;
+}
+
+/* RESET */
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
+body{background:var(--bg);overflow-x:hidden}
 
 /* HEADER */
 .header{
-  background:linear-gradient(135deg,#0d47a1,#1976d2);
+  background:linear-gradient(135deg,var(--primary),#1976d2);
   color:#fff;
   padding:16px;
   display:flex;
+  align-items:center;
   justify-content:space-between;
-  align-items:center
+  position:sticky;
+  top:0;
+  z-index:20
 }
-.menu-btn{font-size:26px;cursor:pointer}
+.menu-btn{
+  font-size:26px;
+  cursor:pointer;
+  transition:.25s
+}
+.menu-btn:active{transform:scale(.9)}
 
-/* CONTAINER */
+/* OVERLAY */
+.overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  opacity:0;
+  pointer-events:none;
+  transition:.3s;
+  z-index:30
+}
+.overlay.show{
+  opacity:1;
+  pointer-events:auto
+}
+
+/* SIDE MENU */
+.side-menu{
+  position:fixed;
+  top:0;
+  right:-280px;
+  width:260px;
+  height:100%;
+  background:#fff;
+  box-shadow:-10px 0 30px rgba(0,0,0,.25);
+  transition:.35s cubic-bezier(.4,0,.2,1);
+  z-index:40;
+  display:flex;
+  flex-direction:column
+}
+.side-menu.show{right:0}
+
+/* USER BOX */
+.user-box{
+  padding:18px;
+  background:#f1f5ff;
+  border-bottom:1px solid #ddd
+}
+.user-box b{font-size:13px;color:var(--muted)}
+.user-box span{font-size:14px;color:var(--primary);font-weight:bold}
+
+/* MENU ITEMS */
+.menu{
+  flex:1;
+  padding:12px
+}
+.menu a{
+  display:flex;
+  align-items:center;
+  padding:14px 16px;
+  margin-bottom:6px;
+  border-radius:14px;
+  text-decoration:none;
+  color:var(--text);
+  font-weight:500;
+  transition:.25s
+}
+.menu a:hover{
+  background:#e3f2fd;
+  transform:translateX(6px)
+}
+
+/* LOGOUT */
+.logout{
+  margin:14px;
+  padding:12px;
+  border:none;
+  border-radius:25px;
+  background:#d32f2f;
+  color:#fff;
+  font-size:15px;
+  cursor:pointer;
+  transition:.2s
+}
+.logout:active{transform:scale(.96)}
+
+/* CONTENT */
 .container{padding:18px}
 
-/* CARDS */
+/* DASHBOARD CARDS */
 .cards{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:14px
+  gap:16px
 }
 .card{
-  background:#fff;
-  padding:18px;
+  background:var(--card);
+  padding:20px;
   border-radius:18px;
-  box-shadow:0 8px 20px rgba(0,0,0,.12);
+  box-shadow:0 10px 25px rgba(0,0,0,.12);
+  transition:.25s;
   cursor:pointer
 }
-.card h3{font-size:14px;color:#666;margin-bottom:6px}
-.card p{font-size:26px;font-weight:bold}
-.blue p{color:#0d47a1}
-.green p{color:#2e7d32}
-.orange p{color:#ef6c00}
-.purple p{color:#6a1b9a}
+.card:hover{
+  transform:translateY(-6px);
+  box-shadow:0 14px 35px rgba(0,0,0,.18)
+}
+.card h3{font-size:14px;color:var(--muted);margin-bottom:8px}
+.card p{font-size:26px;font-weight:bold;color:var(--primary)}
 
 /* SECTION */
-.section{
-  margin-top:22px
-}
+.section{margin-top:26px}
 .section h4{
   font-size:16px;
   margin-bottom:10px;
-  color:#333
+  color:var(--text)
 }
 
 /* LIST */
 .list{
   background:#fff;
   border-radius:16px;
+  overflow:hidden;
   box-shadow:0 8px 20px rgba(0,0,0,.12)
 }
 .item{
   padding:14px 16px;
   border-bottom:1px solid #eee;
-  font-size:14px
+  animation:fadeUp .3s ease
 }
 .item:last-child{border-bottom:none}
-.small{color:#666;font-size:13px}
+.small{font-size:13px;color:var(--muted)}
+
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(8px)}
+  to{opacity:1;transform:none}
+}
 
 /* QUICK ACTIONS */
 .actions{
   display:flex;
-  gap:10px;
-  margin-top:10px
+  gap:12px
 }
 .actions button{
   flex:1;
-  padding:12px;
+  padding:14px;
   border:none;
-  border-radius:20px;
+  border-radius:22px;
   color:#fff;
-  font-size:14px;
-  cursor:pointer
+  font-size:15px;
+  cursor:pointer;
+  transition:.2s
 }
-.addA{background:#2e7d32}
-.addS{background:#1565c0}
-.addV{background:#6a1b9a}
+.actions button:active{transform:scale(.96)}
+.addA{background:linear-gradient(45deg,#2e7d32,#43a047)}
+.addS{background:linear-gradient(45deg,#1565c0,#1e88e5)}
+.addV{background:linear-gradient(45deg,#6a1b9a,#8e24aa)}
 </style>
 </head>
 
 <body>
 
+<!-- HEADER -->
 <div class="header">
   <h2>RCEM Dashboard</h2>
-  <div class="menu-btn">☰</div>
+  <div class="menu-btn" onclick="openMenu()">☰</div>
 </div>
 
-<div class="container">
+<!-- OVERLAY -->
+<div class="overlay" id="overlay" onclick="closeMenu()"></div>
 
-  <!-- MAIN STATS -->
-  <div class="cards">
-    <div class="card blue" onclick="location.href='assignments.html'">
-      <h3>Total Assignments</h3>
-      <p id="totalAssignments">0</p>
-    </div>
-
-    <div class="card purple" onclick="location.href='staff.html'">
-      <h3>Total Staff</h3>
-      <p id="totalStaff">0</p>
-    </div>
-
-    <div class="card orange">
-      <h3>Pending Assignments</h3>
-      <p id="pendingAssignments">0</p>
-    </div>
-
-    <div class="card green">
-      <h3>Completed Assignments</h3>
-      <p id="completedAssignments">0</p>
-    </div>
+<!-- SIDE MENU -->
+<div class="side-menu" id="sideMenu">
+  <div class="user-box">
+    <b>Logged in as</b>
+    <span id="userEmail">Loading...</span>
   </div>
 
-  <!-- TODAY -->
+  <div class="menu">
+    <a href="admin.html">Dashboard</a>
+    <a href="assignments.html">Assignments</a>
+    <a href="staff.html">Staff</a>
+    <a href="venues.html">Venues</a>
+    <a href="monthly-accounts.html">Monthly Accounts</a>
+    <a href="admin-users.html">Admin Users</a>
+  </div>
+
+  <button class="logout" onclick="logout()">Logout</button>
+</div>
+
+<!-- CONTENT -->
+<div class="container">
+
+  <div class="cards">
+    <div class="card"><h3>Total Assignments</h3><p id="totalAssignments">0</p></div>
+    <div class="card"><h3>Total Staff</h3><p id="totalStaff">0</p></div>
+    <div class="card"><h3>Pending</h3><p id="pendingAssignments">0</p></div>
+    <div class="card"><h3>Completed</h3><p id="completedAssignments">0</p></div>
+  </div>
+
   <div class="section">
     <h4>📅 Today’s Assignments</h4>
     <div class="list" id="todayList">Loading...</div>
   </div>
 
-  <!-- UPCOMING -->
-  <div class="section">
-    <h4>⏳ Upcoming (Next 7 Days)</h4>
-    <div class="list" id="upcomingList">Loading...</div>
-  </div>
-
-  <!-- QUICK ACTIONS -->
   <div class="section">
     <h4>⚡ Quick Actions</h4>
     <div class="actions">
@@ -146,6 +246,7 @@ body{background:#f4f6f9}
 
 <!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
@@ -154,52 +255,46 @@ firebase.initializeApp({
   authDomain:"rcem-system.firebaseapp.com",
   projectId:"rcem-system"
 });
+const auth=firebase.auth();
 const db=firebase.firestore();
 
-const today=new Date().toISOString().split("T")[0];
+function openMenu(){
+  sideMenu.classList.add("show");
+  overlay.classList.add("show");
+}
+function closeMenu(){
+  sideMenu.classList.remove("show");
+  overlay.classList.remove("show");
+}
+function logout(){
+  auth.signOut().then(()=>location.href="index.html");
+}
 
-/* STAFF COUNT */
-db.collection("staffs").onSnapshot(s=>{
-  totalStaff.innerText=s.size;
+auth.onAuthStateChanged(u=>{
+  if(!u){location.href="index.html";return;}
+  userEmail.innerText=u.email;
 });
 
-/* ASSIGNMENTS */
+/* REALTIME COUNTS */
+db.collection("staffs").onSnapshot(s=>totalStaff.innerText=s.size);
+
 db.collection("assignments").onSnapshot(s=>{
-  let total=0,pending=0,completed=0;
-  let todayHTML="",upHTML="";
-  const now=new Date();
-  const limit=new Date();limit.setDate(now.getDate()+7);
+  let total=0,p=0,c=0,todayHTML="";
+  const today=new Date().toISOString().split("T")[0];
 
   s.forEach(d=>{
     const a=d.data();
     total++;
-    if(a.status==="completed") completed++;
-    else pending++;
-
+    if(a.status==="completed") c++; else p++;
     if(a.duty_date===today){
-      todayHTML+=`
-        <div class="item">
-          ${a.venue_name}
-          <div class="small">${a.shift}</div>
-        </div>`;
-    }
-
-    const ad=new Date(a.duty_date);
-    if(ad>=now && ad<=limit){
-      upHTML+=`
-        <div class="item">
-          ${a.venue_name}
-          <div class="small">${a.duty_date} • ${a.shift}</div>
-        </div>`;
+      todayHTML+=`<div class="item">${a.venue_name}<div class="small">${a.shift}</div></div>`;
     }
   });
 
   totalAssignments.innerText=total;
-  pendingAssignments.innerText=pending;
-  completedAssignments.innerText=completed;
-
+  pendingAssignments.innerText=p;
+  completedAssignments.innerText=c;
   todayList.innerHTML=todayHTML||"<div class='item small'>No assignments today</div>";
-  upcomingList.innerHTML=upHTML||"<div class='item small'>No upcoming events</div>";
 });
 </script>
 
