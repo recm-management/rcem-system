@@ -15,8 +15,8 @@ body{margin:0;background:#f4f6f9}
   color:#fff;
   padding:16px;
   display:flex;
-  justify-content:space-between;
-  align-items:center
+  align-items:center;
+  justify-content:space-between
 }
 .back{cursor:pointer}
 
@@ -38,57 +38,43 @@ body{margin:0;background:#f4f6f9}
 /* CARD */
 .card{
   background:#fff;
-  border-radius:18px;
+  border-radius:16px;
   padding:16px;
   margin-bottom:14px;
-  box-shadow:0 10px 25px rgba(0,0,0,.12)
+  box-shadow:0 8px 22px rgba(0,0,0,.12)
 }
-.title{font-weight:bold;font-size:16px}
-.meta{font-size:14px;color:#555;margin-top:6px}
+.title{
+  font-size:16px;
+  font-weight:bold;
+  margin-bottom:6px
+}
+.meta{
+  font-size:14px;
+  color:#555;
+  margin:4px 0
+}
+
+/* STATUS BADGE */
 .badge{
   display:inline-block;
   margin-top:8px;
-  padding:4px 10px;
-  border-radius:12px;
+  padding:5px 12px;
+  border-radius:14px;
   font-size:12px;
   color:#fff
 }
 .pending{background:#f9a825}
 .completed{background:#2e7d32}
 
-/* MODAL */
-.modal{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.6);
-  display:none;
-  align-items:center;
-  justify-content:center
-}
-.modal-box{
+/* EMPTY */
+.empty{
   background:#fff;
-  padding:18px;
-  border-radius:18px;
-  width:100%;
-  max-width:420px
+  padding:22px;
+  border-radius:16px;
+  text-align:center;
+  color:#777;
+  box-shadow:0 8px 22px rgba(0,0,0,.12)
 }
-.modal-box input, .modal-box select{
-  width:100%;
-  padding:12px;
-  margin-bottom:12px;
-  border-radius:12px;
-  border:1px solid #ccc
-}
-.modal-box button{
-  width:100%;
-  padding:12px;
-  border:none;
-  border-radius:22px;
-  background:#2e7d32;
-  color:#fff;
-  font-size:15px
-}
-.cancel{text-align:center;margin-top:10px;color:#555;cursor:pointer}
 </style>
 </head>
 
@@ -100,30 +86,20 @@ body{margin:0;background:#f4f6f9}
 </div>
 
 <div class="top-actions">
-  <button id="addBtn" class="add-btn" onclick="openModal()">+ Create Assignment</button>
+  <button id="addBtn" class="add-btn" onclick="alert('Create Assignment page পরে আসবে')">
+    + Create Assignment
+  </button>
 </div>
 
 <div class="container" id="list">Loading...</div>
 
-<!-- MODAL -->
-<div class="modal" id="modal">
-  <div class="modal-box">
-    <h3>Create Assignment</h3>
-
-    <input id="venueName" placeholder="Venue Name">
-    <input id="dutyDate" type="date">
-    <input id="staffNames" placeholder="Staff Names (comma separated)">
-
-    <button onclick="save()">Save Assignment</button>
-    <div class="cancel" onclick="closeModal()">Cancel</div>
-  </div>
-</div>
-
+<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
+/* FIREBASE INIT */
 firebase.initializeApp({
   apiKey:"AIzaSyDK3dqXZuWaH3gctxURdOZc_Q1UfioesaA",
   authDomain:"rcem-system.firebaseapp.com",
@@ -133,82 +109,57 @@ firebase.initializeApp({
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-let perms = {};
 let assignments = [];
+let perms = {};
 
+/* AUTH + PERMISSION */
 auth.onAuthStateChanged(async user=>{
-  if(!user){ location.href="index.html"; return; }
-
+  if(!user){
+    location.href="index.html";
+    return;
+  }
   const u = await db.collection("users").doc(user.email).get();
   perms = u.data()?.permissions || {};
 
   if(!perms.assignments_add){
-    document.getElementById("addBtn").style.display="none";
+    addBtn.style.display = "none";
   }
 });
 
+/* LOAD ASSIGNMENTS */
 db.collection("assignments")
-.orderBy("created_at","desc")
+.orderBy("created","desc")
 .onSnapshot(snap=>{
   assignments=[];
   snap.forEach(d=>assignments.push({id:d.id,...d.data()}));
   render();
 });
 
+/* RENDER */
 function render(){
   list.innerHTML="";
-  if(assignments.length===0){
-    list.innerHTML="<p>No assignments found</p>";
+
+  if(assignments.length === 0){
+    list.innerHTML = `
+      <div class="empty">
+        এখনো কোনো Assignment তৈরি হয়নি
+      </div>
+    `;
     return;
   }
 
   assignments.forEach(a=>{
-    list.innerHTML+=`
+    list.innerHTML += `
       <div class="card">
-        <div class="title">${a.venue_name}</div>
-        <div class="meta">📅 Duty Date: ${a.duty_date}</div>
-        <div class="meta">👥 Staff: ${a.staff_names.join(", ")}</div>
-        <span class="badge ${a.status}">
-          ${a.status.toUpperCase()}
+        <div class="title">${a.venue_name || "No Venue"}</div>
+        <div class="meta">📅 Duty Date: ${a.duty_date || "-"}</div>
+        <div class="meta">👥 Staff: ${(a.staff_names || []).join(", ")}</div>
+        <span class="badge ${a.status || "pending"}">
+          ${(a.status || "pending").toUpperCase()}
         </span>
       </div>
     `;
   });
-}
-
-function openModal(){
-  modal.style.display="flex";
-  venueName.value="";
-  dutyDate.value="";
-  staffNames.value="";
-}
-
-function closeModal(){
-  modal.style.display="none";
-}
-
-async function save(){
-  if(!venueName.value || !dutyDate.value || !staffNames.value){
-    alert("সব ফিল্ড পূরণ করো");
-    return;
-  }
-
-  if(!perms.assignments_add){
-    alert("আপনার Assignment Create permission নেই");
-    return;
-  }
-
-  await db.collection("assignments").add({
-    venue_name: venueName.value,
-    duty_date: dutyDate.value,
-    staff_names: staffNames.value.split(",").map(s=>s.trim()),
-    status: "pending",
-    created_by: auth.currentUser.email,
-    created_at: Date.now(),
-    active: true
-  });
-
-  closeModal();
 }
 </script>
 
