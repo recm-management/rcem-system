@@ -40,7 +40,7 @@ body{margin:0;background:#f4f6f9}
   background:#fff;
   border-radius:18px;
   padding:16px;
-  margin-bottom:14px;
+  margin-bottom:16px;
   box-shadow:0 8px 22px rgba(0,0,0,.12)
 }
 .title{
@@ -51,9 +51,10 @@ body{margin:0;background:#f4f6f9}
 .meta{
   font-size:14px;
   color:#555;
-  margin:5px 0
+  margin:4px 0
 }
 
+/* BADGE */
 .badge{
   display:inline-block;
   margin-top:6px;
@@ -64,6 +65,26 @@ body{margin:0;background:#f4f6f9}
 }
 .pending{background:#f9a825}
 .completed{background:#2e7d32}
+.cancelled{background:#d32f2f}
+
+/* ACTIONS */
+.actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:10px
+}
+.btn{
+  padding:6px 12px;
+  border:none;
+  border-radius:14px;
+  font-size:13px;
+  cursor:pointer
+}
+.edit{background:#1565c0;color:#fff}
+.delete{background:#d32f2f;color:#fff}
+.details{background:#607d8b;color:#fff}
+.history{background:#6a1b9a;color:#fff}
 
 /* PROGRAM LIST */
 .programs{
@@ -79,24 +100,39 @@ body{margin:0;background:#f4f6f9}
 }
 .program:last-child{border-bottom:none}
 
-/* ACTIONS */
-.actions{
-  display:flex;
-  gap:8px;
-  margin-top:8px;
-  flex-wrap:wrap
+/* MODAL */
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.6);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:14px
 }
-.btn{
-  padding:6px 12px;
-  border:none;
-  border-radius:14px;
-  font-size:13px;
-  cursor:pointer
+.modal-box{
+  background:#fff;
+  border-radius:18px;
+  padding:18px;
+  width:100%;
+  max-width:420px;
+  max-height:80vh;
+  overflow:auto
 }
-.edit{background:#1565c0;color:#fff}
-.delete{background:#d32f2f;color:#fff}
-.toggle{background:#607d8b;color:#fff}
-.staffBtn{background:#455a64;color:#fff}
+.modal-box h3{margin-top:0}
+.modal-item{
+  padding:8px 0;
+  border-bottom:1px solid #eee;
+  font-size:14px
+}
+.modal-item:last-child{border-bottom:none}
+.close{
+  margin-top:12px;
+  text-align:center;
+  cursor:pointer;
+  color:#1565c0;
+  font-weight:bold
+}
 
 /* EMPTY */
 .empty{
@@ -107,33 +143,6 @@ body{margin:0;background:#f4f6f9}
   color:#777;
   box-shadow:0 8px 22px rgba(0,0,0,.12)
 }
-
-/* STAFF MODAL */
-#staffModal{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.6);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  z-index:9999
-}
-#staffModal .box{
-  background:#fff;
-  width:100%;
-  max-width:420px;
-  border-radius:18px;
-  padding:18px;
-  box-shadow:0 10px 30px rgba(0,0,0,.3)
-}
-.staff-item{
-  padding:10px 0;
-  border-bottom:1px solid #eee
-}
-.staff-item:last-child{border-bottom:none}
-.staff-name{font-weight:bold}
-.staff-role{font-size:12px;color:#777}
-.staff-count{font-size:13px;margin-top:4px}
 </style>
 </head>
 
@@ -153,16 +162,23 @@ body{margin:0;background:#f4f6f9}
 <div class="container" id="list">Loading...</div>
 
 <!-- STAFF DETAILS MODAL -->
-<div id="staffModal">
-  <div class="box">
-    <h3>👥 Staff Details</h3>
+<div class="modal" id="staffModal">
+  <div class="modal-box">
+    <h3>Staff Details</h3>
     <div id="staffModalBody"></div>
-    <button class="btn delete" style="width:100%;margin-top:14px"
-      onclick="closeStaffModal()">Close</button>
+    <div class="close" onclick="closeStaffModal()">Close</div>
   </div>
 </div>
 
-<!-- FIREBASE -->
+<!-- HISTORY MODAL -->
+<div class="modal" id="historyModal">
+  <div class="modal-box">
+    <h3>Assignment History</h3>
+    <div id="historyBody"></div>
+    <div class="close" onclick="closeHistory()">Close</div>
+  </div>
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
@@ -173,13 +189,15 @@ firebase.initializeApp({
   projectId:"rcem-system"
 });
 const db = firebase.firestore();
-let rawAssignments=[];
 
-/* LOAD ASSIGNMENTS */
-db.collection("assignments").orderBy("created","desc")
+let assignments=[];
+
+/* LOAD */
+db.collection("assignments")
+.orderBy("created","desc")
 .onSnapshot(snap=>{
-  rawAssignments=[];
-  snap.forEach(d=>rawAssignments.push({id:d.id,...d.data()}));
+  assignments=[];
+  snap.forEach(d=>assignments.push({id:d.id,...d.data()}));
   render();
 });
 
@@ -188,62 +206,65 @@ function render(){
   const list=document.getElementById("list");
   list.innerHTML="";
 
-  if(rawAssignments.length===0){
+  if(assignments.length===0){
     list.innerHTML=`<div class="empty">কোনো Assignment নেই</div>`;
     return;
   }
 
   const grouped={};
-  rawAssignments.forEach(a=>{
-    const key=a.venue_name || "অন্যান্য প্রোগ্রাম";
+  assignments.forEach(a=>{
+    const key=a.venue_name || "Other";
     if(!grouped[key]) grouped[key]=[];
     grouped[key].push(a);
   });
 
   Object.keys(grouped).forEach(name=>{
-    const programs=grouped[name];
+    const items=grouped[name];
 
     list.innerHTML+=`
-    <div class="card">
-      <div class="title">${name}</div>
-      <div class="meta">📌 Upcoming Programs: ${programs.length}</div>
+      <div class="card">
+        <div class="title">${name}</div>
+        <div class="meta">📌 Upcoming Programs: ${items.length}</div>
 
-      <div class="actions">
-        <button class="btn toggle"
-          onclick="togglePrograms(this)">
-          Details
-        </button>
-      </div>
+        <div class="actions">
+          <button class="btn details"
+            onclick="togglePrograms(this)">Details</button>
+        </div>
 
-      <div class="programs">
-        ${programs.map(p=>`
-          <div class="program">
-            📅 ${p.duty_date||"-"} |
-            🕒 ${p.shift||"-"} |
-            👥 ${p.total_staff||0} জন
-            <br>
-            <span class="badge ${p.status||"pending"}">
-              ${(p.status||"pending").toUpperCase()}
-            </span>
+        <div class="programs">
+          ${items.map(p=>`
+            <div class="program">
+              📅 ${p.duty_date || "-"} |
+              🕒 ${p.shift || "-"} |
+              👥 ${p.total_staff || 0} জন
+              <br>
+              <span class="badge ${p.status||"pending"}">
+                ${(p.status||"pending").toUpperCase()}
+              </span>
 
-            <div class="actions">
-              <button class="btn staffBtn"
-                onclick='openStaffModal(${JSON.stringify(p.staffs||[])})'>
-                Staff Details
-              </button>
-              <button class="btn edit"
-                onclick="location.href='create-assignment.html?id=${p.id}'">
-                Edit
-              </button>
-              <button class="btn delete"
-                onclick="deleteAssignment('${p.id}')">
-                Delete
-              </button>
+              <div class="actions">
+                <button class="btn details"
+                  onclick='showStaffDetails(${JSON.stringify(p.staffs||[])})'>
+                  Staff Details
+                </button>
+                <button class="btn history"
+                  onclick='showHistory("${p.id}")'>
+                  History
+                </button>
+                <button class="btn edit"
+                  onclick="location.href='create-assignment.html?id=${p.id}'">
+                  Edit
+                </button>
+                <button class="btn delete"
+                  onclick="deleteAssignment('${p.id}')">
+                  Delete
+                </button>
+              </div>
             </div>
-          </div>
-        `).join("")}
+          `).join("")}
+        </div>
       </div>
-    </div>`;
+    `;
   });
 }
 
@@ -252,28 +273,39 @@ function togglePrograms(btn){
   box.style.display=box.style.display==="block"?"none":"block";
 }
 
-/* STAFF MODAL */
-function openStaffModal(staffs){
-  const body=document.getElementById("staffModalBody");
-  body.innerHTML="";
+/* STAFF DETAILS */
+function showStaffDetails(staffs){
+  staffModal.style.display="flex";
+  staffModalBody.innerHTML="";
+  let total=0;
 
   if(!staffs.length){
-    body.innerHTML="<p>কোনো স্টাফ যুক্ত নেই</p>";
-  }else{
-    staffs.forEach(s=>{
-      body.innerHTML+=`
-        <div class="staff-item">
-          <div class="staff-name">${s.name}</div>
-          <div class="staff-role">${s.role}</div>
-          <div class="staff-count">👥 সদস্য: ${s.count}</div>
-        </div>`;
-    });
+    staffModalBody.innerHTML="<div class='modal-item'>No staff assigned</div>";
+    return;
   }
-  document.getElementById("staffModal").style.display="flex";
+
+  staffs.forEach((s,i)=>{
+    total+=s.count||1;
+    staffModalBody.innerHTML+=`
+      <div class="modal-item">
+        ${i+1}. ${s.name} — ${s.count||1} জন
+      </div>`;
+  });
+
+  staffModalBody.innerHTML+=`
+    <div class="modal-item"><b>Total: ${total} জন</b></div>`;
 }
-function closeStaffModal(){
-  document.getElementById("staffModal").style.display="none";
+function closeStaffModal(){staffModal.style.display="none";}
+
+/* HISTORY (basic placeholder – future extendable) */
+function showHistory(id){
+  historyModal.style.display="flex";
+  historyBody.innerHTML=`
+    <div class="modal-item">Assignment ID: ${id}</div>
+    <div class="modal-item">Created / Updated history ভবিষ্যতে যোগ হবে</div>
+  `;
 }
+function closeHistory(){historyModal.style.display="none";}
 
 /* DELETE */
 function deleteAssignment(id){
