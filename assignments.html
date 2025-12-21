@@ -152,19 +152,27 @@ function render(){
   }
 
   assignments.forEach(a=>{
-    const staffText = (a.staff_names && a.staff_names.length)
-      ? a.staff_names.join(", ")
-      : "স্টাফ নির্ধারিত নেই";
+    const title =
+      a.type === "order"
+        ? (a.order_name || "Order / Event")
+        : (a.venue_name || "Venue নেই");
+
+    const staffText =
+      a.staff_names && a.staff_names.length
+        ? a.staff_names.join(", ")
+        : "স্টাফ নির্ধারিত নেই";
+
+    const status = a.status || "pending";
 
     list.innerHTML += `
       <div class="card">
-        <div class="title">${a.venue_name || "নেই"}</div>
+        <div class="title">${title}</div>
 
         <div class="meta">📅 Duty Date: ${a.duty_date || "-"}</div>
         <div class="meta">👥 Staff: ${staffText}</div>
 
-        <span class="badge ${a.status || "pending"}">
-          ${(a.status || "pending").toUpperCase()}
+        <span class="badge ${status}">
+          ${status.toUpperCase()}
         </span>
       </div>
     `;
