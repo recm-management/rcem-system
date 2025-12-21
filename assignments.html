@@ -11,25 +11,17 @@ body{margin:0;background:#f4f6f9}
 
 /* HEADER */
 .header{
-  background:#0d47a1;
-  color:#fff;
-  padding:16px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between
+  background:#0d47a1;color:#fff;padding:16px;
+  display:flex;align-items:center;justify-content:space-between
 }
 .back{cursor:pointer}
 
 /* TOP */
 .top-actions{padding:16px}
 .add-btn{
-  padding:12px 22px;
-  border:none;
-  border-radius:25px;
+  padding:12px 22px;border:none;border-radius:25px;
   background:linear-gradient(45deg,#2e7d32,#43a047);
-  color:#fff;
-  font-size:15px;
-  cursor:pointer
+  color:#fff;font-size:15px;cursor:pointer
 }
 
 /* LIST */
@@ -37,72 +29,43 @@ body{margin:0;background:#f4f6f9}
 
 /* CARD */
 .card{
-  background:#fff;
-  border-radius:18px;
-  padding:16px;
-  margin-bottom:14px;
-  box-shadow:0 8px 22px rgba(0,0,0,.12)
+  background:#fff;border-radius:18px;padding:16px;
+  margin-bottom:14px;box-shadow:0 8px 22px rgba(0,0,0,.12)
 }
-.title{
-  font-size:17px;
-  font-weight:bold;
-  margin-bottom:6px
-}
-.meta{
-  font-size:14px;
-  color:#555;
-  margin:5px 0
-}
+.title{font-size:17px;font-weight:bold}
+.meta{font-size:14px;color:#555;margin:5px 0}
 
+/* PROGRAM LIST */
+.programs{margin-top:12px;border-top:1px dashed #ddd;padding-top:10px;display:none}
+.program{
+  padding:10px;border-bottom:1px solid #eee;font-size:14px
+}
+.program.cancelled{background:#fdecea}
+
+/* BADGE */
 .badge{
-  display:inline-block;
-  margin-top:8px;
-  padding:5px 12px;
-  border-radius:14px;
-  font-size:12px;
-  color:#fff
+  display:inline-block;padding:4px 10px;border-radius:12px;
+  font-size:12px;color:#fff;margin-top:6px
 }
 .pending{background:#f9a825}
 .completed{background:#2e7d32}
-
-/* PROGRAM LIST */
-.programs{
-  margin-top:12px;
-  border-top:1px dashed #ddd;
-  padding-top:10px;
-  display:none
-}
-.program{
-  padding:8px 0;
-  border-bottom:1px solid #eee;
-  font-size:14px
-}
-.program:last-child{border-bottom:none}
+.cancelled-badge{background:#d32f2f}
 
 /* ACTIONS */
-.actions{
-  display:flex;
-  gap:10px;
-  margin-top:10px
-}
+.actions{display:flex;gap:8px;margin-top:8px}
 .btn{
-  padding:6px 12px;
-  border:none;
-  border-radius:14px;
-  font-size:13px;
-  cursor:pointer
+  padding:6px 12px;border:none;border-radius:14px;
+  font-size:13px;cursor:pointer
 }
 .edit{background:#1565c0;color:#fff}
-.delete{background:#d32f2f;color:#fff}
+.complete{background:#2e7d32;color:#fff}
+.cancel{background:#d32f2f;color:#fff}
 .toggle{background:#607d8b;color:#fff}
 
 /* EMPTY */
 .empty{
-  background:#fff;
-  padding:26px;
-  border-radius:18px;
-  text-align:center;
-  color:#777;
+  background:#fff;padding:26px;border-radius:18px;
+  text-align:center;color:#777;
   box-shadow:0 8px 22px rgba(0,0,0,.12)
 }
 </style>
@@ -123,7 +86,6 @@ body{margin:0;background:#f4f6f9}
 
 <div class="container" id="list">Loading...</div>
 
-<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
@@ -133,64 +95,56 @@ firebase.initializeApp({
   authDomain:"rcem-system.firebaseapp.com",
   projectId:"rcem-system"
 });
+const db=firebase.firestore();
 
-const db = firebase.firestore();
-let rawAssignments = [];
+let raw=[];
 
-/* LOAD ALL ASSIGNMENTS */
-db.collection("assignments")
-.orderBy("created","desc")
-.onSnapshot(snap=>{
-  rawAssignments=[];
-  snap.forEach(d=>rawAssignments.push({id:d.id,...d.data()}));
+/* LOAD */
+db.collection("assignments").orderBy("created","desc")
+.onSnapshot(s=>{
+  raw=[];s.forEach(d=>raw.push({id:d.id,...d.data()}));
   render();
 });
 
-/* RENDER GROUPED */
 function render(){
-  const list = document.getElementById("list");
   list.innerHTML="";
-
-  if(rawAssignments.length===0){
+  if(!raw.length){
     list.innerHTML=`<div class="empty">কোনো Assignment নেই</div>`;
     return;
   }
 
   const grouped={};
-
-  rawAssignments.forEach(a=>{
-    const key = a.venue_name;
-    if(!grouped[key]) grouped[key]=[];
-    grouped[key].push(a);
+  raw.forEach(a=>{
+    if(!grouped[a.venue_name]) grouped[a.venue_name]=[];
+    grouped[a.venue_name].push(a);
   });
 
   Object.keys(grouped).forEach(name=>{
-    const programs = grouped[name];
-
-    list.innerHTML += `
+    const arr=grouped[name];
+    list.innerHTML+=`
       <div class="card">
         <div class="title">${name}</div>
-        <div class="meta">
-          📌 Upcoming Programs: ${programs.length}
-        </div>
+        <div class="meta">📌 Upcoming Programs: ${arr.length}</div>
 
         <div class="actions">
           <button class="btn toggle"
-            onclick="this.parentElement.nextElementSibling.style.display =
+            onclick="this.parentElement.nextElementSibling.style.display=
             this.parentElement.nextElementSibling.style.display==='block'?'none':'block'">
             Details
           </button>
         </div>
 
         <div class="programs">
-          ${programs.map(p=>`
-            <div class="program">
-              📅 ${p.duty_date || "-"} |
-              🕒 ${p.shift || "-"} |
-              👥 ${(p.staff_names||[]).length} জন
+          ${arr.map(p=>`
+            <div class="program ${p.status==='cancelled'?'cancelled':''}">
+              📅 ${p.duty_date||'-'} | 🕒 ${p.shift||'-'} |
+              👥 ${p.total_staff||0} জন
               <br>
-              <span class="badge ${p.status||"pending"}">
-                ${(p.status||"pending").toUpperCase()}
+              <span class="badge ${
+                p.status==='completed'?'completed':
+                p.status==='cancelled'?'cancelled-badge':'pending'
+              }">
+                ${p.status.toUpperCase()}
               </span>
 
               <div class="actions">
@@ -198,9 +152,13 @@ function render(){
                   onclick="location.href='create-assignment.html?id=${p.id}'">
                   Edit
                 </button>
-                <button class="btn delete"
-                  onclick="deleteAssignment('${p.id}')">
-                  Delete
+                <button class="btn complete"
+                  onclick="setStatus('${p.id}','completed')">
+                  Complete
+                </button>
+                <button class="btn cancel"
+                  onclick="setStatus('${p.id}','cancelled')">
+                  Cancel
                 </button>
               </div>
             </div>
@@ -211,10 +169,10 @@ function render(){
   });
 }
 
-/* DELETE */
-function deleteAssignment(id){
-  if(!confirm("এই Assignment ডিলিট করবেন?")) return;
-  db.collection("assignments").doc(id).delete();
+/* STATUS CHANGE */
+function setStatus(id,status){
+  if(!confirm("আপনি কি নিশ্চিত?")) return;
+  db.collection("assignments").doc(id).update({status});
 }
 </script>
 
