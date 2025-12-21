@@ -9,15 +9,16 @@
 *{box-sizing:border-box}
 body{margin:0;font-family:Arial;background:#f4f6f9}
 
+/* HEADER */
 .header{
   background:#0d47a1;color:#fff;padding:15px;
   display:flex;justify-content:space-between;align-items:center
 }
-.container{padding:15px}
 
+/* BUTTONS */
 .btn{
   padding:10px 18px;border:none;border-radius:22px;
-  color:#fff;cursor:pointer;font-size:14px;margin-right:6px
+  color:#fff;cursor:pointer;font-size:14px
 }
 .add{background:linear-gradient(45deg,#2e7d32,#43a047)}
 .toggle{background:linear-gradient(45deg,#f9a825,#fbc02d);color:#000}
@@ -25,30 +26,8 @@ body{margin:0;font-family:Arial;background:#f4f6f9}
 .child{background:linear-gradient(45deg,#6a1b9a,#8e24aa)}
 .logout{background:#d32f2f}
 
-.card{
-  background:#fff;padding:16px;border-radius:18px;
-  margin-bottom:16px;
-  box-shadow:0 10px 25px rgba(0,0,0,.12)
-}
-
-.status-row{
-  display:flex;align-items:center;gap:8px;
-  margin:6px 0;font-weight:bold
-}
-.dot{width:12px;height:12px;border-radius:50%}
-.active{background:#2e7d32;box-shadow:0 0 6px #2e7d32}
-.inactive{background:#d32f2f;box-shadow:0 0 6px #d32f2f}
-
-.meta{font-size:14px;color:#555;margin:4px 0}
-
-.search-box{
-  width:100%;padding:12px 16px;margin:15px 0;
-  border-radius:25px;border:1px solid #ccc;font-size:15px
-}
-.filter{
-  display:flex;align-items:center;gap:8px;
-  margin-bottom:15px;font-weight:bold
-}
+/* LAYOUT */
+.container{padding:15px}
 
 .stats{
   display:grid;grid-template-columns:repeat(3,1fr);
@@ -61,6 +40,33 @@ body{margin:0;font-family:Arial;background:#f4f6f9}
 }
 .stat b{font-size:20px}
 
+.search-box{
+  width:100%;padding:12px 16px;margin:15px 0;
+  border-radius:25px;border:1px solid #ccc;font-size:15px
+}
+.filter{
+  display:flex;align-items:center;gap:8px;
+  margin-bottom:15px;font-weight:bold
+}
+
+/* CARD */
+.card{
+  background:#fff;padding:16px;border-radius:18px;
+  margin-bottom:16px;
+  box-shadow:0 10px 25px rgba(0,0,0,.12)
+}
+.status-row{
+  display:flex;align-items:center;gap:8px;
+  margin:6px 0;font-weight:bold
+}
+.dot{width:12px;height:12px;border-radius:50%}
+.active{background:#2e7d32;box-shadow:0 0 6px #2e7d32}
+.inactive{background:#d32f2f;box-shadow:0 0 6px #d32f2f}
+
+.meta{font-size:14px;color:#555;margin:4px 0}
+.highlight{background:yellow}
+
+/* MODAL */
 .modal{
   position:fixed;inset:0;
   background:rgba(0,0,0,.6);
@@ -107,6 +113,7 @@ body{margin:0;font-family:Arial;background:#f4f6f9}
   <div id="venueList">Loading...</div>
 </div>
 
+<!-- MODAL -->
 <div class="modal" id="modal">
   <div class="modal-box">
     <h3 id="modalTitle">Add Venue</h3>
@@ -130,24 +137,30 @@ firebase.initializeApp({
   projectId:"rcem-system"
 });
 
-const auth=firebase.auth();
-const db=firebase.firestore();
+const auth = firebase.auth();
+const db   = firebase.firestore();
 
-let data=[];
-let editId=null;
-let perms={};
+let data = [];
+let editId = null;
+let perms = {};
+let permsLoaded = false;
 
+/* AUTH */
 auth.onAuthStateChanged(async user=>{
   if(!user){ location.href="index.html"; return; }
 
   const snap = await db.collection("users").doc(user.email).get();
   perms = snap.data()?.permissions || {};
+  permsLoaded = true;
+
+  render();
 });
 
 function logout(){
   auth.signOut().then(()=>location.href="index.html");
 }
 
+/* MODAL */
 function openModal(v=null){
   modal.style.display="flex";
   if(v){
@@ -164,6 +177,7 @@ function openModal(v=null){
 }
 function closeModal(){ modal.style.display="none"; }
 
+/* SAVE */
 function save(){
   if(editId){
     if(!perms.venues_edit){ alert("Edit permission নেই"); return; }
@@ -184,53 +198,81 @@ function save(){
   closeModal();
 }
 
-function toggle(id,val){
+/* TOGGLE */
+function toggleVenue(id,val){
   if(!perms.venues_edit){ alert("Permission নেই"); return; }
   db.collection("venues").doc(id).update({active:!val});
 }
 
+/* CHILD PAGE */
 function openRestaurants(id){
   if(!perms.venues_view){
-    alert("Restaurant / Hall দেখার permission নেই");
+    alert("Restaurant দেখার অনুমতি নেই");
     return;
   }
   location.href=`venue-restaurants.html?venue=${id}`;
 }
 
+/* HIGHLIGHT */
+function highlight(t,k){
+  if(!k) return t;
+  return t.replace(new RegExp(k,"gi"),m=>`<span class="highlight">${m}</span>`);
+}
+
+/* RENDER */
 function render(){
-  const k=search.value.toLowerCase();
-  const only=onlyActive.checked;
+  if(!permsLoaded) return;
+
+  const k = search.value.toLowerCase();
+  const only = onlyActive.checked;
   venueList.innerHTML="";
+
   let t=0,a=0,i=0,serial=1;
 
   data.forEach(v=>{
-    t++; v.active ? a++ : i++;
+    t++;
+    if(v.active) a++; else i++;
+
     if(only && !v.active) return;
+
+    const name = (v.venue_name||"").toLowerCase();
+    const loc  = (v.location||"").toLowerCase();
+    const con  = (v.contact||"");
+
     if(
-      !v.venue_name.toLowerCase().includes(k) &&
-      !(v.contact||"").includes(k) &&
-      !(v.location||"").toLowerCase().includes(k)
+      !name.includes(k) &&
+      !loc.includes(k) &&
+      !con.includes(k)
     ) return;
+
+    const mapLink=`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(v.location||"")}`;
 
     venueList.innerHTML+=`
       <div class="card">
-        <b>${serial}. ${v.venue_name}</b>
+        <b>${serial}. ${highlight(v.venue_name||"",k)}</b>
+
         <div class="status-row">
           <div class="dot ${v.active?"active":"inactive"}"></div>
           ${v.active?"Active":"Inactive"}
         </div>
-        <div class="meta">📞 ${v.contact||"-"}</div>
-        <div class="meta">📍 ${v.location||"-"}</div><br>
 
-        <button class="btn child" onclick='openRestaurants("${v.id}")'>
-          Restaurants / Halls
-        </button>
+        <div class="meta">📞 ${highlight(v.contact||"",k)}</div>
+        <div class="meta">
+          📍 <a href="${mapLink}" target="_blank"
+          style="text-decoration:none;color:#0d47a1">
+          ${highlight(v.location||"",k)}</a>
+        </div><br>
+
+        ${perms.venues_view ? `
+          <button class="btn child" onclick='openRestaurants("${v.id}")'>
+            Restaurants / Halls
+          </button>` : ""}
+
         ${perms.venues_edit ? `
           <button class="btn edit" onclick='openModal(${JSON.stringify(v)})'>Edit</button>
-          <button class="btn toggle" onclick='toggle("${v.id}",${v.active})'>Toggle</button>
-        ` : ``}
-      </div>
-    `;
+          <button class="btn toggle" onclick='toggleVenue("${v.id}",${v.active})'>Toggle</button>
+        ` : ""}
+      </div>`;
     serial++;
   });
 
@@ -239,6 +281,7 @@ function render(){
   inactive.innerText=i;
 }
 
+/* SNAPSHOT */
 db.collection("venues").onSnapshot(s=>{
   data=[];
   s.forEach(d=>data.push({id:d.id,...d.data()}));
