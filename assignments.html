@@ -121,9 +121,8 @@ auth.onAuthStateChanged(async user=>{
   }
   const u = await db.collection("users").doc(user.email).get();
   perms = u.data()?.permissions || {};
-
   if(!perms.assignments_add){
-    addBtn.style.display="none";
+    document.getElementById("addBtn").style.display="none";
   }
 });
 
@@ -140,6 +139,7 @@ db.collection("assignments")
 
 /* RENDER */
 function render(){
+  const list = document.getElementById("list");
   list.innerHTML="";
 
   if(assignments.length === 0){
@@ -152,27 +152,20 @@ function render(){
   }
 
   assignments.forEach(a=>{
-    const title =
-      a.type === "order"
-        ? (a.order_name || "Order / Event")
-        : (a.venue_name || "Venue নেই");
+    const staffText = (a.staff_names && a.staff_names.length)
+      ? a.staff_names.join(", ")
+      : "স্টাফ নির্ধারিত নেই";
 
-    const staffText =
-      a.staff_names && a.staff_names.length
-        ? a.staff_names.join(", ")
-        : "স্টাফ নির্ধারিত নেই";
-
-    const status = a.status || "pending";
+    const titleText = a.venue_name || a.location || "নেই";
 
     list.innerHTML += `
       <div class="card">
-        <div class="title">${title}</div>
-
+        <div class="title">${titleText}</div>
         <div class="meta">📅 Duty Date: ${a.duty_date || "-"}</div>
         <div class="meta">👥 Staff: ${staffText}</div>
-
-        <span class="badge ${status}">
-          ${status.toUpperCase()}
+        ${a.required_staff ? `<div class="meta">🔢 প্রয়োজনীয় স্টাফ: ${a.required_staff}</div>` : ``}
+        <span class="badge ${a.status || "pending"}">
+          ${(a.status || "pending").toUpperCase()}
         </span>
       </div>
     `;
