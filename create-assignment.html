@@ -27,7 +27,13 @@ body{margin:0;background:#f4f6f9}
   box-shadow:0 10px 25px rgba(0,0,0,.12)
 }
 
-label{font-size:14px;color:#555;margin-top:12px;display:block}
+label{
+  font-size:14px;
+  color:#555;
+  margin-top:14px;
+  display:block
+}
+
 select,input{
   width:100%;
   padding:12px 14px;
@@ -37,25 +43,51 @@ select,input{
   font-size:15px
 }
 
+/* ===== STAFF LIST PROFESSIONAL UI ===== */
 .staff-box{
   margin-top:10px;
   border:1px solid #ddd;
   border-radius:12px;
-  max-height:220px;
-  overflow:auto
+  max-height:240px;
+  overflow:auto;
+  background:#fafafa
 }
-.staff-item{
+
+.staff-row{
   display:flex;
   align-items:center;
-  justify-content:space-between;
-  padding:10px 12px;
-  border-bottom:1px solid #eee
+  gap:12px;
+  padding:10px 14px;
+  border-bottom:1px solid #eee;
+  cursor:pointer
 }
-.staff-item:last-child{border-bottom:none}
+
+.staff-row:last-child{
+  border-bottom:none
+}
+
+.staff-row:hover{
+  background:#f1f5ff
+}
+
+.staff-row input{
+  width:18px;
+  height:18px;
+  flex-shrink:0
+}
+
+.staff-name{
+  font-size:15px;
+  color:#222;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis
+}
+/* ===================================== */
 
 .btn{
   width:100%;
-  margin-top:18px;
+  margin-top:20px;
   padding:14px;
   border:none;
   border-radius:25px;
@@ -128,27 +160,30 @@ firebase.initializeApp({
 
 const db = firebase.firestore();
 
-/* LOAD VENUES */
-db.collection("venues").where("active","==",true).get().then(snap=>{
+/* LOAD VENUES (ALL) */
+db.collection("venues").orderBy("venue_name").get().then(snap=>{
   venueSelect.innerHTML='<option value="">Venue নির্বাচন করুন</option>';
   snap.forEach(d=>{
     const v=d.data();
-    venueSelect.innerHTML+=`<option value="${d.id}">${v.venue_name}</option>`;
+    venueSelect.innerHTML+=`
+      <option value="${d.id}">
+        ${v.venue_name || "নাম নেই"}
+      </option>`;
   });
 });
 
-/* LOAD STAFFS */
+/* LOAD STAFFS (ALL, PROFESSIONAL LIST) */
 let staffCache=[];
-db.collection("staffs").where("active","==",true).get().then(snap=>{
+db.collection("staffs").orderBy("name").get().then(snap=>{
   staffList.innerHTML="";
   snap.forEach(d=>{
     const s=d.data();
     staffCache.push({id:d.id,name:s.name});
     staffList.innerHTML+=`
-      <div class="staff-item">
-        <span>${s.name}</span>
+      <label class="staff-row">
         <input type="checkbox" value="${d.id}">
-      </div>`;
+        <span class="staff-name">${s.name || "নাম নেই"}</span>
+      </label>`;
   });
 });
 
@@ -163,7 +198,7 @@ function switchType(){
   }
 }
 
-/* SAVE */
+/* SAVE ASSIGNMENT */
 function saveAssignment(){
   const selectedStaff=[];
   staffList.querySelectorAll("input:checked").forEach(c=>{
@@ -180,11 +215,15 @@ function saveAssignment(){
   };
 
   if(type.value==="venue"){
-    if(!venueSelect.value){ alert("Venue নির্বাচন করুন"); return; }
+    if(!venueSelect.value){
+      alert("Venue নির্বাচন করুন"); return;
+    }
     data.venue_id=venueSelect.value;
     data.venue_name=venueSelect.options[venueSelect.selectedIndex].text;
   }else{
-    if(!orderName.value){ alert("Order নাম লিখুন"); return; }
+    if(!orderName.value){
+      alert("Order নাম লিখুন"); return;
+    }
     data.venue_name=orderName.value;
     data.location=orderLocation.value;
     data.required_staff=Number(requiredStaff.value||0);
