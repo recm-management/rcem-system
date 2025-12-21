@@ -64,7 +64,9 @@ body{margin:0;background:#f4f6f9}
   color:#fff
 }
 .pending{background:#f9a825}
+.open{background:#f9a825}
 .completed{background:#2e7d32}
+.assigned{background:#1565c0}
 
 /* EMPTY */
 .empty{
@@ -111,6 +113,7 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 
 let assignments = [];
+let venuesMap = {};
 let perms = {};
 
 /* AUTH + PERMISSION */
@@ -126,6 +129,14 @@ auth.onAuthStateChanged(async user=>{
   }
 });
 
+/* LOAD VENUES FIRST */
+db.collection("venues").onSnapshot(vsnap=>{
+  venuesMap = {};
+  vsnap.forEach(v=>{
+    venuesMap[v.id] = v.data();
+  });
+});
+
 /* LOAD ASSIGNMENTS */
 db.collection("assignments")
 .orderBy("created","desc")
@@ -138,7 +149,7 @@ db.collection("assignments")
 });
 
 /* RENDER */
-function render(){
+async function render(){
   const list = document.getElementById("list");
   list.innerHTML="";
 
@@ -151,25 +162,32 @@ function render(){
     return;
   }
 
-  assignments.forEach(a=>{
-    const staffText = (a.staff_names && a.staff_names.length)
-      ? a.staff_names.join(", ")
-      : "স্টাফ নির্ধারিত নেই";
+  for(const a of assignments){
 
-    const titleText = a.venue_name || a.location || "নেই";
+    /* venue info */
+    const venue = venuesMap[a.venue_id] || {};
+    const titleText = venue.venue_name || venue.location || "নেই";
+
+    /* assigned staff count */
+    const staffSnap = await db.collection("assignment_staffs")
+      .where("assignment_id","==",a.id)
+      .get();
+
+    const assignedCount = staffSnap.size;
 
     list.innerHTML += `
       <div class="card">
         <div class="title">${titleText}</div>
-        <div class="meta">📅 Duty Date: ${a.duty_date || "-"}</div>
-        <div class="meta">👥 Staff: ${staffText}</div>
-        ${a.required_staff ? `<div class="meta">🔢 প্রয়োজনীয় স্টাফ: ${a.required_staff}</div>` : ``}
+        <div class="meta">📅 Duty Date: ${a.date || "-"}</div>
+        <div class="meta">⏰ Time: ${a.time || "-"}</div>
+        <div class="meta">👥 Assigned Staff: ${assignedCount}</div>
+        <div class="meta">🔢 প্রয়োজনীয় স্টাফ: ${a.staff_required || 0}</div>
         <span class="badge ${a.status || "pending"}">
           ${(a.status || "pending").toUpperCase()}
         </span>
       </div>
     `;
-  });
+  }
 }
 </script>
 
