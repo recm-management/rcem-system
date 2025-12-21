@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,7 +11,7 @@ body{margin:0;background:#f4f6f9}
 
 /* HEADER */
 .header{
-  background:linear-gradient(135deg,#0d47a1,#1976d2);
+  background:#0d47a1;
   color:#fff;
   padding:16px;
   display:flex;
@@ -23,12 +23,12 @@ body{margin:0;background:#f4f6f9}
 /* TOP */
 .top-actions{padding:16px}
 .add-btn{
-  padding:10px 18px;
+  padding:12px 22px;
   border:none;
-  border-radius:22px;
+  border-radius:25px;
   background:linear-gradient(45deg,#2e7d32,#43a047);
   color:#fff;
-  font-size:14px;
+  font-size:15px;
   cursor:pointer
 }
 
@@ -38,28 +38,28 @@ body{margin:0;background:#f4f6f9}
 /* CARD */
 .card{
   background:#fff;
-  border-radius:16px;
+  border-radius:18px;
   padding:16px;
   margin-bottom:14px;
   box-shadow:0 8px 22px rgba(0,0,0,.12)
 }
 .title{
-  font-size:16px;
+  font-size:17px;
   font-weight:bold;
   margin-bottom:6px
 }
 .meta{
   font-size:14px;
   color:#555;
-  margin:4px 0
+  margin:5px 0
 }
 
 /* STATUS BADGE */
 .badge{
   display:inline-block;
-  margin-top:8px;
-  padding:5px 12px;
-  border-radius:14px;
+  margin-top:10px;
+  padding:6px 14px;
+  border-radius:18px;
   font-size:12px;
   color:#fff
 }
@@ -69,8 +69,8 @@ body{margin:0;background:#f4f6f9}
 /* EMPTY */
 .empty{
   background:#fff;
-  padding:22px;
-  border-radius:16px;
+  padding:26px;
+  border-radius:18px;
   text-align:center;
   color:#777;
   box-shadow:0 8px 22px rgba(0,0,0,.12)
@@ -100,6 +100,7 @@ body{margin:0;background:#f4f6f9}
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
+/* FIREBASE INIT */
 firebase.initializeApp({
   apiKey:"AIzaSyDK3dqXZuWaH3gctxURdOZc_Q1UfioesaA",
   authDomain:"rcem-system.firebaseapp.com",
@@ -112,6 +113,7 @@ const db = firebase.firestore();
 let assignments = [];
 let perms = {};
 
+/* AUTH + PERMISSION */
 auth.onAuthStateChanged(async user=>{
   if(!user){
     location.href="index.html";
@@ -121,18 +123,22 @@ auth.onAuthStateChanged(async user=>{
   perms = u.data()?.permissions || {};
 
   if(!perms.assignments_add){
-    addBtn.style.display = "none";
+    addBtn.style.display="none";
   }
 });
 
+/* LOAD ASSIGNMENTS */
 db.collection("assignments")
 .orderBy("created","desc")
 .onSnapshot(snap=>{
   assignments=[];
-  snap.forEach(d=>assignments.push({id:d.id,...d.data()}));
+  snap.forEach(d=>{
+    assignments.push({id:d.id,...d.data()});
+  });
   render();
 });
 
+/* RENDER */
 function render(){
   list.innerHTML="";
 
@@ -146,11 +152,17 @@ function render(){
   }
 
   assignments.forEach(a=>{
+    const staffText = (a.staff_names && a.staff_names.length)
+      ? a.staff_names.join(", ")
+      : "স্টাফ নির্ধারিত নেই";
+
     list.innerHTML += `
       <div class="card">
-        <div class="title">${a.venue_name || "Order / Custom Location"}</div>
+        <div class="title">${a.venue_name || "নেই"}</div>
+
         <div class="meta">📅 Duty Date: ${a.duty_date || "-"}</div>
-        <div class="meta">👥 Staff: ${(a.staff_names || []).join(", ")}</div>
+        <div class="meta">👥 Staff: ${staffText}</div>
+
         <span class="badge ${a.status || "pending"}">
           ${(a.status || "pending").toUpperCase()}
         </span>
