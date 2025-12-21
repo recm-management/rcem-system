@@ -48,6 +48,7 @@ body{margin:0;background:#f4f6f9}
   font-weight:bold;
   margin-bottom:10px
 }
+
 .program{
   background:#f5f7fb;
   border-radius:12px;
@@ -56,17 +57,33 @@ body{margin:0;background:#f4f6f9}
   font-size:14px
 }
 
-/* STATUS BADGE */
+/* ACTIONS */
+.actions{
+  display:flex;
+  gap:10px;
+  margin-top:10px
+}
+.action-btn{
+  padding:6px 14px;
+  border:none;
+  border-radius:16px;
+  font-size:12px;
+  cursor:pointer;
+  color:#fff
+}
+.edit{background:#1976d2}
+.delete{background:#d32f2f}
+
+/* STATUS */
 .badge{
   display:inline-block;
   margin-top:10px;
   padding:6px 14px;
   border-radius:18px;
   font-size:12px;
-  color:#fff
+  color:#fff;
+  background:#f9a825
 }
-.active{background:#f9a825}
-.completed{background:#2e7d32}
 
 /* EMPTY */
 .empty{
@@ -116,10 +133,7 @@ let programs = [];
 
 /* AUTH */
 auth.onAuthStateChanged(async user=>{
-  if(!user){
-    location.href="index.html";
-    return;
-  }
+  if(!user){ location.href="index.html"; return; }
   const u = await db.collection("users").doc(user.email).get();
   perms = u.data()?.permissions || {};
   if(!perms.assignments_add){
@@ -127,20 +141,24 @@ auth.onAuthStateChanged(async user=>{
   }
 });
 
-/* LOAD PROGRAMS */
-db.collection("assignments")
-.orderBy("created","desc")
+/* LOAD */
+db.collection("assignments").orderBy("created","desc")
 .onSnapshot(snap=>{
   programs=[];
-  snap.forEach(d=>{
-    programs.push({id:d.id,...d.data()});
-  });
+  snap.forEach(d=>programs.push({id:d.id,...d.data()}));
   render();
 });
 
+function shiftText(s){
+  if(s==="day") return "🌞 দিন";
+  if(s==="night") return "🌙 রাত";
+  if(s==="full") return "🌗 দিন + রাত";
+  return "-";
+}
+
 /* RENDER */
 function render(){
-  const list = document.getElementById("list");
+  const list=document.getElementById("list");
   list.innerHTML="";
 
   if(programs.length===0){
@@ -148,43 +166,54 @@ function render(){
     return;
   }
 
-  /* GROUP BY VENUE */
-  const grouped = {};
+  const grouped={};
   programs.forEach(p=>{
     if(!grouped[p.venue_id]){
-      grouped[p.venue_id]={
-        venue_name:p.venue_name,
-        programs:[]
-      };
+      grouped[p.venue_id]={venue:p.venue_name,items:[]};
     }
-    grouped[p.venue_id].programs.push(p);
+    grouped[p.venue_id].items.push(p);
   });
 
   Object.values(grouped).forEach(v=>{
-    let html = `
-      <div class="card">
-        <div class="title">${v.venue_name}</div>
-    `;
+    let html=`<div class="card">
+      <div class="title">${v.venue}</div>`;
 
-    v.programs.forEach(p=>{
-      html += `
+    v.items.forEach(p=>{
+      html+=`
         <div class="program">
           📅 ${p.duty_date || "-"} <br>
-          🕒 ${p.time || "-"} <br>
-          👥 প্রয়োজনীয় স্টাফ: ${p.required_staff || 0}
-        </div>
-      `;
+          🕒 ${shiftText(p.shift)} <br>
+          👥 স্টাফ: ${p.assigned_count || 0} / ${p.required_staff || 0}
+        </div>`;
     });
 
-    html += `
-      <span class="badge active">
-        ACTIVE (${v.programs.length})
-      </span>
-      </div>
-    `;
+    html+=`
+      <span class="badge">ACTIVE (${v.items.length})</span>`;
 
-    list.innerHTML += html;
+    if(perms.assignments_edit || perms.assignments_delete){
+      html+=`<div class="actions">`;
+      if(perms.assignments_edit){
+        html+=`<button class="action-btn edit" onclick="edit('${v.items[0].id}')">Edit</button>`;
+      }
+      if(perms.assignments_delete){
+        html+=`<button class="action-btn delete" onclick="del('${v.items[0].id}')">Delete</button>`;
+      }
+      html+=`</div>`;
+    }
+
+    html+=`</div>`;
+    list.innerHTML+=html;
   });
+}
+
+/* ACTIONS */
+function edit(id){
+  location.href="create-assignment.html?edit="+id;
+}
+function del(id){
+  if(confirm("ডিলিট করতে চান?")){
+    db.collection("assignments").doc(id).delete();
+  }
 }
 </script>
 
