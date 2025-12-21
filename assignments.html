@@ -3,25 +3,27 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RCEM – Assignments</title>
+<title>Assignments</title>
 
 <style>
 *{box-sizing:border-box;font-family:Arial}
 body{margin:0;background:#f4f6f9}
 
+/* HEADER */
 .header{
   background:#0d47a1;
   color:#fff;
   padding:16px;
   display:flex;
-  justify-content:space-between;
-  align-items:center
+  align-items:center;
+  justify-content:space-between
 }
 .back{cursor:pointer}
 
-.top-actions{padding:16px}
+/* BUTTON */
 .add-btn{
-  padding:12px 22px;
+  margin:16px;
+  padding:12px 24px;
   border:none;
   border-radius:25px;
   background:linear-gradient(45deg,#2e7d32,#43a047);
@@ -30,68 +32,65 @@ body{margin:0;background:#f4f6f9}
   cursor:pointer
 }
 
-.container{padding:16px}
-
+/* CARD */
 .card{
   background:#fff;
   border-radius:18px;
   padding:16px;
-  margin-bottom:18px;
+  margin:16px;
   box-shadow:0 8px 22px rgba(0,0,0,.12)
 }
-
 .title{
   font-size:18px;
   font-weight:bold;
   margin-bottom:10px
 }
-
 .program{
-  background:#f5f7fb;
-  border-radius:12px;
+  background:#f6f8fb;
+  border-radius:14px;
   padding:12px;
   margin-bottom:10px
 }
-
 .meta{
   font-size:14px;
   margin:4px 0;
   color:#333
 }
 
-.footer{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-top:10px
-}
-
+/* BADGE */
 .badge{
+  display:inline-block;
   padding:6px 14px;
   border-radius:18px;
   font-size:12px;
   color:#fff;
-  background:#f9a825
+  background:#f9a825;
+  margin-top:10px
 }
 
-.actions button{
+/* ACTION BUTTONS */
+.actions{
+  display:flex;
+  gap:10px;
+  margin-top:10px
+}
+.edit-btn{
+  flex:1;
+  padding:8px;
   border:none;
-  border-radius:12px;
-  padding:6px 12px;
-  margin-left:6px;
-  cursor:pointer;
-  font-size:12px
-}
-.edit{background:#1976d2;color:#fff}
-.delete{background:#d32f2f;color:#fff}
-
-.empty{
-  background:#fff;
-  padding:26px;
   border-radius:18px;
-  text-align:center;
-  color:#777;
-  box-shadow:0 8px 22px rgba(0,0,0,.12)
+  background:#1976d2;
+  color:#fff;
+  cursor:pointer
+}
+.del-btn{
+  flex:1;
+  padding:8px;
+  border:none;
+  border-radius:18px;
+  background:#d32f2f;
+  color:#fff;
+  cursor:pointer
 }
 </style>
 </head>
@@ -103,15 +102,16 @@ body{margin:0;background:#f4f6f9}
   <h3>Assignments</h3>
 </div>
 
-<div class="top-actions">
-  <button class="add-btn" onclick="location.href='create-assignment.html'">
-    + Create Assignment
-  </button>
-</div>
+<button class="add-btn" id="addBtn"
+ onclick="location.href='create-assignment.html'">
+ + Create Assignment
+</button>
 
-<div class="container" id="list">Loading...</div>
+<div id="list"></div>
 
+<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
@@ -121,85 +121,88 @@ firebase.initializeApp({
   projectId:"rcem-system"
 });
 
-const db = firebase.firestore();
+const auth=firebase.auth();
+const db=firebase.firestore();
 
-Promise.all([
-  db.collection("venues").get(),
-  db.collection("assignments").orderBy("created","desc").get(),
-  db.collection("assignment_staffs").get()
-]).then(([vSnap,aSnap,sSnap])=>{
+let canEdit=false, canDelete=false;
 
-  const venues={};
-  vSnap.forEach(d=>{
-    venues[d.id]=d.data().venue_name;
-  });
-
-  const staffCount={};
-  sSnap.forEach(d=>{
-    const a=d.data().assignment_id;
-    staffCount[a]=(staffCount[a]||0)+1;
-  });
-
-  const grouped={};
-  aSnap.forEach(d=>{
-    const a=d.data();
-    if(!grouped[a.venue_id]) grouped[a.venue_id]=[];
-    grouped[a.venue_id].push({
-      id:d.id,
-      ...a,
-      assigned:staffCount[d.id]||0
-    });
-  });
-
-  render(grouped,venues);
+/* AUTH & PERMISSION */
+auth.onAuthStateChanged(async user=>{
+  if(!user){location.href="index.html";return;}
+  const u=await db.collection("users").doc(user.email).get();
+  const p=u.data()?.permissions||{};
+  canEdit=!!p.assignments_edit;
+  canDelete=!!p.assignments_delete;
+  if(!p.assignments_add)
+    document.getElementById("addBtn").style.display="none";
 });
 
-function render(data,venues){
+/* SHIFT DETECT */
+function shiftIcon(t){
+  if(!t) return "⏰ -";
+  if(t.includes("রাত")) return "🌙 রাত";
+  if(t.includes("সকাল")||t.includes("দিন")) return "🌞 দিন";
+  return "⏰";
+}
+
+/* LOAD ASSIGNMENTS */
+db.collection("assignments")
+.orderBy("created","desc")
+.onSnapshot(async snap=>{
+  const byVenue={};
+
+  for(const d of snap.docs){
+    const a=d.data();
+    const venue=a.venue_name||"অন্যান্য";
+    if(!byVenue[venue]) byVenue[venue]=[];
+    byVenue[venue].push({id:d.id,...a});
+  }
+
   const list=document.getElementById("list");
   list.innerHTML="";
 
-  if(!Object.keys(data).length){
-    list.innerHTML=`<div class="empty">কোনো Assignment নেই</div>`;
-    return;
-  }
+  Object.keys(byVenue).forEach(v=>{
+    const arr=byVenue[v];
+    list.innerHTML+=`
+      <div class="card">
+        <div class="title">${v}</div>
+        ${arr.map(p=>`
+          <div class="program">
+            <div class="meta">📅 ${p.date||"-"}</div>
+            <div class="meta">${shiftIcon(p.time)}</div>
+            <div class="meta">
+              👥 স্টাফ: ${(p.staff_ids?.length)||0}
+              / ${p.staff_required||0}
+            </div>
 
-  Object.keys(data).forEach(vid=>{
-    const venueName=venues[vid]||"নাম নেই";
-    let html=`<div class="card">
-      <div class="title">${venueName}</div>`;
+            <span class="badge">ACTIVE</span>
 
-    data[vid].forEach(p=>{
-      const shift = p.time?.includes("রাত") ? "🌙 রাত" :
-                    p.time?.includes("সকাল") ? "🌞 দিন" : "-";
-
-      html+=`
-      <div class="program">
-        <div class="meta">📅 ${p.date || "-"}</div>
-        <div class="meta">⏰ ${shift}</div>
-        <div class="meta">👥 স্টাফ: ${p.assigned} / ${p.staff_required || 0}</div>
-
-        <div class="footer">
-          <span class="badge">ACTIVE</span>
-          <div class="actions">
-            <button class="edit" onclick="editAssign('${p.id}')">Edit</button>
-            <button class="delete" onclick="delAssign('${p.id}')">Delete</button>
+            ${(canEdit||canDelete)?`
+            <div class="actions">
+              ${canEdit?`
+              <button class="edit-btn"
+                onclick="editAssign('${p.id}')">✏️ Edit</button>`:""}
+              ${canDelete?`
+              <button class="del-btn"
+                onclick="delAssign('${p.id}')">🗑 Delete</button>`:""}
+            </div>`:""}
           </div>
-        </div>
-      </div>`;
-    });
-
-    html+=`</div>`;
-    list.innerHTML+=html;
+        `).join("")}
+      </div>
+    `;
   });
-}
+});
 
+/* EDIT */
 function editAssign(id){
-  location.href="create-assignment.html?edit="+id;
+  location.href=`create-assignment.html?edit=${id}`;
 }
 
+/* DELETE */
 function delAssign(id){
-  if(!confirm("ডিলিট করতে চান?")) return;
-  db.collection("assignments").doc(id).delete().then(()=>location.reload());
+  if(!confirm("আপনি কি নিশ্চিত ডিলিট করবেন?")) return;
+  db.collection("assignments").doc(id).delete()
+   .then(()=>alert("ডিলিট করা হয়েছে"));
 }
 </script>
 
