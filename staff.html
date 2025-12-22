@@ -162,8 +162,8 @@ body{margin:0;background:#f4f6f9}
     <input id="staffPhone" placeholder="Phone">
     <input id="staffAddress" placeholder="Address">
 
-    <!-- ✅ ONLY NEW FIELD (photo path) -->
-    <input id="staffPhoto" placeholder="Photo path (uploads/staffs/xxx.jpg)">
+    <!-- ✅ NEW: Photo upload -->
+    <input id="staffPhotoFile" type="file" accept="image/*">
 
     <select id="staffBadge">
       <option value="new">New Member</option>
@@ -196,82 +196,51 @@ function getStaffPhoto(photo){
   return "https://rajshahicatering.online/" + photo;
 }
 
-let staffs = [];
-let perms = {};
-let editId = null;
-let userReady = false;
-let staffReady = false;
+let staffs=[], perms={}, editId=null, userReady=false, staffReady=false;
 
 auth.onAuthStateChanged(async user=>{
-  if(!user){
-    location.href="index.html";
-    return;
-  }
+  if(!user){ location.href="index.html"; return; }
   const u = await db.collection("users").doc(user.email).get();
   perms = u.exists ? u.data().permissions || {} : {};
-  addBtn.style.display = perms.staff_add === true ? "inline-block" : "none";
-  userReady = true;
-  tryRender();
+  addBtn.style.display = perms.staff_add===true ? "inline-block" : "none";
+  userReady=true; tryRender();
 });
 
 db.collection("staffs").onSnapshot(s=>{
-  staffs=[];
-  s.forEach(d=>staffs.push({id:d.id,...d.data()}));
-  staffReady = true;
-  tryRender();
+  staffs=[]; s.forEach(d=>staffs.push({id:d.id,...d.data()}));
+  staffReady=true; tryRender();
 });
 
-function tryRender(){
-  if(userReady && staffReady){
-    render();
-  }
-}
+function tryRender(){ if(userReady&&staffReady) render(); }
 
 function render(){
-  list.innerHTML="";
-  const k = search.value.toLowerCase();
-  let i = 1;
-
+  list.innerHTML=""; let i=1;
+  const k=search.value.toLowerCase();
   staffs.forEach(s=>{
-    if(!s.name?.toLowerCase().includes(k) && !s.phone?.includes(k)) return;
-
-    const badgeMap={
-      leader:["Leader","leader"],
-      second_leader:["Second Leader","second"],
-      member:["Member","member"],
-      new:["New Member","new"]
-    };
+    if(!s.name?.toLowerCase().includes(k)&&!s.phone?.includes(k)) return;
+    const badgeMap={leader:["Leader","leader"],second_leader:["Second Leader","second"],member:["Member","member"],new:["New Member","new"]};
     const [bt,bc]=badgeMap[s.badge||"new"];
-
     list.innerHTML+=`
-      <div class="card">
-        <div class="avatar">
-          ${s.photo ? `<img src="${getStaffPhoto(s.photo)}">` : "👤"}
-        </div>
-        <div class="info">
-          <div class="name"><span class="serial">${i}.</span>${s.name}</div>
-          <div class="meta">📞 <a href="tel:${s.phone}">${s.phone}</a></div>
-          <div class="meta">📍 ${s.address||"-"}</div>
-          <span class="badge ${bc}">${bt}</span>
-          <div class="level">Level: ${s.level||0} / 100</div>
-        </div>
-        <div class="actions">
-          <button class="btn rate">Give Rating</button>
-          ${perms.staff_edit === true ? 
-            `<button class="btn edit"
-              onclick='openModal(${JSON.stringify(s).replace(/"/g,"&quot;")})'>
-              Edit
-            </button>` : ""
-          }
-        </div>
+    <div class="card">
+      <div class="avatar">${s.photo?`<img src="${getStaffPhoto(s.photo)}">`:"👤"}</div>
+      <div class="info">
+        <div class="name"><span class="serial">${i++}.</span>${s.name}</div>
+        <div class="meta">📞 ${s.phone}</div>
+        <div class="meta">📍 ${s.address||"-"}</div>
+        <span class="badge ${bc}">${bt}</span>
+        <div class="level">Level: ${s.level||0} / 100</div>
       </div>
-    `;
-    i++;
+      <div class="actions">
+        <button class="btn rate">Give Rating</button>
+        ${perms.staff_edit===true?`<button class="btn edit" onclick='openModal(${JSON.stringify(s).replace(/"/g,"&quot;")})'>Edit</button>`:""}
+      </div>
+    </div>`;
   });
 }
 
 function openModal(s=null){
   modal.style.display="flex";
+  staffPhotoFile.value="";
   if(s){
     editId=s.id;
     modalTitle.innerText="Edit Staff";
@@ -279,51 +248,59 @@ function openModal(s=null){
     staffPhone.value=s.phone||"";
     staffAddress.value=s.address||"";
     staffBadge.value=s.badge||"new";
-    staffPhoto.value=s.photo||"";
   }else{
     editId=null;
     modalTitle.innerText="Add Staff";
-    staffName.value=staffPhone.value=staffAddress.value=staffPhoto.value="";
+    staffName.value=staffPhone.value=staffAddress.value="";
     staffBadge.value="new";
   }
 }
+function closeModal(){ modal.style.display="none"; }
 
-function closeModal(){modal.style.display="none"}
+/* ✅ IMAGE RESIZE + UPLOAD */
+function resizeImage(file){
+  return new Promise(res=>{
+    const img=new Image();
+    img.onload=()=>{
+      const c=document.createElement("canvas");
+      const s=512/Math.max(img.width,img.height);
+      c.width=img.width*s; c.height=img.height*s;
+      c.getContext("2d").drawImage(img,0,0,c.width,c.height);
+      c.toBlob(b=>res(b),"image/jpeg",0.7);
+    };
+    img.src=URL.createObjectURL(file);
+  });
+}
+
+async function uploadImage(blob){
+  const name="staff_"+Date.now()+".jpg";
+  const path="uploads/staffs/"+name;
+  const fd=new FormData();
+  fd.append("file",blob,name);
+  await fetch("https://rajshahicatering.online/upload.php",{method:"POST",body:fd});
+  return path;
+}
 
 async function save(){
-  if(!staffName.value.trim() || !staffPhone.value.trim()){
-    alert("Name এবং Phone প্রয়োজন");
-    return;
+  if(!staffName.value||!staffPhone.value){ alert("Name এবং Phone প্রয়োজন"); return; }
+
+  let photoPath=null;
+  if(staffPhotoFile.files[0]){
+    const blob=await resizeImage(staffPhotoFile.files[0]);
+    photoPath=await uploadImage(blob);
   }
 
-  if(editId){
-    if(perms.staff_edit !== true){
-      alert("Permission নেই");
-      return;
-    }
-    await db.collection("staffs").doc(editId).update({
-      name:staffName.value,
-      phone:staffPhone.value,
-      address:staffAddress.value,
-      badge:staffBadge.value,
-      photo:staffPhoto.value || null
-    });
-  }else{
-    if(perms.staff_add !== true){
-      alert("Permission নেই");
-      return;
-    }
-    await db.collection("staffs").add({
-      name:staffName.value,
-      phone:staffPhone.value,
-      address:staffAddress.value,
-      badge:staffBadge.value,
-      photo:staffPhoto.value || null,
-      level:0,
-      active:true,
-      created:Date.now()
-    });
-  }
+  const data={
+    name:staffName.value,
+    phone:staffPhone.value,
+    address:staffAddress.value,
+    badge:staffBadge.value
+  };
+  if(photoPath) data.photo=photoPath;
+
+  if(editId) await db.collection("staffs").doc(editId).update(data);
+  else await db.collection("staffs").add({...data,level:0,active:true,created:Date.now()});
+
   closeModal();
 }
 </script>
