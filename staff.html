@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RCEM – Staff</title>
+<title>RCEM тАУ Staff</title>
 
 <style>
 *{box-sizing:border-box;font-family:Arial}
@@ -54,7 +54,14 @@ body{margin:0;background:#f4f6f9}
   align-items:center;
   justify-content:center;
   font-size:26px;
-  color:#1976d2
+  color:#1976d2;
+  overflow:hidden
+}
+.avatar img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  border-radius:50%
 }
 .info{flex:1}
 .name{font-size:16px;font-weight:bold}
@@ -178,6 +185,11 @@ firebase.initializeApp({
 const auth = firebase.auth();
 const db = firebase.firestore();
 
+function getStaffPhoto(photo){
+  if(!photo) return null;
+  return "https://rajshahicatering.online/" + photo;
+}
+
 let staffs = [];
 let perms = {};
 let editId = null;
@@ -227,7 +239,9 @@ function render(){
 
     list.innerHTML+=`
       <div class="card">
-        <div class="avatar">👤</div>
+        <div class="avatar">
+          ${s.photo ? `<img src="${getStaffPhoto(s.photo)}">` : "👤"}
+        </div>
         <div class="info">
           <div class="name"><span class="serial">${i}.</span>${s.name}</div>
           <div class="meta">📞 <a href="tel:${s.phone}">${s.phone}</a></div>
@@ -271,15 +285,11 @@ function closeModal(){modal.style.display="none"}
 
 async function save(){
   if(!staffName.value.trim() || !staffPhone.value.trim()){
-    alert("Name এবং Phone দরকার");
+    alert("Name এবং Phone প্রয়োজন");
     return;
   }
 
   if(editId){
-    if(perms.staff_edit !== true){
-      alert("আপনার Staff Edit permission নেই");
-      return;
-    }
     await db.collection("staffs").doc(editId).update({
       name:staffName.value,
       phone:staffPhone.value,
@@ -287,10 +297,6 @@ async function save(){
       badge:staffBadge.value
     });
   }else{
-    if(perms.staff_add !== true){
-      alert("আপনার Staff Add permission নেই");
-      return;
-    }
     await db.collection("staffs").add({
       name:staffName.value,
       phone:staffPhone.value,
