@@ -6,146 +6,324 @@
 <title>RCEM – Staff</title>
 
 <style>
-/* ====== তোমার আগের CSS অপরিবর্তিত ====== */
 *{box-sizing:border-box;font-family:Arial}
 body{margin:0;background:#f4f6f9}
-.header{background:linear-gradient(135deg,#0d47a1,#1976d2);color:#fff;padding:16px;display:flex;justify-content:space-between;align-items:center}
+.header{
+  background:linear-gradient(135deg,#0d47a1,#1976d2);
+  color:#fff;
+  padding:16px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center
+}
 .back{cursor:pointer}
 .search{padding:14px}
-.search input{width:100%;padding:13px 18px;border-radius:30px;border:1px solid #ccc;font-size:15px}
+.search input{
+  width:100%;
+  padding:13px 18px;
+  border-radius:30px;
+  border:1px solid #ccc;
+  font-size:15px
+}
 .top-actions{padding:0 16px}
-.add-btn{padding:10px 18px;border:none;border-radius:22px;background:linear-gradient(45deg,#2e7d32,#43a047);color:#fff;font-size:14px;cursor:pointer}
+.add-btn{
+  padding:10px 18px;
+  border:none;
+  border-radius:22px;
+  background:linear-gradient(45deg,#2e7d32,#43a047);
+  color:#fff;
+  font-size:14px;
+  cursor:pointer
+}
 .container{padding:16px}
-.card{background:#fff;border-radius:18px;padding:16px;margin-bottom:14px;box-shadow:0 10px 25px rgba(0,0,0,.12);display:flex;gap:14px}
-.avatar{width:56px;height:56px;border-radius:50%;background:#e3f2fd;display:flex;align-items:center;justify-content:center;font-size:26px;color:#1976d2;overflow:hidden}
-.avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.card{
+  background:#fff;
+  border-radius:18px;
+  padding:16px;
+  margin-bottom:14px;
+  box-shadow:0 10px 25px rgba(0,0,0,.12);
+  display:flex;
+  gap:14px
+}
+.avatar{
+  width:56px;
+  height:56px;
+  border-radius:50%;
+  background:#e3f2fd;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:26px;
+  color:#1976d2;
+  overflow:hidden
+}
+.avatar img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  border-radius:50%
+}
 .info{flex:1}
 .name{font-size:16px;font-weight:bold}
 .serial{color:#1976d2;font-weight:bold;margin-right:6px}
 .meta{font-size:14px;color:#555;margin-top:4px}
 .meta a{color:#1565c0;text-decoration:none}
-.badge{display:inline-block;padding:4px 10px;border-radius:12px;font-size:12px;margin-top:6px;color:#fff}
+.badge{
+  display:inline-block;
+  padding:4px 10px;
+  border-radius:12px;
+  font-size:12px;
+  margin-top:6px;
+  color:#fff
+}
 .leader{background:#6a1b9a}
 .second{background:#1565c0}
 .member{background:#2e7d32}
 .new{background:#757575}
-.level{margin-top:6px;background:#e3f2fd;padding:5px 12px;border-radius:12px;font-size:13px;display:inline-block}
-.actions{display:flex;flex-direction:column;gap:8px}
-.btn{padding:8px 12px;border:none;border-radius:14px;font-size:13px;cursor:pointer}
+.level{
+  margin-top:6px;
+  background:#e3f2fd;
+  padding:5px 12px;
+  border-radius:12px;
+  font-size:13px;
+  display:inline-block
+}
+.actions{
+  display:flex;
+  flex-direction:column;
+  gap:8px
+}
+.btn{
+  padding:8px 12px;
+  border:none;
+  border-radius:14px;
+  font-size:13px;
+  cursor:pointer
+}
 .edit{background:#1565c0;color:#fff}
 .rate{background:#f9a825}
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center}
-.modal-box{background:#fff;padding:18px;border-radius:18px;width:100%;max-width:420px}
-.modal-box input,.modal-box select{width:100%;padding:12px;margin-bottom:12px;border-radius:12px;border:1px solid #ccc}
-.modal-box button{width:100%;padding:12px;border:none;border-radius:22px;background:#2e7d32;color:#fff;font-size:15px}
-.cancel{text-align:center;margin-top:10px;color:#555;cursor:pointer}
-
-/* 🔽 ADDED */
-.preview{
-  width:90px;height:90px;border-radius:50%;
-  margin:10px auto;background:#eee;
-  overflow:hidden;display:flex;align-items:center;justify-content:center
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.6);
+  display:none;
+  align-items:center;
+  justify-content:center
 }
-.preview img{width:100%;height:100%;object-fit:cover}
+.modal-box{
+  background:#fff;
+  padding:18px;
+  border-radius:18px;
+  width:100%;
+  max-width:420px
+}
+.modal-box input,.modal-box select{
+  width:100%;
+  padding:12px;
+  margin-bottom:12px;
+  border-radius:12px;
+  border:1px solid #ccc
+}
+.modal-box button{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:22px;
+  background:#2e7d32;
+  color:#fff;
+  font-size:15px
+}
+.cancel{text-align:center;margin-top:10px;color:#555;cursor:pointer}
 </style>
 </head>
 
 <body>
 
-<!-- ===== HTML আগের মতোই ===== -->
+<div class="header">
+  <div class="back" onclick="history.back()">← Back</div>
+  <h3>Staff List</h3>
+</div>
+
+<div class="search">
+  <input id="search" placeholder="🔍 Search by name or phone" oninput="render()">
+</div>
+
+<div class="top-actions">
+  <button id="addBtn" class="add-btn" onclick="openModal()">+ Add Staff</button>
+</div>
+
+<div class="container" id="list">Loading...</div>
 
 <div class="modal" id="modal">
   <div class="modal-box">
     <h3 id="modalTitle">Add Staff</h3>
 
-    <!-- 🔽 ADDED -->
-    <div class="preview">
-      <img id="photoPreview">
-    </div>
-
-    <!-- 🔽 ADDED (NO capture → gallery + camera both) -->
-    <input type="file" id="photoInput" accept="image/*">
-
     <input id="staffName" placeholder="Name">
     <input id="staffPhone" placeholder="Phone">
     <input id="staffAddress" placeholder="Address">
+
+    <!-- ✅ ONLY NEW FIELD (photo path) -->
+    <input id="staffPhoto" placeholder="Photo path (uploads/staffs/xxx.jpg)">
+
     <select id="staffBadge">
       <option value="new">New Member</option>
       <option value="member">Member</option>
       <option value="second_leader">Second Leader</option>
       <option value="leader">Leader</option>
     </select>
+
     <button onclick="save()">Save</button>
     <div class="cancel" onclick="closeModal()">Cancel</div>
   </div>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
 <script>
-/* ===== তোমার আগের JS 그대로 ===== */
+firebase.initializeApp({
+  apiKey:"AIzaSyDK3dqXZuWaH3gctxURdOZc_Q1UfioesaA",
+  authDomain:"rcem-system.firebaseapp.com",
+  projectId:"rcem-system"
+});
 
-let selectedImage = null;
+const auth = firebase.auth();
+const db = firebase.firestore();
 
-/* 🔽 ADDED */
-photoInput.onchange = e=>{
-  selectedImage = e.target.files[0];
-  if(!selectedImage) return;
-  const r = new FileReader();
-  r.onload = ()=> photoPreview.src = r.result;
-  r.readAsDataURL(selectedImage);
-};
+function getStaffPhoto(photo){
+  if(!photo) return null;
+  return "https://rajshahicatering.online/" + photo;
+}
 
-/* 🔽 ADDED: resize + upload */
-function uploadStaffPhoto(file,id){
-  return new Promise(res=>{
-    const img = new Image();
-    img.onload = ()=>{
-      const c = document.createElement("canvas");
-      c.width = c.height = 300;
-      c.getContext("2d").drawImage(img,0,0,300,300);
-      c.toBlob(b=>{
-        const path = `uploads/staffs/staff_${id}.jpg`;
-        fetch("https://rajshahicatering.online/"+path,{method:"PUT",body:b})
-          .then(()=>res(path));
-      },"image/jpeg",0.7);
+let staffs = [];
+let perms = {};
+let editId = null;
+let userReady = false;
+let staffReady = false;
+
+auth.onAuthStateChanged(async user=>{
+  if(!user){
+    location.href="index.html";
+    return;
+  }
+  const u = await db.collection("users").doc(user.email).get();
+  perms = u.exists ? u.data().permissions || {} : {};
+  addBtn.style.display = perms.staff_add === true ? "inline-block" : "none";
+  userReady = true;
+  tryRender();
+});
+
+db.collection("staffs").onSnapshot(s=>{
+  staffs=[];
+  s.forEach(d=>staffs.push({id:d.id,...d.data()}));
+  staffReady = true;
+  tryRender();
+});
+
+function tryRender(){
+  if(userReady && staffReady){
+    render();
+  }
+}
+
+function render(){
+  list.innerHTML="";
+  const k = search.value.toLowerCase();
+  let i = 1;
+
+  staffs.forEach(s=>{
+    if(!s.name?.toLowerCase().includes(k) && !s.phone?.includes(k)) return;
+
+    const badgeMap={
+      leader:["Leader","leader"],
+      second_leader:["Second Leader","second"],
+      member:["Member","member"],
+      new:["New Member","new"]
     };
-    img.src = URL.createObjectURL(file);
+    const [bt,bc]=badgeMap[s.badge||"new"];
+
+    list.innerHTML+=`
+      <div class="card">
+        <div class="avatar">
+          ${s.photo ? `<img src="${getStaffPhoto(s.photo)}">` : "👤"}
+        </div>
+        <div class="info">
+          <div class="name"><span class="serial">${i}.</span>${s.name}</div>
+          <div class="meta">📞 <a href="tel:${s.phone}">${s.phone}</a></div>
+          <div class="meta">📍 ${s.address||"-"}</div>
+          <span class="badge ${bc}">${bt}</span>
+          <div class="level">Level: ${s.level||0} / 100</div>
+        </div>
+        <div class="actions">
+          <button class="btn rate">Give Rating</button>
+          ${perms.staff_edit === true ? 
+            `<button class="btn edit"
+              onclick='openModal(${JSON.stringify(s).replace(/"/g,"&quot;")})'>
+              Edit
+            </button>` : ""
+          }
+        </div>
+      </div>
+    `;
+    i++;
   });
 }
 
-/* 🔽 save() এর ভিতরে শুধু ADD */
+function openModal(s=null){
+  modal.style.display="flex";
+  if(s){
+    editId=s.id;
+    modalTitle.innerText="Edit Staff";
+    staffName.value=s.name||"";
+    staffPhone.value=s.phone||"";
+    staffAddress.value=s.address||"";
+    staffBadge.value=s.badge||"new";
+    staffPhoto.value=s.photo||"";
+  }else{
+    editId=null;
+    modalTitle.innerText="Add Staff";
+    staffName.value=staffPhone.value=staffAddress.value=staffPhoto.value="";
+    staffBadge.value="new";
+  }
+}
+
+function closeModal(){modal.style.display="none"}
+
 async function save(){
   if(!staffName.value.trim() || !staffPhone.value.trim()){
     alert("Name এবং Phone প্রয়োজন");
     return;
   }
 
-  // 🔐 PERMISSION HARD CHECK
-  if(editId && perms.staff_edit !== true){
-    alert("Permission denied");
-    return;
+  if(editId){
+    if(perms.staff_edit !== true){
+      alert("Permission নেই");
+      return;
+    }
+    await db.collection("staffs").doc(editId).update({
+      name:staffName.value,
+      phone:staffPhone.value,
+      address:staffAddress.value,
+      badge:staffBadge.value,
+      photo:staffPhoto.value || null
+    });
+  }else{
+    if(perms.staff_add !== true){
+      alert("Permission নেই");
+      return;
+    }
+    await db.collection("staffs").add({
+      name:staffName.value,
+      phone:staffPhone.value,
+      address:staffAddress.value,
+      badge:staffBadge.value,
+      photo:staffPhoto.value || null,
+      level:0,
+      active:true,
+      created:Date.now()
+    });
   }
-  if(!editId && perms.staff_add !== true){
-    alert("Permission denied");
-    return;
-  }
-
-  let photoPath = null;
-  if(selectedImage){
-    photoPath = await uploadStaffPhoto(selectedImage, editId || Date.now());
-  }
-
-  const data = {
-    name:staffName.value,
-    phone:staffPhone.value,
-    address:staffAddress.value,
-    badge:staffBadge.value
-  };
-  if(photoPath) data.photo = photoPath;
-
-  editId
-    ? await db.collection("staffs").doc(editId).update(data)
-    : await db.collection("staffs").add({...data,level:0,active:true,created:Date.now()});
-
   closeModal();
 }
 </script>
