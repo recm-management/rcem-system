@@ -11,7 +11,8 @@ body{background:#f4f6f9;color:#333;overflow-x:hidden}
 
 /* ===== HEADER ===== */
 .header{
-  position:fixed;top:0;left:0;right:0;
+  position:fixed;
+  top:0;left:0;right:0;
   background:linear-gradient(135deg,#0d47a1,#1976d2);
   color:#fff;
   padding:16px;
@@ -23,9 +24,36 @@ body{background:#f4f6f9;color:#333;overflow-x:hidden}
 .menu-btn{font-size:24px;cursor:pointer}
 .logo{font-size:18px;font-weight:bold}
 
+/* ===== TOP NOTICE BAR ===== */
+.top-bar{
+  margin-top:64px;
+  background:rgba(0,0,0,.15);
+  color:#fff;
+  text-align:center;
+  padding:10px 14px;
+  font-size:14px;
+  line-height:1.6
+}
+.top-bar .blink{
+  color:#ffeb3b;
+  font-weight:600;
+  animation:blink 1.2s infinite
+}
+.top-bar .sub{
+  opacity:.9;
+  font-size:13px
+}
+
+@keyframes blink{
+  0%{opacity:1}
+  50%{opacity:.25}
+  100%{opacity:1}
+}
+
 /* ===== SIDE MENU ===== */
 .side-menu{
-  position:fixed;top:0;left:-260px;
+  position:fixed;
+  top:0;left:-260px;
   width:260px;height:100%;
   background:#fff;
   box-shadow:2px 0 20px rgba(0,0,0,.2);
@@ -59,8 +87,7 @@ body{background:#f4f6f9;color:#333;overflow-x:hidden}
 
 /* ===== HERO ===== */
 .hero{
-  margin-top:70px;
-  min-height:90vh;
+  min-height:85vh;
   background:linear-gradient(135deg,#0d47a1,#1976d2);
   color:#fff;
   display:flex;
@@ -69,12 +96,10 @@ body{background:#f4f6f9;color:#333;overflow-x:hidden}
   text-align:center;
   padding:20px
 }
-
 .hero-content{
-  animation:heroFade 1s ease forwards;
+  animation:fadeUp 1s ease forwards;
   opacity:0
 }
-
 .hero h1{
   font-size:32px;
   margin-bottom:10px
@@ -83,7 +108,6 @@ body{background:#f4f6f9;color:#333;overflow-x:hidden}
   font-size:16px;
   opacity:.9
 }
-
 .hero .buttons{
   margin-top:26px;
   display:flex;
@@ -92,7 +116,7 @@ body{background:#f4f6f9;color:#333;overflow-x:hidden}
   flex-wrap:wrap
 }
 .hero button{
-  padding:14px 22px;
+  padding:14px 26px;
   border:none;
   border-radius:30px;
   font-size:15px;
@@ -101,26 +125,16 @@ body{background:#f4f6f9;color:#333;overflow-x:hidden}
 .login-btn{background:#fff;color:#1976d2}
 .call-btn{background:#2e7d32;color:#fff}
 
-/* ===== TOP NOTICE ===== */
-.top-notice{
-  position:absolute;
-  top:40px;
-  width:100%;
-  text-align:center;
-  color:#fff;
-  line-height:1.6
-}
-.blink{
-  font-weight:bold;
-  color:#ffeb3b;
-  animation:blink 1.2s infinite
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(30px)}
+  to{opacity:1;transform:translateY(0)}
 }
 
-/* ===== SECTION ===== */
+/* ===== SECTIONS ===== */
 .section{padding:50px 16px}
 .section h2{text-align:center;margin-bottom:30px}
 
-/* ===== SERVICES ===== */
+/* SERVICES */
 .services{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
@@ -134,7 +148,7 @@ body{background:#f4f6f9;color:#333;overflow-x:hidden}
   text-align:center
 }
 
-/* ===== ABOUT ===== */
+/* ABOUT */
 .about{
   background:#fff;
   padding:26px;
@@ -144,7 +158,7 @@ body{background:#f4f6f9;color:#333;overflow-x:hidden}
   margin:auto
 }
 
-/* ===== INFO ===== */
+/* INFO */
 .info{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
@@ -158,7 +172,7 @@ body{background:#f4f6f9;color:#333;overflow-x:hidden}
   text-align:center
 }
 
-/* ===== FOOTER ===== */
+/* FOOTER */
 .footer{
   background:#0d47a1;
   color:#fff;
@@ -167,7 +181,7 @@ body{background:#f4f6f9;color:#333;overflow-x:hidden}
   margin-top:50px
 }
 
-/* ===== LOGIN MODALS ===== */
+/* ===== LOGIN MODAL ===== */
 .modal{
   position:fixed;
   inset:0;
@@ -187,13 +201,16 @@ body{background:#f4f6f9;color:#333;overflow-x:hidden}
 }
 .modal-box h3{text-align:center;margin-bottom:16px}
 .login-card{
-  padding:14px;
+  padding:16px;
   border-radius:14px;
   background:#f4f6f9;
   margin-bottom:12px;
-  cursor:pointer
+  cursor:pointer;
+  text-align:center;
+  font-weight:500
 }
 .login-card:hover{background:#e3f2fd}
+.cancel{text-align:center;color:#666;cursor:pointer}
 .modal-box input{
   width:100%;
   padding:14px;
@@ -211,18 +228,6 @@ body{background:#f4f6f9;color:#333;overflow-x:hidden}
   font-size:15px;
   cursor:pointer
 }
-.cancel{text-align:center;color:#666;cursor:pointer}
-
-/* ===== ANIMATIONS ===== */
-@keyframes heroFade{
-  from{opacity:0;transform:translateY(30px)}
-  to{opacity:1;transform:translateY(0)}
-}
-@keyframes blink{
-  0%{opacity:1}
-  50%{opacity:.2}
-  100%{opacity:1}
-}
 </style>
 </head>
 
@@ -231,6 +236,12 @@ body{background:#f4f6f9;color:#333;overflow-x:hidden}
 <div class="header">
   <div class="menu-btn" onclick="openMenu()">☰</div>
   <div class="logo">RCEM</div>
+</div>
+
+<div class="top-bar">
+  <div class="blink">পরীক্ষামূলক সংস্করণ...</div>
+  <div class="sub">প্রকল্প সচিব – JH Simul</div>
+  <div class="sub">বাস্তবায়নের: রাজশাহী ক্যাটারিং এন্ড ইভেন্ট ম্যানেজমেন্ট</div>
 </div>
 
 <div class="side-menu" id="menu">
@@ -245,26 +256,16 @@ body{background:#f4f6f9;color:#333;overflow-x:hidden}
 <div class="overlay" id="overlay" onclick="closeMenu()"></div>
 
 <div class="hero" id="home">
-
-  <!-- TOP NOTICE -->
-  <div class="top-notice">
-    <div class="blink">পরীক্ষামূলক সংস্করণ...</div>
-    <div>প্রকল্প সচিব – JH Simul</div>
-    <div>বাস্তবায়নের: রাজশাহী ক্যাটারিং এন্ড ইভেন্ট ম্যানেজমেন্ট</div>
-  </div>
-
   <div class="hero-content">
     <h1>Rajshahi Catering & Event Management</h1>
     <p>Professional Catering • Event Planning • Trusted Service</p>
-
     <div class="buttons">
       <button class="login-btn" onclick="openLogin()">Login</button>
-      <button class="call-btn">Call Now</button>
+      <button class="call-btn" onclick="location.href='tel:+8801926627000'">Call Now</button>
     </div>
   </div>
 </div>
 
-<!-- SERVICES -->
 <div class="section" id="services">
   <h2>Our Services</h2>
   <div class="services">
@@ -277,34 +278,34 @@ body{background:#f4f6f9;color:#333;overflow-x:hidden}
   </div>
 </div>
 
-<!-- ABOUT -->
 <div class="section" id="about">
   <h2>About Us</h2>
   <div class="about">
-    Rajshahi Catering & Event Management is a professional catering and event service provider in Rajshahi.
+    Rajshahi Catering & Event Management একটি পেশাদার ক্যাটারিং ও ইভেন্ট ম্যানেজমেন্ট প্রতিষ্ঠান।
+    আমাদের সাথে রয়েছে ১৪০+ দক্ষ স্টাফ ও দীর্ঘ অভিজ্ঞতা।
   </div>
 </div>
 
-<!-- INFO -->
 <div class="section" id="contact">
   <h2>Company Information</h2>
   <div class="info">
     <div>📍 Rajshahi</div>
-    <div>☎ 01XXXXXXXXX</div>
-    <div>📧 info@rajshahicatering.online</div>
-    <div>👥 50+ Staff</div>
+    <div>👥 140+ Staff</div>
+    <div>☎ +8801926627000</div>
+    <div>📧 info.rajshahicatering.com</div>
   </div>
 </div>
 
-<div class="footer">© 2025 Rajshahi Catering & Event Management</div>
+<div class="footer">
+  © 2025 Rajshahi Catering & Event Management
+</div>
 
-<!-- LOGIN MODALS -->
 <div class="modal" id="loginModal">
   <div class="modal-box">
     <h3>Select Login</h3>
-    <div class="login-card" onclick="openAdmin()">👑 Admin Login</div>
-    <div class="login-card">👷 Staff Login</div>
-    <div class="login-card">👤 Customer Login</div>
+    <div class="login-card" onclick="openAdmin()">Admin Login</div>
+    <div class="login-card">Staff Login</div>
+    <div class="login-card">Customer Login</div>
     <div class="cancel" onclick="closeLogin()">Cancel</div>
   </div>
 </div>
