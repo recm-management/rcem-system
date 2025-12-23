@@ -3,188 +3,293 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RCEM Management System</title>
+<title>Rajshahi Catering & Event Management</title>
 
 <style>
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-  font-family: Arial, sans-serif;
-}
-body{
-  min-height:100vh;
-  background:linear-gradient(135deg,#0d47a1,#1976d2);
-  display:flex;
-  justify-content:center;
-  align-items:center;
-}
-.container{
-  text-align:center;
-  color:#fff;
-  max-width:1000px;
-  width:100%;
-  padding:20px;
-}
-h1{
-  font-size:28px;
-}
-.subtitle{
-  margin:10px 0 30px;
-  opacity:.9;
-}
-.cards{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:20px;
-}
-.card{
-  background:#fff;
-  color:#333;
-  padding:25px;
-  border-radius:12px;
-  cursor:pointer;
-  transition:.3s;
-}
-.card:hover{
-  transform:translateY(-6px);
-  box-shadow:0 15px 30px rgba(0,0,0,.2);
-}
-.card h2{
-  margin-bottom:10px;
-}
-.admin{border-top:5px solid #d32f2f;}
-.staff{border-top:5px solid #388e3c;}
-.customer{border-top:5px solid #f9a825;}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial}
+body{background:#f4f6f9;color:#333;overflow-x:hidden}
 
-/* MODAL */
+/* ===== HEADER ===== */
+.header{
+  position:fixed;top:0;left:0;right:0;
+  background:linear-gradient(135deg,#0d47a1,#1976d2);
+  color:#fff;
+  padding:16px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  z-index:1000
+}
+.menu-btn{font-size:24px;cursor:pointer}
+.logo{font-size:18px;font-weight:bold}
+
+/* ===== SIDE MENU ===== */
+.side-menu{
+  position:fixed;top:0;left:-260px;
+  width:260px;height:100%;
+  background:#fff;
+  box-shadow:2px 0 20px rgba(0,0,0,.2);
+  transition:.35s ease;
+  z-index:2000
+}
+.side-menu.active{left:0}
+.side-menu h3{
+  padding:18px;
+  background:#1976d2;
+  color:#fff
+}
+.side-menu a{
+  display:block;
+  padding:14px 18px;
+  text-decoration:none;
+  color:#333;
+  border-bottom:1px solid #eee
+}
+.side-menu a:hover{background:#f1f1f1}
+
+/* ===== OVERLAY ===== */
+.overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  display:none;
+  z-index:1500
+}
+.overlay.active{display:block}
+
+/* ===== HERO ===== */
+.hero{
+  margin-top:70px;
+  min-height:90vh;
+  background:linear-gradient(135deg,#0d47a1,#1976d2);
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:20px
+}
+.hero h1{
+  font-size:32px;
+  animation:fadeUp .8s ease
+}
+.hero p{
+  margin-top:12px;
+  font-size:16px;
+  opacity:.9;
+  animation:fadeUp 1.1s ease
+}
+.hero .buttons{
+  margin-top:26px;
+  display:flex;
+  gap:14px;
+  justify-content:center;
+  flex-wrap:wrap
+}
+.hero button{
+  padding:14px 22px;
+  border:none;
+  border-radius:30px;
+  font-size:15px;
+  cursor:pointer
+}
+.login-btn{background:#fff;color:#1976d2}
+.call-btn{background:#2e7d32;color:#fff}
+
+/* ===== SECTION ===== */
+.section{padding:50px 16px}
+.section h2{text-align:center;margin-bottom:30px}
+
+/* ===== SERVICES ===== */
+.services{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+  gap:16px
+}
+.service{
+  background:#fff;
+  padding:20px;
+  border-radius:16px;
+  box-shadow:0 10px 25px rgba(0,0,0,.1);
+  text-align:center;
+  animation:fadeUp .8s ease
+}
+
+/* ===== ABOUT ===== */
+.about{
+  background:#fff;
+  padding:26px;
+  border-radius:18px;
+  box-shadow:0 10px 25px rgba(0,0,0,.1);
+  max-width:900px;
+  margin:auto
+}
+
+/* ===== INFO ===== */
+.info{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:16px
+}
+.info div{
+  background:#fff;
+  padding:20px;
+  border-radius:16px;
+  box-shadow:0 8px 20px rgba(0,0,0,.1);
+  text-align:center
+}
+
+/* ===== FOOTER ===== */
+.footer{
+  background:#0d47a1;
+  color:#fff;
+  padding:26px;
+  text-align:center;
+  margin-top:50px
+}
+
+/* ===== LOGIN MODAL ===== */
 .modal{
   position:fixed;
   inset:0;
   background:rgba(0,0,0,.6);
   display:none;
-  justify-content:center;
   align-items:center;
+  justify-content:center;
+  z-index:3000
 }
+.modal.active{display:flex}
 .modal-box{
   background:#fff;
   width:100%;
-  max-width:380px;
-  padding:25px;
-  border-radius:12px;
-  animation:pop .4s ease;
+  max-width:420px;
+  padding:22px;
+  border-radius:20px;
+  animation:fadeUp .4s ease
 }
-@keyframes pop{
-  from{transform:scale(.8);opacity:0;}
-  to{transform:scale(1);opacity:1;}
-}
-.modal-box h3{
-  text-align:center;
-  margin-bottom:10px;
-  color:#0d47a1;
-}
-.modal-box input{
-  width:100%;
-  padding:12px;
-  margin:10px 0;
-  border:1px solid #ccc;
-  border-radius:8px;
-}
-.login-btn{
-  width:100%;
-  padding:12px;
-  background:#0d47a1;
-  color:#fff;
-  border:none;
-  border-radius:8px;
-  font-size:16px;
+.modal-box h3{text-align:center;margin-bottom:16px}
+.login-card{
+  padding:14px;
+  border-radius:14px;
+  background:#f4f6f9;
+  margin-bottom:12px;
   cursor:pointer;
+  transition:.25s
 }
-.close{
-  text-align:center;
-  margin-top:10px;
-  font-size:13px;
-  color:#777;
-  cursor:pointer;
+.login-card:hover{background:#e3f2fd}
+
+/* ===== ANIMATION ===== */
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(30px)}
+  to{opacity:1;transform:translateY(0)}
 }
 </style>
 </head>
 
 <body>
 
-<div class="container">
-  <h1>Rajshahi Catering & Event Management</h1>
-  <p class="subtitle">Management System</p>
+<!-- HEADER -->
+<div class="header">
+  <div class="menu-btn" onclick="openMenu()">☰</div>
+  <div class="logo">RCEM</div>
+</div>
 
-  <div class="cards">
-    <div class="card admin" onclick="openAdminLogin()">
-      <h2>Admin Login</h2>
-      <p>Full system control</p>
-    </div>
+<!-- SIDE MENU -->
+<div class="side-menu" id="menu">
+  <h3>RCEM Menu</h3>
+  <a href="#home" onclick="closeMenu()">Home</a>
+  <a href="#services" onclick="closeMenu()">Services</a>
+  <a href="#about" onclick="closeMenu()">About Us</a>
+  <a href="javascript:openLogin()">Login</a>
+  <a href="#contact" onclick="closeMenu()">Contact</a>
+  <a href="#" onclick="closeMenu()">Terms & Conditions</a>
+</div>
 
-    <div class="card staff">
-      <h2>Staff Login</h2>
-      <p>View duty & payments</p>
-    </div>
+<!-- OVERLAY -->
+<div class="overlay" id="overlay" onclick="closeMenu()"></div>
 
-    <div class="card customer">
-      <h2>Customer Login</h2>
-      <p>Place & track orders</p>
+<!-- HERO -->
+<div class="hero" id="home">
+  <div>
+    <h1>Rajshahi Catering & Event Management</h1>
+    <p>Professional Catering • Event Planning • Trusted Service</p>
+    <div class="buttons">
+      <button class="login-btn" onclick="openLogin()">Login</button>
+      <button class="call-btn">Call Now</button>
     </div>
   </div>
 </div>
 
-<!-- ADMIN LOGIN MODAL -->
-<div class="modal" id="adminModal">
+<!-- SERVICES -->
+<div class="section" id="services">
+  <h2>Our Services</h2>
+  <div class="services">
+    <div class="service">Wedding Catering</div>
+    <div class="service">Corporate Events</div>
+    <div class="service">Birthday Party</div>
+    <div class="service">Decoration</div>
+    <div class="service">Manpower Supply</div>
+    <div class="service">Outdoor Catering</div>
+  </div>
+</div>
+
+<!-- ABOUT -->
+<div class="section" id="about">
+  <h2>About Us</h2>
+  <div class="about">
+    Rajshahi Catering & Event Management is a professional catering and event
+    service provider in Rajshahi. We deliver quality food, skilled manpower
+    and complete event solutions with trust and experience.
+  </div>
+</div>
+
+<!-- INFO -->
+<div class="section" id="contact">
+  <h2>Company Information</h2>
+  <div class="info">
+    <div>📍 Rajshahi</div>
+    <div>☎ 01XXXXXXXXX</div>
+    <div>📧 info@rajshahicatering.online</div>
+    <div>👥 50+ Staff</div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  © 2025 Rajshahi Catering & Event Management
+</div>
+
+<!-- LOGIN MODAL -->
+<div class="modal" id="loginModal">
   <div class="modal-box">
-    <h3>Admin Login</h3>
-    <input type="email" id="email" placeholder="Admin Email">
-    <input type="password" id="password" placeholder="Password">
-    <button class="login-btn" onclick="login()">Login</button>
-    <div class="close" onclick="closeModal()">Cancel</div>
+    <h3>Select Login</h3>
+    <div class="login-card">👑 Admin Login</div>
+    <div class="login-card">👷 Staff Login</div>
+    <div class="login-card">👤 Customer Login</div>
+    <br>
+    <div style="text-align:center;cursor:pointer;color:#555" onclick="closeLogin()">Cancel</div>
   </div>
 </div>
-
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
 <script>
-const firebaseConfig = {
-  apiKey: "AIzaSyDK3dqXZuWaH3gctxURdOZc_Q1UfioesaA",
-  authDomain: "rcem-system.firebaseapp.com",
-  projectId: "rcem-system",
-  storageBucket: "rcem-system.appspot.com",
-  messagingSenderId: "569730845486",
-  appId: "1:569730845486:web:93e6c14ea47fdc6c89c8bf"
-};
+const menu = document.getElementById("menu");
+const overlay = document.getElementById("overlay");
+const loginModal = document.getElementById("loginModal");
 
-if (!firebase.apps.length) {
-  firebase.initializeApp(firebaseConfig);
+function openMenu(){
+  menu.classList.add("active");
+  overlay.classList.add("active");
 }
-const auth = firebase.auth();
-
-function openAdminLogin(){
-  document.getElementById("adminModal").style.display="flex";
+function closeMenu(){
+  menu.classList.remove("active");
+  overlay.classList.remove("active");
 }
-function closeModal(){
-  document.getElementById("adminModal").style.display="none";
+function openLogin(){
+  closeMenu();
+  loginModal.classList.add("active");
 }
-
-function login(){
-  const email=document.getElementById("email").value.trim();
-  const pass=document.getElementById("password").value;
-
-  if(!email||!pass){
-    alert("Email & password required");
-    return;
-  }
-
-  auth.signInWithEmailAndPassword(email,pass)
-    .then(()=>{
-      window.location.href="admin.html";
-    })
-    .catch(err=>alert(err.message));
+function closeLogin(){
+  loginModal.classList.remove("active");
 }
 </script>
 
