@@ -9,7 +9,7 @@
 *{margin:0;padding:0;box-sizing:border-box;font-family:Arial}
 body{background:#f4f6f9;color:#333;overflow-x:hidden}
 
-/* ===== HEADER ===== */
+/* HEADER */
 .header{
   position:fixed;top:0;left:0;right:0;
   background:linear-gradient(135deg,#0d47a1,#1976d2);
@@ -23,13 +23,23 @@ body{background:#f4f6f9;color:#333;overflow-x:hidden}
 .menu-btn{font-size:24px;cursor:pointer}
 .logo{font-size:18px;font-weight:bold}
 
-/* ===== SIDE MENU ===== */
+/* OVERLAY */
+.overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.4);
+  display:none;
+  z-index:1500
+}
+.overlay.active{display:block}
+
+/* SIDE MENU */
 .side-menu{
   position:fixed;top:0;left:-260px;
   width:260px;height:100%;
   background:#fff;
   box-shadow:2px 0 20px rgba(0,0,0,.2);
-  transition:.35s ease;
+  transition:.35s;
   z-index:2000
 }
 .side-menu.active{left:0}
@@ -47,17 +57,7 @@ body{background:#f4f6f9;color:#333;overflow-x:hidden}
 }
 .side-menu a:hover{background:#f1f1f1}
 
-/* ===== OVERLAY ===== */
-.overlay{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.45);
-  display:none;
-  z-index:1500
-}
-.overlay.active{display:block}
-
-/* ===== HERO ===== */
+/* HERO */
 .hero{
   margin-top:70px;
   min-height:90vh;
@@ -69,16 +69,8 @@ body{background:#f4f6f9;color:#333;overflow-x:hidden}
   text-align:center;
   padding:20px
 }
-.hero h1{
-  font-size:32px;
-  animation:fadeUp .8s ease
-}
-.hero p{
-  margin-top:12px;
-  font-size:16px;
-  opacity:.9;
-  animation:fadeUp 1.1s ease
-}
+.hero h1{font-size:32px}
+.hero p{margin-top:12px;font-size:16px;opacity:.9}
 .hero .buttons{
   margin-top:26px;
   display:flex;
@@ -96,11 +88,11 @@ body{background:#f4f6f9;color:#333;overflow-x:hidden}
 .login-btn{background:#fff;color:#1976d2}
 .call-btn{background:#2e7d32;color:#fff}
 
-/* ===== SECTION ===== */
+/* SECTION */
 .section{padding:50px 16px}
 .section h2{text-align:center;margin-bottom:30px}
 
-/* ===== SERVICES ===== */
+/* SERVICES */
 .services{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
@@ -111,11 +103,10 @@ body{background:#f4f6f9;color:#333;overflow-x:hidden}
   padding:20px;
   border-radius:16px;
   box-shadow:0 10px 25px rgba(0,0,0,.1);
-  text-align:center;
-  animation:fadeUp .8s ease
+  text-align:center
 }
 
-/* ===== ABOUT ===== */
+/* ABOUT */
 .about{
   background:#fff;
   padding:26px;
@@ -125,7 +116,7 @@ body{background:#f4f6f9;color:#333;overflow-x:hidden}
   margin:auto
 }
 
-/* ===== INFO ===== */
+/* INFO */
 .info{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
@@ -139,7 +130,7 @@ body{background:#f4f6f9;color:#333;overflow-x:hidden}
   text-align:center
 }
 
-/* ===== FOOTER ===== */
+/* FOOTER */
 .footer{
   background:#0d47a1;
   color:#fff;
@@ -148,7 +139,7 @@ body{background:#f4f6f9;color:#333;overflow-x:hidden}
   margin-top:50px
 }
 
-/* ===== LOGIN MODAL ===== */
+/* LOGIN MODAL */
 .modal{
   position:fixed;
   inset:0;
@@ -164,8 +155,7 @@ body{background:#f4f6f9;color:#333;overflow-x:hidden}
   width:100%;
   max-width:420px;
   padding:22px;
-  border-radius:20px;
-  animation:fadeUp .4s ease
+  border-radius:20px
 }
 .modal-box h3{text-align:center;margin-bottom:16px}
 .login-card{
@@ -174,15 +164,9 @@ body{background:#f4f6f9;color:#333;overflow-x:hidden}
   background:#f4f6f9;
   margin-bottom:12px;
   cursor:pointer;
-  transition:.25s
+  transition:.3s
 }
 .login-card:hover{background:#e3f2fd}
-
-/* ===== ANIMATION ===== */
-@keyframes fadeUp{
-  from{opacity:0;transform:translateY(30px)}
-  to{opacity:1;transform:translateY(0)}
-}
 </style>
 </head>
 
@@ -194,19 +178,18 @@ body{background:#f4f6f9;color:#333;overflow-x:hidden}
   <div class="logo">RCEM</div>
 </div>
 
+<div class="overlay" id="overlay" onclick="closeMenu()"></div>
+
 <!-- SIDE MENU -->
 <div class="side-menu" id="menu">
   <h3>RCEM Menu</h3>
   <a href="#home" onclick="closeMenu()">Home</a>
   <a href="#services" onclick="closeMenu()">Services</a>
   <a href="#about" onclick="closeMenu()">About Us</a>
-  <a href="javascript:openLogin()">Login</a>
+  <a href="javascript:void(0)" onclick="openLogin()">Login</a>
   <a href="#contact" onclick="closeMenu()">Contact</a>
-  <a href="#" onclick="closeMenu()">Terms & Conditions</a>
+  <a href="#">Terms & Conditions</a>
 </div>
-
-<!-- OVERLAY -->
-<div class="overlay" id="overlay" onclick="closeMenu()"></div>
 
 <!-- HERO -->
 <div class="hero" id="home">
@@ -263,9 +246,19 @@ body{background:#f4f6f9;color:#333;overflow-x:hidden}
 <div class="modal" id="loginModal">
   <div class="modal-box">
     <h3>Select Login</h3>
-    <div class="login-card">👑 Admin Login</div>
-    <div class="login-card">👷 Staff Login</div>
-    <div class="login-card">👤 Customer Login</div>
+
+    <div class="login-card" onclick="goAdmin()">
+      👑 Admin Login<br><small>Full system control</small>
+    </div>
+
+    <div class="login-card" onclick="goStaff()">
+      👷 Staff Login<br><small>View duty & payments</small>
+    </div>
+
+    <div class="login-card" onclick="goCustomer()">
+      👤 Customer Login<br><small>Place & track orders</small>
+    </div>
+
     <br>
     <div style="text-align:center;cursor:pointer;color:#555" onclick="closeLogin()">Cancel</div>
   </div>
@@ -290,6 +283,17 @@ function openLogin(){
 }
 function closeLogin(){
   loginModal.classList.remove("active");
+}
+
+/* LOGIN REDIRECT */
+function goAdmin(){
+  window.location.href = "admin.html";
+}
+function goStaff(){
+  window.location.href = "staff-login.html";
+}
+function goCustomer(){
+  window.location.href = "customer-login.html";
 }
 </script>
 
