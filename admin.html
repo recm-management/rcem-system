@@ -16,8 +16,6 @@
   --muted:#777;
   --danger:#d32f2f;
 }
-
-/* RESET */
 *{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
 body{background:var(--bg);overflow-x:hidden}
 
@@ -33,41 +31,25 @@ body{background:var(--bg);overflow-x:hidden}
   top:0;
   z-index:20
 }
-.menu-btn{
-  font-size:26px;
-  cursor:pointer;
-  transition:.25s
-}
-.menu-btn:active{transform:scale(.9)}
+.menu-btn{font-size:26px;cursor:pointer}
 
 /* OVERLAY */
 .overlay{
-  position:fixed;
-  inset:0;
+  position:fixed;inset:0;
   background:rgba(0,0,0,.45);
-  opacity:0;
-  pointer-events:none;
-  transition:.3s;
-  z-index:30
+  opacity:0;pointer-events:none;
+  transition:.3s;z-index:30
 }
-.overlay.show{
-  opacity:1;
-  pointer-events:auto
-}
+.overlay.show{opacity:1;pointer-events:auto}
 
 /* SIDE MENU */
 .side-menu{
-  position:fixed;
-  top:0;
-  right:-280px;
-  width:260px;
-  height:100%;
+  position:fixed;top:0;right:-280px;
+  width:260px;height:100%;
   background:#fff;
   box-shadow:-10px 0 30px rgba(0,0,0,.25);
-  transition:.35s cubic-bezier(.4,0,.2,1);
-  z-index:40;
-  display:flex;
-  flex-direction:column
+  transition:.35s;z-index:40;
+  display:flex;flex-direction:column
 }
 .side-menu.show{right:0}
 
@@ -89,13 +71,8 @@ body{background:var(--bg);overflow-x:hidden}
   border-radius:14px;
   text-decoration:none;
   color:var(--text);
-  font-weight:500;
-  transition:.25s
 }
-.menu a:hover{
-  background:#e3f2fd;
-  transform:translateX(6px)
-}
+.menu a:hover{background:#e3f2fd}
 
 /* LOGOUT */
 .logout{
@@ -123,23 +100,14 @@ body{background:var(--bg);overflow-x:hidden}
   padding:20px;
   border-radius:18px;
   box-shadow:0 10px 25px rgba(0,0,0,.12);
-  transition:.25s;
   cursor:pointer
 }
-.card:hover{
-  transform:translateY(-6px);
-  box-shadow:0 14px 35px rgba(0,0,0,.18)
-}
-.card h3{font-size:14px;color:var(--muted);margin-bottom:8px}
+.card h3{font-size:14px;color:var(--muted)}
 .card p{font-size:26px;font-weight:bold;color:var(--primary)}
 
 /* SECTION */
 .section{margin-top:26px}
-.section h4{
-  font-size:16px;
-  margin-bottom:10px;
-  color:var(--text)
-}
+.section h4{font-size:16px;margin-bottom:10px}
 
 /* LIST */
 .list{
@@ -148,57 +116,9 @@ body{background:var(--bg);overflow-x:hidden}
   overflow:hidden;
   box-shadow:0 8px 20px rgba(0,0,0,.12)
 }
-.item{
-  padding:14px 16px;
-  border-bottom:1px solid #eee
-}
-.item:last-child{border-bottom:none}
+.item{padding:14px 16px;border-bottom:1px solid #eee}
 .small{font-size:13px;color:var(--muted)}
 
-/* UPCOMING */
-.upcoming{
-  background:#fff;
-  border-radius:18px;
-  padding:18px;
-  box-shadow:0 8px 20px rgba(0,0,0,.12)
-}
-.venue{
-  font-size:18px;
-  font-weight:bold;
-  color:var(--primary)
-}
-.countdown{
-  font-size:20px;
-  font-weight:bold;
-  color:var(--danger);
-  margin-top:6px
-}
-.blink{
-  animation:blink 1s infinite
-}
-@keyframes blink{
-  0%{opacity:1}
-  50%{opacity:.2}
-  100%{opacity:1}
-}
-
-/* ACTIONS */
-.actions{
-  display:flex;
-  gap:12px
-}
-.actions button{
-  flex:1;
-  padding:14px;
-  border:none;
-  border-radius:22px;
-  color:#fff;
-  font-size:15px;
-  cursor:pointer
-}
-.addA{background:linear-gradient(45deg,#2e7d32,#43a047)}
-.addS{background:linear-gradient(45deg,#1565c0,#1e88e5)}
-.addV{background:linear-gradient(45deg,#6a1b9a,#8e24aa)}
 </style>
 </head>
 
@@ -213,7 +133,7 @@ body{background:var(--bg);overflow-x:hidden}
 
 <div class="side-menu" id="sideMenu">
   <div class="user-box">
-    <b>Logged in as</b>
+    <b>Logged in as</b><br>
     <span id="userEmail">Loading...</span>
   </div>
 
@@ -230,45 +150,12 @@ body{background:var(--bg);overflow-x:hidden}
 </div>
 
 <div class="container">
-
   <div class="cards">
-    <div class="card" onclick="location.href='assignments.html'">
-      <h3>Total Assignments</h3><p id="totalAssignments">0</p>
-    </div>
-    <div class="card" onclick="location.href='staff.html'">
-      <h3>Total Staff</h3><p id="totalStaff">0</p>
-    </div>
-    <div class="card" onclick="location.href='assignments.html?status=pending'">
-      <h3>Pending</h3><p id="pendingAssignments">0</p>
-    </div>
-    <div class="card" onclick="location.href='assignments.html?status=completed'">
-      <h3>Completed</h3><p id="completedAssignments">0</p>
-    </div>
+    <div class="card"><h3>Total Assignments</h3><p id="totalAssignments">0</p></div>
+    <div class="card"><h3>Total Staff</h3><p id="totalStaff">0</p></div>
+    <div class="card"><h3>Pending</h3><p id="pendingAssignments">0</p></div>
+    <div class="card"><h3>Completed</h3><p id="completedAssignments">0</p></div>
   </div>
-
-  <div class="section">
-    <h4>⏳ Upcoming Assignment</h4>
-    <div class="upcoming">
-      <div class="venue" id="upVenue">Loading...</div>
-      <div class="countdown" id="upCountdown">--</div>
-      <div class="small" id="upTotal"></div>
-    </div>
-  </div>
-
-  <div class="section">
-    <h4>📅 Today’s Assignments</h4>
-    <div class="list" id="todayList">Loading...</div>
-  </div>
-
-  <div class="section">
-    <h4>⚡ Quick Actions</h4>
-    <div class="actions">
-      <button class="addA" onclick="location.href='create-assignment.html'">+ Assignment</button>
-      <button class="addS" onclick="location.href='staff.html'">+ Staff</button>
-      <button class="addV" onclick="location.href='venues.html'">+ Venue</button>
-    </div>
-  </div>
-
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -282,8 +169,8 @@ firebase.initializeApp({
   projectId:"rcem-system"
 });
 
-const auth=firebase.auth();
-const db=firebase.firestore();
+const auth = firebase.auth();
+const db = firebase.firestore();
 
 function openMenu(){
   sideMenu.classList.add("show");
@@ -297,66 +184,33 @@ function logout(){
   auth.signOut().then(()=>location.href="index.html");
 }
 
-auth.onAuthStateChanged(u=>{
-  if(!u){location.href="index.html";return;}
-  userEmail.innerText=u.email;
-});
-
-/* STAFF COUNT */
-db.collection("staffs").onSnapshot(s=>totalStaff.innerText=s.size);
-
-/* ASSIGNMENTS + TODAY + UPCOMING */
-let timer;
-db.collection("assignments").onSnapshot(snap=>{
-  let total=0,p=0,c=0;
-  let todayHTML="";
-  const today=new Date().toISOString().split("T")[0];
-  const now=new Date();
-  const upcoming=[];
-
-  snap.forEach(d=>{
-    const a=d.data();
-    total++;
-    if(a.status==="completed") c++; else p++;
-
-    if(a.duty_date===today){
-      todayHTML+=`<div class="item">${a.venue_name}<div class="small">${a.shift}</div></div>`;
-    }
-
-    let t;
-    if(a.shift==="day") t=new Date(a.duty_date+"T11:00:00");
-    else t=new Date(a.duty_date+"T18:00:00");
-
-    if(t>now) upcoming.push({...a,t});
-  });
-
-  totalAssignments.innerText=total;
-  pendingAssignments.innerText=p;
-  completedAssignments.innerText=c;
-  todayList.innerHTML=todayHTML||"<div class='item small'>No assignments today</div>";
-
-  if(upcoming.length===0){
-    upVenue.innerText="No upcoming assignment";
-    upCountdown.innerText="--";
-    upTotal.innerText="";
+/* 🔐 ADMIN SECURITY GUARD */
+auth.onAuthStateChanged(async (u)=>{
+  if(!u){
+    location.href="index.html";
     return;
   }
 
-  upcoming.sort((a,b)=>a.t-b.t);
-  const n=upcoming[0];
-  upVenue.innerText=n.venue_name;
-  upTotal.innerText="Total upcoming: "+upcoming.length;
+  const ref = await db.collection("admins").doc(u.email).get();
 
-  clearInterval(timer);
-  timer=setInterval(()=>{
-    const diff=n.t-new Date();
-    if(diff<=0){upCountdown.innerText="Starting now";return;}
-    const h=Math.floor(diff/36e5);
-    const m=Math.floor(diff%36e5/6e4);
-    const s=Math.floor(diff%6e4/1000);
-    upCountdown.innerText=`${h}h ${m}m ${s}s`;
-    if(diff<=3600000) upVenue.classList.add("blink");
-  },1000);
+  if(!ref.exists || ref.data().active !== true){
+    alert("Access denied");
+    await auth.signOut();
+    location.href="index.html";
+    return;
+  }
+
+  userEmail.innerText = u.email;
+});
+
+/* COUNTS */
+db.collection("staffs").onSnapshot(s=>totalStaff.innerText=s.size);
+db.collection("assignments").onSnapshot(s=>{
+  let p=0,c=0;
+  totalAssignments.innerText=s.size;
+  s.forEach(d=>d.data().status==="completed"?c++:p++);
+  pendingAssignments.innerText=p;
+  completedAssignments.innerText=c;
 });
 </script>
 
