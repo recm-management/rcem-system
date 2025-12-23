@@ -24,7 +24,7 @@ body{background:#f4f6f9;color:#333;overflow-x:hidden}
 .menu-btn{font-size:24px;cursor:pointer}
 .logo{font-size:18px;font-weight:bold}
 
-/* NOTICE — NO BACKGROUND */
+/* NOTICE (NO BACKGROUND) */
 .notice{
   margin-top:90px;
   text-align:center;
@@ -32,8 +32,8 @@ body{background:#f4f6f9;color:#333;overflow-x:hidden}
   padding:10px 16px
 }
 .notice .blink{
-  color:#ff3b3b;
-  font-weight:600;
+  color:#ff2b2b;
+  font-weight:700;
   animation:blink 1.2s infinite
 }
 .notice .sub{
@@ -43,13 +43,14 @@ body{background:#f4f6f9;color:#333;overflow-x:hidden}
 }
 @keyframes blink{
   0%{opacity:1}
-  50%{opacity:.25}
+  50%{opacity:.3}
   100%{opacity:1}
 }
 
 /* SIDE MENU */
 .side-menu{
-  position:fixed;top:0;left:-260px;
+  position:fixed;
+  top:0;left:-260px;
   width:260px;height:100%;
   background:#fff;
   box-shadow:2px 0 20px rgba(0,0,0,.2);
@@ -57,7 +58,11 @@ body{background:#f4f6f9;color:#333;overflow-x:hidden}
   z-index:2000
 }
 .side-menu.active{left:0}
-.side-menu h3{padding:18px;background:#1976d2;color:#fff}
+.side-menu h3{
+  padding:18px;
+  background:#1976d2;
+  color:#fff
+}
 .side-menu a{
   display:block;
   padding:14px 18px;
@@ -65,10 +70,12 @@ body{background:#f4f6f9;color:#333;overflow-x:hidden}
   color:#333;
   border-bottom:1px solid #eee
 }
+.side-menu a:hover{background:#f1f1f1}
 
 /* OVERLAY */
 .overlay{
-  position:fixed;inset:0;
+  position:fixed;
+  inset:0;
   background:rgba(0,0,0,.45);
   display:none;
   z-index:1500
@@ -118,6 +125,20 @@ body{background:#f4f6f9;color:#333;overflow-x:hidden}
 .section{padding:50px 16px}
 .section h2{text-align:center;margin-bottom:30px}
 
+/* SERVICES */
+.services{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+  gap:16px
+}
+.service{
+  background:#fff;
+  padding:20px;
+  border-radius:16px;
+  box-shadow:0 10px 25px rgba(0,0,0,.1);
+  text-align:center
+}
+
 /* ABOUT */
 .about{
   background:#fff;
@@ -128,20 +149,21 @@ body{background:#f4f6f9;color:#333;overflow-x:hidden}
   margin:auto
 }
 
-/* COMPANY INFO — VERTICAL */
+/* COMPANY INFO (FIXED) */
 .info{
-  max-width:600px;
-  margin:auto;
   display:flex;
   flex-direction:column;
-  gap:14px
+  gap:14px;
+  max-width:700px;
+  margin:auto
 }
 .info div{
   background:#fff;
   padding:18px;
-  border-radius:14px;
+  border-radius:16px;
   box-shadow:0 8px 20px rgba(0,0,0,.1);
-  font-size:14px;
+  font-size:15px;
+  line-height:1.6;
   word-break:break-word
 }
 
@@ -152,6 +174,53 @@ body{background:#f4f6f9;color:#333;overflow-x:hidden}
   padding:26px;
   text-align:center;
   margin-top:50px
+}
+
+/* MODALS */
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.6);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:3000
+}
+.modal.active{display:flex}
+.modal-box{
+  background:#fff;
+  width:100%;
+  max-width:420px;
+  padding:22px;
+  border-radius:20px
+}
+.modal-box h3{text-align:center;margin-bottom:16px}
+.login-card{
+  padding:16px;
+  border-radius:14px;
+  background:#f4f6f9;
+  margin-bottom:12px;
+  cursor:pointer;
+  text-align:center
+}
+.login-card:hover{background:#e3f2fd}
+.cancel{text-align:center;color:#666;cursor:pointer}
+.modal-box input{
+  width:100%;
+  padding:14px;
+  margin-bottom:12px;
+  border-radius:12px;
+  border:1px solid #ccc
+}
+.modal-box button{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:22px;
+  background:#1976d2;
+  color:#fff;
+  font-size:15px;
+  cursor:pointer
 }
 </style>
 </head>
@@ -166,14 +235,16 @@ body{background:#f4f6f9;color:#333;overflow-x:hidden}
 <div class="notice">
   <div class="blink">পরীক্ষামূলক সংস্করণ...</div>
   <div class="sub">প্রকল্প সচিব – JH Simul</div>
-  <div class="sub">বাস্তবায়নে: রাজশাহী ক্যাটারিং এন্ড ইভেন্ট ম্যানেজমেন্ট</div>
+  <div class="sub">বাস্তবায়নের: রাজশাহী ক্যাটারিং এন্ড ইভেন্ট ম্যানেজমেন্ট</div>
 </div>
 
 <div class="side-menu" id="menu">
   <h3>RCEM Menu</h3>
   <a href="#home" onclick="closeMenu()">Home</a>
+  <a href="#services" onclick="closeMenu()">Services</a>
   <a href="#about" onclick="closeMenu()">About Us</a>
   <a href="javascript:openLogin()">Login</a>
+  <a href="#contact" onclick="closeMenu()">Contact</a>
 </div>
 
 <div class="overlay" id="overlay" onclick="closeMenu()"></div>
@@ -189,6 +260,18 @@ body{background:#f4f6f9;color:#333;overflow-x:hidden}
   </div>
 </div>
 
+<div class="section" id="services">
+  <h2>Our Services</h2>
+  <div class="services">
+    <div class="service">Wedding Catering</div>
+    <div class="service">Corporate Events</div>
+    <div class="service">Birthday Party</div>
+    <div class="service">Decoration</div>
+    <div class="service">Manpower Supply</div>
+    <div class="service">Outdoor Catering</div>
+  </div>
+</div>
+
 <div class="section" id="about">
   <h2>About Us</h2>
   <div class="about">
@@ -197,10 +280,10 @@ body{background:#f4f6f9;color:#333;overflow-x:hidden}
   </div>
 </div>
 
-<div class="section">
+<div class="section" id="contact">
   <h2>Company Information</h2>
   <div class="info">
-    <div>📍 শাহ মখদুম থানার মোড়, বিমান চত্বরের পশ্চিম পাশে, এস এম একাডেমী স্কুল (৩য় তলা), রাজশাহী</div>
+    <div>📍 শাহ মখদুম থানার মোড়, বিমান চত্বরের পশ্চিম পাশে, এস এম একাডেমী স্কুলের তৃতীয় তলা</div>
     <div>☎ +8801926627000</div>
     <div>📧 info.rajshahicatering.com</div>
     <div>👥 140+ Staff</div>
@@ -211,12 +294,56 @@ body{background:#f4f6f9;color:#333;overflow-x:hidden}
   © 2025 Rajshahi Catering & Event Management
 </div>
 
+<div class="modal" id="loginModal">
+  <div class="modal-box">
+    <h3>Select Login</h3>
+    <div class="login-card" onclick="openAdmin()">Admin Login</div>
+    <div class="login-card">Staff Login</div>
+    <div class="login-card">Customer Login</div>
+    <div class="cancel" onclick="closeLogin()">Cancel</div>
+  </div>
+</div>
+
+<div class="modal" id="adminModal">
+  <div class="modal-box">
+    <h3>Admin Login</h3>
+    <input type="email" id="email" placeholder="Email">
+    <input type="password" id="password" placeholder="Password">
+    <button onclick="adminLogin()">Login</button>
+    <div class="cancel" onclick="closeAdmin()">Cancel</div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
 <script>
+firebase.initializeApp({
+  apiKey:"AIzaSyDK3dqXZuWaH3gctxURdOZc_Q1UfioesaA",
+  authDomain:"rcem-system.firebaseapp.com",
+  projectId:"rcem-system"
+});
+const auth=firebase.auth();
+
 const menu=document.getElementById("menu");
 const overlay=document.getElementById("overlay");
+const loginModal=document.getElementById("loginModal");
+const adminModal=document.getElementById("adminModal");
+
 function openMenu(){menu.classList.add("active");overlay.classList.add("active")}
 function closeMenu(){menu.classList.remove("active");overlay.classList.remove("active")}
-function openLogin(){alert("Login modal আগের মতোই আছে")}
+function openLogin(){closeMenu();loginModal.classList.add("active")}
+function closeLogin(){loginModal.classList.remove("active")}
+function openAdmin(){loginModal.classList.remove("active");adminModal.classList.add("active")}
+function closeAdmin(){adminModal.classList.remove("active")}
+
+function adminLogin(){
+  const e=email.value.trim(),p=password.value.trim();
+  if(!e||!p){alert("Email & Password required");return;}
+  auth.signInWithEmailAndPassword(e,p)
+    .then(()=>location.href="admin.html")
+    .catch(err=>alert(err.message));
+}
 </script>
 
 </body>
