@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -64,18 +64,17 @@ body{background:#0d47a1;color:#333;overflow-x:hidden}
 .hero{
   min-height:100vh;
   background:linear-gradient(135deg,#0d47a1,#1976d2);
-  padding-top:64px;
+  padding-top:90px;
   display:flex;
   flex-direction:column;
   align-items:center;
-  justify-content:center;
   text-align:center;
   color:#fff
 }
 
 /* NOTICE */
 .notice{
-  margin-bottom:26px
+  margin-bottom:30px
 }
 .notice .blink{
   color:#ff3b3b;
@@ -95,7 +94,7 @@ body{background:#0d47a1;color:#333;overflow-x:hidden}
 
 /* HERO CONTENT */
 .hero-content{
-  max-width:760px;
+  max-width:700px;
   animation:fadeUp 1s ease forwards;
   opacity:0
 }
@@ -116,15 +115,9 @@ body{background:#0d47a1;color:#333;overflow-x:hidden}
   cursor:pointer;
   transition:.25s
 }
-.login-btn{
-  background:#fff;
-  color:#1976d2
-}
+.login-btn{background:#fff;color:#1976d2}
 .login-btn:hover{transform:scale(1.05)}
-.call-btn{
-  background:#2e7d32;
-  color:#fff
-}
+.call-btn{background:#2e7d32;color:#fff}
 .call-btn:hover{transform:scale(1.05)}
 
 @keyframes fadeUp{
@@ -199,7 +192,7 @@ body{background:#0d47a1;color:#333;overflow-x:hidden}
 .modal-box{
   background:#fff;
   width:100%;
-  max-width:520px;
+  max-width:420px;
   padding:24px;
   border-radius:22px;
   animation:fadeUp .4s ease
@@ -241,62 +234,30 @@ body{background:#0d47a1;color:#333;overflow-x:hidden}
   font-size:15px;
   cursor:pointer
 }
-
-/* ================= ABOUT FULL SCREEN ================= */
-.about-screen{
-  position:fixed;
-  inset:0;
-  background:#f4f6f9;
-  z-index:4000;
-  display:none;
-  overflow-y:auto;
-  animation:slideUp .4s ease
-}
-.about-screen.active{display:block}
-@keyframes slideUp{
-  from{transform:translateY(100%)}
-  to{transform:translateY(0)}
-}
-.about-header{
-  position:sticky;
-  top:0;
-  background:#1976d2;
-  color:#fff;
-  padding:16px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center
-}
-.about-content{
-  max-width:900px;
-  margin:auto;
-  padding:30px;
-  line-height:1.8;
-  color:#333;
-  background:#fff
-}
-.close-btn{cursor:pointer;font-size:18px}
 </style>
 </head>
 
 <body>
 
+<!-- HEADER -->
 <div class="header">
   <div class="menu-btn" onclick="openMenu()">☰</div>
   <div class="logo">RCEM</div>
 </div>
 
+<!-- SIDE MENU -->
 <div class="side-menu" id="menu">
   <h3>RCEM Menu</h3>
   <a href="#home" onclick="closeMenu()">Home</a>
   <a href="#services" onclick="closeMenu()">Services</a>
-  <a href="javascript:openAbout()">About Us</a>
+  <a href="about.html">About Us</a>
   <a href="javascript:openLogin()">Login</a>
   <a href="#contact" onclick="closeMenu()">Contact</a>
 </div>
 
 <div class="overlay" id="overlay" onclick="closeMenu()"></div>
 
+<!-- HERO -->
 <div class="hero" id="home">
   <div class="notice">
     <div class="blink">পরীক্ষামূলক সংস্করণ...</div>
@@ -314,6 +275,7 @@ body{background:#0d47a1;color:#333;overflow-x:hidden}
   </div>
 </div>
 
+<!-- SERVICES -->
 <div class="section" id="services">
   <h2>Our Services</h2>
   <div class="services">
@@ -326,10 +288,11 @@ body{background:#0d47a1;color:#333;overflow-x:hidden}
   </div>
 </div>
 
+<!-- COMPANY INFO -->
 <div class="section" id="contact">
   <h2>Company Information</h2>
   <div class="info">
-    <div>📍 শাহ মখদুম থানার মোড়, বিমান চত্বরের পশ্চিম পাশে, এস এম একাডেমী স্কুলের তৃতীয় তলা, রাজশাহী</div>
+    <div>📍 Shah Makhdum Thana Mor, West of Biman Chottor, SM Academy School (3rd Floor), Rajshahi</div>
     <div>☎ +8801926627000</div>
     <div>📧 info.rajshahicatering.com</div>
     <div>👥 140+ Staff</div>
@@ -340,7 +303,7 @@ body{background:#0d47a1;color:#333;overflow-x:hidden}
   © 2025 Rajshahi Catering & Event Management
 </div>
 
-<!-- LOGIN -->
+<!-- LOGIN MODALS -->
 <div class="modal" id="loginModal">
   <div class="modal-box">
     <h3>Select Login</h3>
@@ -361,47 +324,6 @@ body{background:#0d47a1;color:#333;overflow-x:hidden}
   </div>
 </div>
 
-<!-- ABOUT FULL SCREEN -->
-<div class="about-screen" id="aboutScreen">
-  <div class="about-header">
-    <div>About Us</div>
-    <div class="close-btn" onclick="closeAbout()">✕</div>
-  </div>
-  <div class="about-content">
-    <h2>রাজশাহী ক্যাটারিং এন্ড ইভেন্ট ম্যানেজমেন্ট</h2>
-    <p>
-    রাজশাহী ক্যাটারিং এন্ড ইভেন্ট ম্যানেজমেন্ট একটি নির্ভরযোগ্য ও পেশাদার সেবাদানকারী প্রতিষ্ঠান,
-    যার যাত্রা শুরু হয় ২০০৯ সালে। শুরুতে প্রতিষ্ঠানটি শুধুমাত্র ওয়েটার সার্ভিস প্রদান করলেও
-    সময়ের সাথে সাথে গ্রাহকদের আস্থা ও ভালোবাসায় এটি একটি পূর্ণাঙ্গ ইভেন্ট ম্যানেজমেন্ট
-    প্রতিষ্ঠানে রূপ নেয়।
-    </p>
-    <p>
-    দীর্ঘ অভিজ্ঞতা ও দক্ষ জনবল নিয়ে আজ আমরা বিয়ে, কর্পোরেট প্রোগ্রাম, সামাজিক অনুষ্ঠান,
-    পার্টি ও বিভিন্ন আয়োজন সম্পূর্ণ দায়িত্ব নিয়ে পরিচালনা করি। খাওয়া-দাওয়া থেকে শুরু করে
-    অতিথি আপ্যায়ন, ম্যানপাওয়ার সাপ্লাই, সাজসজ্জা ও সার্বিক ব্যবস্থাপনা—সবকিছুই আমরা
-    পেশাদারিত্বের সাথে সম্পন্ন করি।
-    </p>
-    <p>
-    আমাদের বিশেষত্বের মধ্যে রয়েছে ওয়েটার ও ম্যানপাওয়ার সাপ্লাই, বিয়ের ডালা,
-    ফ্রুট কার্ভিং, নান্দনিক পিঠা ও মিষ্টি ডিজাইন, কাস্টম কেক ডিজাইন, ফুচকা স্টল,
-    কফি স্টলসহ বিভিন্ন এক্সক্লুসিভ সেবা।
-    </p>
-    <p>
-    বর্তমানে আমাদের প্রতিষ্ঠানে ১৪০ জনেরও বেশি দক্ষ ও প্রশিক্ষিত স্টাফ রয়েছে,
-    যারা যেকোনো বড় বা ছোট আয়োজন দক্ষতার সাথে পরিচালনা করতে সক্ষম।
-    রাজশাহী জেলার যেকোনো প্রান্তে, যেকোনো সময় আমাদের সেবা পাওয়া যায়।
-    </p>
-    <p>
-    সীমিত লাভের মধ্যে থেকেও আমরা সততা ও বিশ্বস্ততার সাথে ব্যবসা পরিচালনা করে আসছি।
-    বাজেট ফ্রেন্ডলি সমাধান দিয়ে বড় প্রোগ্রাম হ্যান্ডেল করার সক্ষমতাই আমাদের মূল শক্তি।
-    </p>
-    <p>
-    রাজশাহী ক্যাটারিং এন্ড ইভেন্ট ম্যানেজমেন্ট—আপনার যেকোনো অনুষ্ঠানের জন্য
-    একটি নির্ভরযোগ্য নাম।
-    </p>
-  </div>
-</div>
-
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
@@ -417,19 +339,29 @@ const menu=document.getElementById("menu");
 const overlay=document.getElementById("overlay");
 const loginModal=document.getElementById("loginModal");
 const adminModal=document.getElementById("adminModal");
-const aboutScreen=document.getElementById("aboutScreen");
 
-function openMenu(){menu.classList.add("active");overlay.classList.add("active")}
-function closeMenu(){menu.classList.remove("active");overlay.classList.remove("active")}
-
-function openLogin(){closeMenu();loginModal.classList.add("active")}
-function closeLogin(){loginModal.classList.remove("active")}
-function openAdmin(){loginModal.classList.remove("active");adminModal.classList.add("active")}
-function closeAdmin(){adminModal.classList.remove("active")}
-
-function openAbout(){closeMenu();aboutScreen.classList.add("active")}
-function closeAbout(){aboutScreen.classList.remove("active")}
-
+function openMenu(){
+  menu.classList.add("active");
+  overlay.classList.add("active");
+}
+function closeMenu(){
+  menu.classList.remove("active");
+  overlay.classList.remove("active");
+}
+function openLogin(){
+  closeMenu();
+  loginModal.classList.add("active");
+}
+function closeLogin(){
+  loginModal.classList.remove("active");
+}
+function openAdmin(){
+  loginModal.classList.remove("active");
+  adminModal.classList.add("active");
+}
+function closeAdmin(){
+  adminModal.classList.remove("active");
+}
 function adminLogin(){
   const e=email.value.trim();
   const p=password.value.trim();
