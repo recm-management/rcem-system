@@ -69,8 +69,21 @@ body{background:#f4f6f9;color:#333;overflow-x:hidden}
   text-align:center;
   padding:20px
 }
-.hero h1{font-size:32px}
-.hero p{margin-top:12px;font-size:16px;opacity:.9}
+
+.hero-content{
+  animation:heroFade 1s ease forwards;
+  opacity:0
+}
+
+.hero h1{
+  font-size:32px;
+  margin-bottom:10px
+}
+.hero p{
+  font-size:16px;
+  opacity:.9
+}
+
 .hero .buttons{
   margin-top:26px;
   display:flex;
@@ -87,6 +100,21 @@ body{background:#f4f6f9;color:#333;overflow-x:hidden}
 }
 .login-btn{background:#fff;color:#1976d2}
 .call-btn{background:#2e7d32;color:#fff}
+
+/* ===== TOP NOTICE ===== */
+.top-notice{
+  position:absolute;
+  top:40px;
+  width:100%;
+  text-align:center;
+  color:#fff;
+  line-height:1.6
+}
+.blink{
+  font-weight:bold;
+  color:#ffeb3b;
+  animation:blink 1.2s infinite
+}
 
 /* ===== SECTION ===== */
 .section{padding:50px 16px}
@@ -139,7 +167,7 @@ body{background:#f4f6f9;color:#333;overflow-x:hidden}
   margin-top:50px
 }
 
-/* ===== MODALS ===== */
+/* ===== LOGIN MODALS ===== */
 .modal{
   position:fixed;
   inset:0;
@@ -184,18 +212,27 @@ body{background:#f4f6f9;color:#333;overflow-x:hidden}
   cursor:pointer
 }
 .cancel{text-align:center;color:#666;cursor:pointer}
+
+/* ===== ANIMATIONS ===== */
+@keyframes heroFade{
+  from{opacity:0;transform:translateY(30px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@keyframes blink{
+  0%{opacity:1}
+  50%{opacity:.2}
+  100%{opacity:1}
+}
 </style>
 </head>
 
 <body>
 
-<!-- HEADER -->
 <div class="header">
   <div class="menu-btn" onclick="openMenu()">☰</div>
   <div class="logo">RCEM</div>
 </div>
 
-<!-- SIDE MENU -->
 <div class="side-menu" id="menu">
   <h3>RCEM Menu</h3>
   <a href="#home" onclick="closeMenu()">Home</a>
@@ -207,11 +244,19 @@ body{background:#f4f6f9;color:#333;overflow-x:hidden}
 
 <div class="overlay" id="overlay" onclick="closeMenu()"></div>
 
-<!-- HERO -->
 <div class="hero" id="home">
-  <div>
+
+  <!-- TOP NOTICE -->
+  <div class="top-notice">
+    <div class="blink">পরীক্ষামূলক সংস্করণ...</div>
+    <div>প্রকল্প সচিব – JH Simul</div>
+    <div>বাস্তবায়নের: রাজশাহী ক্যাটারিং এন্ড ইভেন্ট ম্যানেজমেন্ট</div>
+  </div>
+
+  <div class="hero-content">
     <h1>Rajshahi Catering & Event Management</h1>
     <p>Professional Catering • Event Planning • Trusted Service</p>
+
     <div class="buttons">
       <button class="login-btn" onclick="openLogin()">Login</button>
       <button class="call-btn">Call Now</button>
@@ -236,8 +281,7 @@ body{background:#f4f6f9;color:#333;overflow-x:hidden}
 <div class="section" id="about">
   <h2>About Us</h2>
   <div class="about">
-    Rajshahi Catering & Event Management is a professional catering and event
-    service provider in Rajshahi.
+    Rajshahi Catering & Event Management is a professional catering and event service provider in Rajshahi.
   </div>
 </div>
 
@@ -254,7 +298,7 @@ body{background:#f4f6f9;color:#333;overflow-x:hidden}
 
 <div class="footer">© 2025 Rajshahi Catering & Event Management</div>
 
-<!-- LOGIN SELECT -->
+<!-- LOGIN MODALS -->
 <div class="modal" id="loginModal">
   <div class="modal-box">
     <h3>Select Login</h3>
@@ -265,7 +309,6 @@ body{background:#f4f6f9;color:#333;overflow-x:hidden}
   </div>
 </div>
 
-<!-- ADMIN LOGIN -->
 <div class="modal" id="adminModal">
   <div class="modal-box">
     <h3>Admin Login</h3>
