@@ -7,109 +7,180 @@
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Arial}
-body{background:#f4f6f9;overflow-x:hidden}
+body{background:#f4f6f9;color:#333;overflow-x:hidden}
 
-/* HEADER */
+/* ===== HEADER ===== */
 .header{
-  height:56px;
-  background:#1976d2;
+  position:fixed;top:0;left:0;right:0;
+  background:linear-gradient(135deg,#0d47a1,#1976d2);
   color:#fff;
+  padding:16px;
   display:flex;
   align-items:center;
-  padding:0 16px;
-  position:fixed;
-  width:100%;
-  top:0;
+  justify-content:space-between;
+  z-index:1000
+}
+.menu-btn{font-size:24px;cursor:pointer}
+.logo{font-size:18px;font-weight:bold}
+
+/* ===== SIDE MENU ===== */
+.side-menu{
+  position:fixed;top:0;left:-260px;
+  width:260px;height:100%;
+  background:#fff;
+  box-shadow:2px 0 20px rgba(0,0,0,.2);
+  transition:.35s ease;
   z-index:2000
 }
-.menu-btn{
-  font-size:24px;
-  cursor:pointer;
-  margin-right:14px
-}
-.header h3{font-size:18px}
-
-/* SIDE MENU */
-.side-menu{
-  position:fixed;
-  top:0;
-  left:-260px;
-  width:260px;
-  height:100%;
-  background:#fff;
-  box-shadow:2px 0 20px rgba(0,0,0,.25);
-  transition:.35s ease;
-  z-index:3000
-}
 .side-menu.active{left:0}
-
-.side-menu .menu-header{
-  background:#1976d2;
-  color:#fff;
+.side-menu h3{
   padding:18px;
-  font-size:18px
+  background:#1976d2;
+  color:#fff
 }
-
 .side-menu a{
   display:block;
-  padding:16px 18px;
-  color:#333;
+  padding:14px 18px;
   text-decoration:none;
-  border-bottom:1px solid #eee;
-  font-size:15px
+  color:#333;
+  border-bottom:1px solid #eee
 }
-.side-menu a:hover{background:#f1f5f9}
+.side-menu a:hover{background:#f1f1f1}
 
-/* OVERLAY */
+/* ===== OVERLAY ===== */
 .overlay{
   position:fixed;
   inset:0;
   background:rgba(0,0,0,.45);
   display:none;
-  z-index:2500
+  z-index:1500
 }
 .overlay.active{display:block}
 
-/* MAIN */
-.main{
-  padding:90px 20px 30px;
-  text-align:center
-}
-
+/* ===== HERO ===== */
 .hero{
+  margin-top:70px;
+  min-height:90vh;
   background:linear-gradient(135deg,#0d47a1,#1976d2);
   color:#fff;
-  padding:50px 20px;
-  border-radius:18px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:20px
+}
+.hero h1{
+  font-size:32px;
+  animation:fadeUp .8s ease
+}
+.hero p{
+  margin-top:12px;
+  font-size:16px;
+  opacity:.9;
+  animation:fadeUp 1.1s ease
+}
+.hero .buttons{
+  margin-top:26px;
+  display:flex;
+  gap:14px;
+  justify-content:center;
+  flex-wrap:wrap
+}
+.hero button{
+  padding:14px 22px;
+  border:none;
+  border-radius:30px;
+  font-size:15px;
+  cursor:pointer
+}
+.login-btn{background:#fff;color:#1976d2}
+.call-btn{background:#2e7d32;color:#fff}
+
+/* ===== SECTION ===== */
+.section{padding:50px 16px}
+.section h2{text-align:center;margin-bottom:30px}
+
+/* ===== SERVICES ===== */
+.services{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+  gap:16px
+}
+.service{
+  background:#fff;
+  padding:20px;
+  border-radius:16px;
+  box-shadow:0 10px 25px rgba(0,0,0,.1);
+  text-align:center;
   animation:fadeUp .8s ease
 }
 
-.hero h1{font-size:26px;margin-bottom:12px}
-.hero p{font-size:15px;opacity:.95}
-
-.actions{
-  margin-top:25px;
-  display:flex;
-  flex-direction:column;
-  gap:14px
-}
-.action-btn{
-  padding:16px;
-  border-radius:16px;
-  font-size:16px;
-  border:none;
-  cursor:pointer;
+/* ===== ABOUT ===== */
+.about{
   background:#fff;
-  color:#1976d2;
-  font-weight:bold;
-  box-shadow:0 8px 20px rgba(0,0,0,.15)
+  padding:26px;
+  border-radius:18px;
+  box-shadow:0 10px 25px rgba(0,0,0,.1);
+  max-width:900px;
+  margin:auto
 }
-.action-btn.admin{border-top:5px solid #d32f2f}
-.action-btn.staff{border-top:5px solid #2e7d32}
-.action-btn.customer{border-top:5px solid #f9a825}
 
+/* ===== INFO ===== */
+.info{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:16px
+}
+.info div{
+  background:#fff;
+  padding:20px;
+  border-radius:16px;
+  box-shadow:0 8px 20px rgba(0,0,0,.1);
+  text-align:center
+}
+
+/* ===== FOOTER ===== */
+.footer{
+  background:#0d47a1;
+  color:#fff;
+  padding:26px;
+  text-align:center;
+  margin-top:50px
+}
+
+/* ===== LOGIN MODAL ===== */
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.6);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:3000
+}
+.modal.active{display:flex}
+.modal-box{
+  background:#fff;
+  width:100%;
+  max-width:420px;
+  padding:22px;
+  border-radius:20px;
+  animation:fadeUp .4s ease
+}
+.modal-box h3{text-align:center;margin-bottom:16px}
+.login-card{
+  padding:14px;
+  border-radius:14px;
+  background:#f4f6f9;
+  margin-bottom:12px;
+  cursor:pointer;
+  transition:.25s
+}
+.login-card:hover{background:#e3f2fd}
+
+/* ===== ANIMATION ===== */
 @keyframes fadeUp{
-  from{opacity:0;transform:translateY(20px)}
+  from{opacity:0;transform:translateY(30px)}
   to{opacity:1;transform:translateY(0)}
 }
 </style>
@@ -119,65 +190,107 @@ body{background:#f4f6f9;overflow-x:hidden}
 
 <!-- HEADER -->
 <div class="header">
-  <div class="menu-btn" onclick="toggleMenu()">☰</div>
-  <h3>RCEM</h3>
+  <div class="menu-btn" onclick="openMenu()">☰</div>
+  <div class="logo">RCEM</div>
 </div>
 
 <!-- SIDE MENU -->
 <div class="side-menu" id="menu">
-  <div class="menu-header">RCEM Menu</div>
-  <a href="index.html">🏠 Home</a>
-  <a href="#">🛎 Services</a>
-  <a href="#">ℹ️ About Us</a>
-  <a href="#login">🔐 Login</a>
-  <a href="#">📞 Contact</a>
-  <a href="#">📄 Terms & Conditions</a>
+  <h3>RCEM Menu</h3>
+  <a href="#home" onclick="closeMenu()">Home</a>
+  <a href="#services" onclick="closeMenu()">Services</a>
+  <a href="#about" onclick="closeMenu()">About Us</a>
+  <a href="javascript:openLogin()">Login</a>
+  <a href="#contact" onclick="closeMenu()">Contact</a>
+  <a href="#" onclick="closeMenu()">Terms & Conditions</a>
 </div>
 
 <!-- OVERLAY -->
 <div class="overlay" id="overlay" onclick="closeMenu()"></div>
 
-<!-- MAIN CONTENT -->
-<div class="main">
-  <div class="hero">
+<!-- HERO -->
+<div class="hero" id="home">
+  <div>
     <h1>Rajshahi Catering & Event Management</h1>
-    <p>Professional • Trusted • Smart Management System</p>
-  </div>
-
-  <div class="actions" id="login">
-    <button class="action-btn admin" onclick="location.href='admin-login.html'">
-      Admin Login<br><small>Full system control</small>
-    </button>
-
-    <button class="action-btn staff" onclick="location.href='staff-login.html'">
-      Staff Login<br><small>View duty & payments</small>
-    </button>
-
-    <button class="action-btn customer" onclick="location.href='customer-login.html'">
-      Customer Login<br><small>Place & track orders</small>
-    </button>
+    <p>Professional Catering • Event Planning • Trusted Service</p>
+    <div class="buttons">
+      <button class="login-btn" onclick="openLogin()">Login</button>
+      <button class="call-btn">Call Now</button>
+    </div>
   </div>
 </div>
 
-<!-- SCRIPT -->
+<!-- SERVICES -->
+<div class="section" id="services">
+  <h2>Our Services</h2>
+  <div class="services">
+    <div class="service">Wedding Catering</div>
+    <div class="service">Corporate Events</div>
+    <div class="service">Birthday Party</div>
+    <div class="service">Decoration</div>
+    <div class="service">Manpower Supply</div>
+    <div class="service">Outdoor Catering</div>
+  </div>
+</div>
+
+<!-- ABOUT -->
+<div class="section" id="about">
+  <h2>About Us</h2>
+  <div class="about">
+    Rajshahi Catering & Event Management is a professional catering and event
+    service provider in Rajshahi. We deliver quality food, skilled manpower
+    and complete event solutions with trust and experience.
+  </div>
+</div>
+
+<!-- INFO -->
+<div class="section" id="contact">
+  <h2>Company Information</h2>
+  <div class="info">
+    <div>📍 Rajshahi</div>
+    <div>☎ 01XXXXXXXXX</div>
+    <div>📧 info@rajshahicatering.online</div>
+    <div>👥 50+ Staff</div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  © 2025 Rajshahi Catering & Event Management
+</div>
+
+<!-- LOGIN MODAL -->
+<div class="modal" id="loginModal">
+  <div class="modal-box">
+    <h3>Select Login</h3>
+    <div class="login-card">👑 Admin Login</div>
+    <div class="login-card">👷 Staff Login</div>
+    <div class="login-card">👤 Customer Login</div>
+    <br>
+    <div style="text-align:center;cursor:pointer;color:#555" onclick="closeLogin()">Cancel</div>
+  </div>
+</div>
+
 <script>
 const menu = document.getElementById("menu");
 const overlay = document.getElementById("overlay");
+const loginModal = document.getElementById("loginModal");
 
-function toggleMenu(){
-  menu.classList.toggle("active");
-  overlay.classList.toggle("active");
+function openMenu(){
+  menu.classList.add("active");
+  overlay.classList.add("active");
 }
-
 function closeMenu(){
   menu.classList.remove("active");
   overlay.classList.remove("active");
 }
-
-/* menu link click => auto close */
-document.querySelectorAll(".side-menu a").forEach(link=>{
-  link.addEventListener("click", closeMenu);
-});
+function openLogin(){
+  closeMenu();
+  loginModal.classList.add("active");
+}
+function closeLogin(){
+  loginModal.classList.remove("active");
+}
 </script>
 
 </body>
