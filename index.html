@@ -24,34 +24,6 @@ body{background:#f4f6f9;color:#333;overflow-x:hidden}
 .menu-btn{font-size:24px;cursor:pointer}
 .logo{font-size:18px;font-weight:bold}
 
-/* NOTICE (FIXED – NO WHITE BACKGROUND) */
-.notice{
-  position:fixed;
-  top:64px;
-  left:0;
-  right:0;
-  text-align:center;
-  color:#fff;
-  padding:10px 16px;
-  z-index:999;
-  pointer-events:none
-}
-.notice .blink{
-  color:#ff2b2b;
-  font-weight:700;
-  animation:blink 1.2s infinite
-}
-.notice .sub{
-  font-size:14px;
-  opacity:.95;
-  margin-top:4px
-}
-@keyframes blink{
-  0%{opacity:1}
-  50%{opacity:.3}
-  100%{opacity:1}
-}
-
 /* SIDE MENU */
 .side-menu{
   position:fixed;
@@ -87,19 +59,43 @@ body{background:#f4f6f9;color:#333;overflow-x:hidden}
 }
 .overlay.active{display:block}
 
-/* HERO */
+/* HERO (NOTICE MERGED HERE) */
 .hero{
-  min-height:80vh;
+  padding-top:110px; /* header height compensation */
+  min-height:100vh;
   background:linear-gradient(135deg,#0d47a1,#1976d2);
   color:#fff;
   display:flex;
+  flex-direction:column;
   align-items:center;
-  justify-content:center;
+  justify-content:flex-start;
   text-align:center;
-  padding:20px
+  padding-left:20px;
+  padding-right:20px
 }
+
+/* NOTICE */
+.notice{
+  margin-bottom:40px
+}
+.notice .blink{
+  color:#ff2b2b;
+  font-weight:700;
+  animation:blink 1.2s infinite
+}
+.notice .sub{
+  font-size:14px;
+  opacity:.95;
+  margin-top:4px
+}
+@keyframes blink{
+  0%{opacity:1}
+  50%{opacity:.3}
+  100%{opacity:1}
+}
+
+/* HERO CONTENT */
 .hero-content{
-  margin-top:40px;
   animation:fadeUp 1s ease forwards;
   opacity:0
 }
@@ -236,13 +232,32 @@ body{background:#f4f6f9;color:#333;overflow-x:hidden}
   <div class="logo">RCEM</div>
 </div>
 
-<div class="notice">
-  <div class="blink">পরীক্ষামূলক সংস্করণ...</div>
-  <div class="sub">প্রকল্প সচিব – JH Simul</div>
-  <div class="sub">বাস্তবায়নের: রাজশাহী ক্যাটারিং এন্ড ইভেন্ট ম্যানেজমেন্ট</div>
+<div class="side-menu" id="menu">
+  <h3>RCEM Menu</h3>
+  <a href="#home" onclick="closeMenu()">Home</a>
+  <a href="#services" onclick="closeMenu()">Services</a>
+  <a href="#about" onclick="closeMenu()">About Us</a>
+  <a href="javascript:openLogin()">Login</a>
+  <a href="#contact" onclick="closeMenu()">Contact</a>
 </div>
 
-<!-- বাকি HTML + Firebase + JS একদম আগের মতোই আছে -->
+<div class="overlay" id="overlay" onclick="closeMenu()"></div>
 
-</body>
-</html>
+<div class="hero" id="home">
+  <div class="notice">
+    <div class="blink">পরীক্ষামূলক সংস্করণ...</div>
+    <div class="sub">প্রকল্প সচিব – JH Simul</div>
+    <div class="sub">বাস্তবায়নের: রাজশাহী ক্যাটারিং এন্ড ইভেন্ট ম্যানেজমেন্ট</div>
+  </div>
+
+  <div class="hero-content">
+    <h1>Rajshahi Catering & Event Management</h1>
+    <p>Professional Catering • Event Planning • Trusted Service</p>
+    <div class="buttons">
+      <button class="login-btn" onclick="openLogin()">Login</button>
+      <button class="call-btn" onclick="location.href='tel:+8801926627000'">Call Now</button>
+    </div>
+  </div>
+</div>
+
+<!-- remaining sections unchanged -->
