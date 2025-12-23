@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -64,16 +64,19 @@ body{background:#0d47a1;color:#333;overflow-x:hidden}
 .hero{
   min-height:100vh;
   background:linear-gradient(135deg,#0d47a1,#1976d2);
-  padding-top:90px;
+  padding-top:64px;
   display:flex;
   flex-direction:column;
   align-items:center;
+  justify-content:center;
   text-align:center;
   color:#fff
 }
 
 /* NOTICE */
-.notice{margin-bottom:30px}
+.notice{
+  margin-bottom:26px
+}
 .notice .blink{
   color:#ff3b3b;
   font-weight:700;
@@ -92,7 +95,7 @@ body{background:#0d47a1;color:#333;overflow-x:hidden}
 
 /* HERO CONTENT */
 .hero-content{
-  max-width:700px;
+  max-width:760px;
   animation:fadeUp 1s ease forwards;
   opacity:0
 }
@@ -113,8 +116,16 @@ body{background:#0d47a1;color:#333;overflow-x:hidden}
   cursor:pointer;
   transition:.25s
 }
-.login-btn{background:#fff;color:#1976d2}
-.call-btn{background:#2e7d32;color:#fff}
+.login-btn{
+  background:#fff;
+  color:#1976d2
+}
+.login-btn:hover{transform:scale(1.05)}
+.call-btn{
+  background:#2e7d32;
+  color:#fff
+}
+.call-btn:hover{transform:scale(1.05)}
 
 @keyframes fadeUp{
   from{opacity:0;transform:translateY(40px)}
@@ -145,8 +156,10 @@ body{background:#0d47a1;color:#333;overflow-x:hidden}
   padding:22px;
   border-radius:18px;
   box-shadow:0 12px 28px rgba(0,0,0,.12);
-  text-align:center
+  text-align:center;
+  transition:.3s
 }
+.service:hover{transform:translateY(-6px)}
 
 /* COMPANY INFO */
 .info{
@@ -172,42 +185,6 @@ body{background:#0d47a1;color:#333;overflow-x:hidden}
   text-align:center
 }
 
-/* ================= ABOUT FULL SCREEN SLIDE ================= */
-.about-slide{
-  position:fixed;
-  inset:0;
-  background:#ffffff;
-  z-index:6000;
-  transform:translateY(100%);
-  transition:.5s ease;
-  display:flex;
-  flex-direction:column
-}
-.about-slide.active{
-  transform:translateY(0)
-}
-.about-header{
-  height:60px;
-  background:#0d47a1;
-  color:#fff;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:0 20px
-}
-.about-header span{
-  font-size:22px;
-  cursor:pointer
-}
-.about-body{
-  flex:1;
-  padding:24px;
-  overflow-y:auto;
-  line-height:1.9;
-  font-size:15px;
-  color:#333
-}
-
 /* ================= MODALS ================= */
 .modal{
   position:fixed;
@@ -222,18 +199,83 @@ body{background:#0d47a1;color:#333;overflow-x:hidden}
 .modal-box{
   background:#fff;
   width:100%;
-  max-width:420px;
+  max-width:520px;
   padding:24px;
-  border-radius:22px
+  border-radius:22px;
+  animation:fadeUp .4s ease
 }
+.modal-box h3{text-align:center;margin-bottom:16px}
 .login-card{
   padding:16px;
   border-radius:16px;
   background:#f4f6f9;
   margin-bottom:12px;
   cursor:pointer;
-  text-align:center
+  text-align:center;
+  transition:.25s
 }
+.login-card:hover{
+  background:#e3f2fd;
+  transform:scale(1.03)
+}
+.cancel{
+  text-align:center;
+  color:#666;
+  cursor:pointer;
+  margin-top:6px
+}
+.modal-box input{
+  width:100%;
+  padding:14px;
+  margin-bottom:12px;
+  border-radius:14px;
+  border:1px solid #ccc
+}
+.modal-box button{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:24px;
+  background:#1976d2;
+  color:#fff;
+  font-size:15px;
+  cursor:pointer
+}
+
+/* ================= ABOUT FULL SCREEN ================= */
+.about-screen{
+  position:fixed;
+  inset:0;
+  background:#f4f6f9;
+  z-index:4000;
+  display:none;
+  overflow-y:auto;
+  animation:slideUp .4s ease
+}
+.about-screen.active{display:block}
+@keyframes slideUp{
+  from{transform:translateY(100%)}
+  to{transform:translateY(0)}
+}
+.about-header{
+  position:sticky;
+  top:0;
+  background:#1976d2;
+  color:#fff;
+  padding:16px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center
+}
+.about-content{
+  max-width:900px;
+  margin:auto;
+  padding:30px;
+  line-height:1.8;
+  color:#333;
+  background:#fff
+}
+.close-btn{cursor:pointer;font-size:18px}
 </style>
 </head>
 
@@ -247,6 +289,7 @@ body{background:#0d47a1;color:#333;overflow-x:hidden}
 <div class="side-menu" id="menu">
   <h3>RCEM Menu</h3>
   <a href="#home" onclick="closeMenu()">Home</a>
+  <a href="#services" onclick="closeMenu()">Services</a>
   <a href="javascript:openAbout()">About Us</a>
   <a href="javascript:openLogin()">Login</a>
   <a href="#contact" onclick="closeMenu()">Contact</a>
@@ -271,47 +314,129 @@ body{background:#0d47a1;color:#333;overflow-x:hidden}
   </div>
 </div>
 
+<div class="section" id="services">
+  <h2>Our Services</h2>
+  <div class="services">
+    <div class="service">Wedding Catering</div>
+    <div class="service">Corporate Events</div>
+    <div class="service">Birthday Party</div>
+    <div class="service">Decoration</div>
+    <div class="service">Manpower Supply</div>
+    <div class="service">Outdoor Catering</div>
+  </div>
+</div>
+
 <div class="section" id="contact">
   <h2>Company Information</h2>
   <div class="info">
-    <div>📍 শাহ মখদুম থানার মোড়, বিমান চত্বরের পশ্চিম পাশে, এস এম একাডেমী স্কুলের তৃতীয় তলা</div>
+    <div>📍 শাহ মখদুম থানার মোড়, বিমান চত্বরের পশ্চিম পাশে, এস এম একাডেমী স্কুলের তৃতীয় তলা, রাজশাহী</div>
     <div>☎ +8801926627000</div>
     <div>📧 info.rajshahicatering.com</div>
     <div>👥 140+ Staff</div>
   </div>
 </div>
 
-<div class="footer">© 2025 Rajshahi Catering & Event Management</div>
+<div class="footer">
+  © 2025 Rajshahi Catering & Event Management
+</div>
 
-<!-- ABOUT FULL SCREEN -->
-<div class="about-slide" id="aboutSlide">
-  <div class="about-header">
-    <h3>আমাদের সম্পর্কে</h3>
-    <span onclick="closeAbout()">✕</span>
-  </div>
-  <div class="about-body">
-    <!-- এখানে আমি পরে তোমার ১৮০০+ শব্দের About Us বসিয়ে দেব -->
-    <p>এখানে About Us লেখা থাকবে…</p>
+<!-- LOGIN -->
+<div class="modal" id="loginModal">
+  <div class="modal-box">
+    <h3>Select Login</h3>
+    <div class="login-card" onclick="openAdmin()">Admin Login</div>
+    <div class="login-card">Staff Login</div>
+    <div class="login-card">Customer Login</div>
+    <div class="cancel" onclick="closeLogin()">Cancel</div>
   </div>
 </div>
 
+<div class="modal" id="adminModal">
+  <div class="modal-box">
+    <h3>Admin Login</h3>
+    <input type="email" id="email" placeholder="Email">
+    <input type="password" id="password" placeholder="Password">
+    <button onclick="adminLogin()">Login</button>
+    <div class="cancel" onclick="closeAdmin()">Cancel</div>
+  </div>
+</div>
+
+<!-- ABOUT FULL SCREEN -->
+<div class="about-screen" id="aboutScreen">
+  <div class="about-header">
+    <div>About Us</div>
+    <div class="close-btn" onclick="closeAbout()">✕</div>
+  </div>
+  <div class="about-content">
+    <h2>রাজশাহী ক্যাটারিং এন্ড ইভেন্ট ম্যানেজমেন্ট</h2>
+    <p>
+    রাজশাহী ক্যাটারিং এন্ড ইভেন্ট ম্যানেজমেন্ট একটি নির্ভরযোগ্য ও পেশাদার সেবাদানকারী প্রতিষ্ঠান,
+    যার যাত্রা শুরু হয় ২০০৯ সালে। শুরুতে প্রতিষ্ঠানটি শুধুমাত্র ওয়েটার সার্ভিস প্রদান করলেও
+    সময়ের সাথে সাথে গ্রাহকদের আস্থা ও ভালোবাসায় এটি একটি পূর্ণাঙ্গ ইভেন্ট ম্যানেজমেন্ট
+    প্রতিষ্ঠানে রূপ নেয়।
+    </p>
+    <p>
+    দীর্ঘ অভিজ্ঞতা ও দক্ষ জনবল নিয়ে আজ আমরা বিয়ে, কর্পোরেট প্রোগ্রাম, সামাজিক অনুষ্ঠান,
+    পার্টি ও বিভিন্ন আয়োজন সম্পূর্ণ দায়িত্ব নিয়ে পরিচালনা করি। খাওয়া-দাওয়া থেকে শুরু করে
+    অতিথি আপ্যায়ন, ম্যানপাওয়ার সাপ্লাই, সাজসজ্জা ও সার্বিক ব্যবস্থাপনা—সবকিছুই আমরা
+    পেশাদারিত্বের সাথে সম্পন্ন করি।
+    </p>
+    <p>
+    আমাদের বিশেষত্বের মধ্যে রয়েছে ওয়েটার ও ম্যানপাওয়ার সাপ্লাই, বিয়ের ডালা,
+    ফ্রুট কার্ভিং, নান্দনিক পিঠা ও মিষ্টি ডিজাইন, কাস্টম কেক ডিজাইন, ফুচকা স্টল,
+    কফি স্টলসহ বিভিন্ন এক্সক্লুসিভ সেবা।
+    </p>
+    <p>
+    বর্তমানে আমাদের প্রতিষ্ঠানে ১৪০ জনেরও বেশি দক্ষ ও প্রশিক্ষিত স্টাফ রয়েছে,
+    যারা যেকোনো বড় বা ছোট আয়োজন দক্ষতার সাথে পরিচালনা করতে সক্ষম।
+    রাজশাহী জেলার যেকোনো প্রান্তে, যেকোনো সময় আমাদের সেবা পাওয়া যায়।
+    </p>
+    <p>
+    সীমিত লাভের মধ্যে থেকেও আমরা সততা ও বিশ্বস্ততার সাথে ব্যবসা পরিচালনা করে আসছি।
+    বাজেট ফ্রেন্ডলি সমাধান দিয়ে বড় প্রোগ্রাম হ্যান্ডেল করার সক্ষমতাই আমাদের মূল শক্তি।
+    </p>
+    <p>
+    রাজশাহী ক্যাটারিং এন্ড ইভেন্ট ম্যানেজমেন্ট—আপনার যেকোনো অনুষ্ঠানের জন্য
+    একটি নির্ভরযোগ্য নাম।
+    </p>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
 <script>
-function openMenu(){
-  menu.classList.add("active");
-  overlay.classList.add("active");
-}
-function closeMenu(){
-  menu.classList.remove("active");
-  overlay.classList.remove("active");
-}
-function openAbout(){
-  closeMenu();
-  document.getElementById("aboutSlide").classList.add("active");
-  document.body.style.overflow="hidden";
-}
-function closeAbout(){
-  document.getElementById("aboutSlide").classList.remove("active");
-  document.body.style.overflow="auto";
+firebase.initializeApp({
+  apiKey:"AIzaSyDK3dqXZuWaH3gctxURdOZc_Q1UfioesaA",
+  authDomain:"rcem-system.firebaseapp.com",
+  projectId:"rcem-system"
+});
+const auth=firebase.auth();
+
+const menu=document.getElementById("menu");
+const overlay=document.getElementById("overlay");
+const loginModal=document.getElementById("loginModal");
+const adminModal=document.getElementById("adminModal");
+const aboutScreen=document.getElementById("aboutScreen");
+
+function openMenu(){menu.classList.add("active");overlay.classList.add("active")}
+function closeMenu(){menu.classList.remove("active");overlay.classList.remove("active")}
+
+function openLogin(){closeMenu();loginModal.classList.add("active")}
+function closeLogin(){loginModal.classList.remove("active")}
+function openAdmin(){loginModal.classList.remove("active");adminModal.classList.add("active")}
+function closeAdmin(){adminModal.classList.remove("active")}
+
+function openAbout(){closeMenu();aboutScreen.classList.add("active")}
+function closeAbout(){aboutScreen.classList.remove("active")}
+
+function adminLogin(){
+  const e=email.value.trim();
+  const p=password.value.trim();
+  if(!e||!p){alert("Email & Password required");return;}
+  auth.signInWithEmailAndPassword(e,p)
+    .then(()=>location.href="admin.html")
+    .catch(err=>alert(err.message));
 }
 </script>
 
