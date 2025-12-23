@@ -144,7 +144,7 @@ body{margin:0;background:#f4f6f9}
 </div>
 
 <div class="search">
-  <input id="search" placeholder="🔍 Search by name or phone" oninput="render()">
+  <input id="search" placeholder="Search by name or phone" oninput="render()">
 </div>
 
 <div class="top-actions">
@@ -156,21 +156,16 @@ body{margin:0;background:#f4f6f9}
 <div class="modal" id="modal">
   <div class="modal-box">
     <h3 id="modalTitle">Add Staff</h3>
-
     <input id="staffName" placeholder="Name">
     <input id="staffPhone" placeholder="Phone">
     <input id="staffAddress" placeholder="Address">
-
-    <!-- ✅ NEW: Photo Upload -->
     <input type="file" id="staffPhoto" accept="image/*">
-
     <select id="staffBadge">
       <option value="new">New Member</option>
       <option value="member">Member</option>
       <option value="second_leader">Second Leader</option>
       <option value="leader">Leader</option>
     </select>
-
     <button onclick="save()">Save</button>
     <div class="cancel" onclick="closeModal()">Cancel</div>
   </div>
@@ -190,48 +185,48 @@ firebase.initializeApp({
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-function getStaffPhoto(photo){
-  if(!photo) return null;
-  return "https://rajshahicatering.online/" + photo;
-}
-
 let staffs=[], perms={}, editId=null, userReady=false, staffReady=false;
 
-auth.onAuthStateChanged(async user=>{
-  if(!user){ location.href="index.html"; return; }
+/* 🔐 LOGIN GUARD – এখানেই আসল সিকিউরিটি */
+auth.onAuthStateChanged(async (user) => {
+  if (!user) {
+    window.location.replace("index.html");
+    return;
+  }
+
   const u = await db.collection("users").doc(user.email).get();
   perms = u.exists ? u.data().permissions || {} : {};
-  addBtn.style.display = perms.staff_add===true ? "inline-block":"none";
-  userReady=true; tryRender();
+  addBtn.style.display = perms.staff_add === true ? "inline-block" : "none";
+  userReady = true;
+  tryRender();
 });
 
 db.collection("staffs").onSnapshot(s=>{
   staffs=[];
   s.forEach(d=>staffs.push({id:d.id,...d.data()}));
-  staffReady=true; tryRender();
+  staffReady=true;
+  tryRender();
 });
 
-function tryRender(){ if(userReady&&staffReady) render(); }
+function tryRender(){ if(userReady && staffReady) render(); }
+
+function getStaffPhoto(p){ return p ? "https://rajshahicatering.online/"+p : null; }
 
 function render(){
   list.innerHTML="";
   const k = search.value.toLowerCase(); let i=1;
-
   staffs.forEach(s=>{
     if(!s.name?.toLowerCase().includes(k)&&!s.phone?.includes(k)) return;
-    const badgeMap={
+    const map={
       leader:["Leader","leader"],
       second_leader:["Second Leader","second"],
       member:["Member","member"],
       new:["New Member","new"]
     };
-    const [bt,bc]=badgeMap[s.badge||"new"];
-
+    const [bt,bc]=map[s.badge||"new"];
     list.innerHTML+=`
     <div class="card">
-      <div class="avatar">
-        ${s.photo?`<img src="${getStaffPhoto(s.photo)}">`:"👤"}
-      </div>
+      <div class="avatar">${s.photo?`<img src="${getStaffPhoto(s.photo)}">`:"👤"}</div>
       <div class="info">
         <div class="name"><span class="serial">${i}.</span>${s.name}</div>
         <div class="meta">📞 <a href="tel:${s.phone}">${s.phone}</a></div>
@@ -241,8 +236,7 @@ function render(){
       </div>
       <div class="actions">
         <button class="btn rate">Give Rating</button>
-        ${perms.staff_edit===true?
-        `<button class="btn edit" onclick='openModal(${JSON.stringify(s).replace(/"/g,"&quot;")})'>Edit</button>`:""}
+        ${perms.staff_edit?`<button class="btn edit" onclick='openModal(${JSON.stringify(s).replace(/"/g,"&quot;")})'>Edit</button>`:""}
       </div>
     </div>`;
     i++;
@@ -269,43 +263,29 @@ function openModal(s=null){
 function closeModal(){ modal.style.display="none"; }
 
 async function save(){
-  if(!staffName.value.trim()||!staffPhone.value.trim()){
-    alert("Name এবং Phone প্রয়োজন"); return;
-  }
-
+  if(!staffName.value||!staffPhone.value){ alert("Name & Phone required"); return; }
   let photoPath=null;
-  const file = staffPhoto.files[0];
-
-  if(file){
+  if(staffPhoto.files[0]){
     const fd=new FormData();
-    fd.append("photo",file);
+    fd.append("photo",staffPhoto.files[0]);
     const r=await fetch("upload.php",{method:"POST",body:fd});
     const j=await r.json();
-    if(j.error){ alert("Image upload failed"); return; }
+    if(j.error){ alert("Upload failed"); return; }
     photoPath=j.path;
   }
 
-  if(editId){
-    const data={
-      name:staffName.value,
-      phone:staffPhone.value,
-      address:staffAddress.value,
-      badge:staffBadge.value
-    };
-    if(photoPath) data.photo=photoPath;
-    await db.collection("staffs").doc(editId).update(data);
-  }else{
-    await db.collection("staffs").add({
-      name:staffName.value,
-      phone:staffPhone.value,
-      address:staffAddress.value,
-      badge:staffBadge.value,
-      photo:photoPath,
-      level:0,
-      active:true,
-      created:Date.now()
-    });
-  }
+  const data={
+    name:staffName.value,
+    phone:staffPhone.value,
+    address:staffAddress.value,
+    badge:staffBadge.value
+  };
+  if(photoPath) data.photo=photoPath;
+
+  editId
+    ? await db.collection("staffs").doc(editId).update(data)
+    : await db.collection("staffs").add({...data,level:0,created:Date.now()});
+
   closeModal();
 }
 </script>
