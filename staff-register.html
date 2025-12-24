@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Staff Registration Request | RCEM</title>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,Helvetica,sans-serif}
+body{
+  min-height:100vh;
+  background:linear-gradient(135deg,#0d47a1,#1976d2);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px
+}
+.container{
+  width:100%;
+  max-width:480px;
+  background:#fff;
+  padding:26px;
+  border-radius:22px;
+  box-shadow:0 15px 35px rgba(0,0,0,.25)
+}
+h2{
+  text-align:center;
+  margin-bottom:18px;
+  color:#0d47a1
+}
+p{
+  text-align:center;
+  font-size:14px;
+  color:#555;
+  margin-bottom:22px
+}
+input,select{
+  width:100%;
+  padding:14px;
+  margin-bottom:14px;
+  border-radius:14px;
+  border:1px solid #ccc;
+  font-size:15px
+}
+input[type=file]{padding:10px}
+button{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:24px;
+  background:#1976d2;
+  color:#fff;
+  font-size:16px;
+  cursor:pointer;
+  transition:.25s
+}
+button:hover{background:#0d47a1}
+.note{
+  margin-top:14px;
+  font-size:13px;
+  color:#777;
+  text-align:center
+}
+.success{
+  display:none;
+  text-align:center;
+  color:#2e7d32;
+  font-weight:bold;
+  margin-top:16px
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+  <h2>Staff Registration Request</h2>
+  <p>সব তথ্য সঠিকভাবে পূরণ করুন। এডমিন এপ্রুভ না করা পর্যন্ত লগইন করা যাবে না।</p>
+
+  <input type="text" id="name" placeholder="Full Name">
+  <input type="text" id="phone" placeholder="Mobile Number">
+  <input type="text" id="address" placeholder="Address">
+  <select id="role">
+    <option value="">Select Role</option>
+    <option value="waiter">Waiter</option>
+    <option value="leader">Leader</option>
+    <option value="supervisor">Supervisor</option>
+  </select>
+  <input type="file" id="photo" accept="image/*">
+
+  <button onclick="submitRequest()">Submit Request</button>
+
+  <div class="success" id="successMsg">
+    ✅ Registration request submitted successfully.<br>
+    Please wait for admin approval.
+  </div>
+
+  <div class="note">
+    Rajshahi Catering & Event Management
+  </div>
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+
+<script>
+firebase.initializeApp({
+  apiKey: "AIzaSyDK3dqXZuWaH3gctxURdOZc_Q1UfioesaA",
+  authDomain: "rcem-system.firebaseapp.com",
+  projectId: "rcem-system",
+  storageBucket: "rcem-system.appspot.com"
+});
+
+const db = firebase.firestore();
+const storage = firebase.storage();
+
+async function submitRequest(){
+  const name = document.getElementById("name").value.trim();
+  const phone = document.getElementById("phone").value.trim();
+  const address = document.getElementById("address").value.trim();
+  const role = document.getElementById("role").value;
+  const file = document.getElementById("photo").files[0];
+
+  if(!name || !phone || !address || !role || !file){
+    alert("সব তথ্য পূরণ করুন");
+    return;
+  }
+
+  try{
+    const ref = storage.ref("staff_requests/"+Date.now()+"_"+file.name);
+    await ref.put(file);
+    const photoURL = await ref.getDownloadURL();
+
+    await db.collection("staff_requests").add({
+      name,
+      phone,
+      address,
+      role,
+      photo: photoURL,
+      status: "pending",
+      created_at: Date.now()
+    });
+
+    document.getElementById("successMsg").style.display="block";
+  }catch(e){
+    alert("Something went wrong");
+  }
+}
+</script>
+
+</body>
+    </html>
