@@ -3,332 +3,277 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Rajshahi Catering & Event Management</title>
+<title>RCEM Admin Dashboard</title>
 
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,Helvetica,sans-serif}
-body{background:#0d47a1;color:#333;overflow-x:hidden}
+:root{
+  --primary:#0d47a1;
+  --primary-dark:#0a3578;
+  --accent:#2e7d32;
+  --bg:#f4f6f9;
+  --card:#ffffff;
+  --text:#333;
+  --muted:#777;
+  --danger:#d32f2f;
+}
 
-/* ================= HEADER ================= */
+/* RESET */
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
+body{background:var(--bg);overflow-x:hidden}
+
+/* HEADER */
 .header{
-  position:fixed;
-  top:0;left:0;right:0;
-  height:64px;
-  background:linear-gradient(135deg,#0d47a1,#1976d2);
+  background:linear-gradient(135deg,var(--primary),#1976d2);
   color:#fff;
+  padding:16px;
   display:flex;
   align-items:center;
   justify-content:space-between;
-  padding:0 18px;
-  z-index:1000
+  position:sticky;
+  top:0;
+  z-index:20
 }
-.menu-btn{font-size:26px;cursor:pointer}
-.logo{font-size:18px;font-weight:bold}
+.menu-btn{
+  font-size:26px;
+  cursor:pointer;
+  transition:.25s
+}
+.menu-btn:active{transform:scale(.9)}
 
-/* ================= SIDE MENU ================= */
-.side-menu{
-  position:fixed;
-  top:0;left:-260px;
-  width:260px;height:100%;
-  background:#fff;
-  transition:.35s ease;
-  z-index:2000;
-  box-shadow:2px 0 25px rgba(0,0,0,.3)
-}
-.side-menu.active{left:0}
-.side-menu h3{
-  padding:18px;
-  background:#1976d2;
-  color:#fff
-}
-.side-menu a{
-  display:block;
-  padding:14px 18px;
-  color:#333;
-  text-decoration:none;
-  border-bottom:1px solid #eee
-}
-.side-menu a:hover{background:#f1f5ff}
-
-/* ================= OVERLAY ================= */
+/* OVERLAY */
 .overlay{
   position:fixed;
   inset:0;
   background:rgba(0,0,0,.45);
-  display:none;
-  z-index:1500
+  opacity:0;
+  pointer-events:none;
+  transition:.3s;
+  z-index:30
 }
-.overlay.active{display:block}
-
-/* ================= HERO ================= */
-.hero{
-  min-height:100vh;
-  background:linear-gradient(135deg,#0d47a1,#1976d2);
-  padding-top:90px;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  text-align:center;
-  color:#fff
+.overlay.show{
+  opacity:1;
+  pointer-events:auto
 }
 
-/* NOTICE */
-.notice{
-  margin-bottom:30px
-}
-.notice .blink{
-  color:#ff3b3b;
-  font-weight:700;
-  animation:blink 1.2s infinite
-}
-.notice .sub{
-  font-size:14px;
-  opacity:.95;
-  margin-top:4px
-}
-@keyframes blink{
-  0%{opacity:1}
-  50%{opacity:.3}
-  100%{opacity:1}
-}
-
-/* HERO CONTENT */
-.hero-content{
-  max-width:700px;
-  animation:fadeUp 1s ease forwards;
-  opacity:0
-}
-.hero h1{font-size:34px;margin-bottom:12px}
-.hero p{font-size:16px;opacity:.9}
-.hero .buttons{
-  margin-top:26px;
-  display:flex;
-  gap:14px;
-  justify-content:center;
-  flex-wrap:wrap
-}
-.hero button{
-  padding:14px 28px;
-  border:none;
-  border-radius:30px;
-  font-size:15px;
-  cursor:pointer;
-  transition:.25s
-}
-.login-btn{background:#fff;color:#1976d2}
-.login-btn:hover{transform:scale(1.05)}
-.call-btn{background:#2e7d32;color:#fff}
-.call-btn:hover{transform:scale(1.05)}
-
-@keyframes fadeUp{
-  from{opacity:0;transform:translateY(40px)}
-  to{opacity:1;transform:translateY(0)}
-}
-
-/* ================= SECTIONS ================= */
-.section{
-  padding:60px 16px;
-  background:#f4f6f9
-}
-.section h2{
-  text-align:center;
-  margin-bottom:34px;
-  color:#0d47a1
-}
-
-/* SERVICES */
-.services{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
-  gap:18px;
-  max-width:1000px;
-  margin:auto
-}
-.service{
-  background:#fff;
-  padding:22px;
-  border-radius:18px;
-  box-shadow:0 12px 28px rgba(0,0,0,.12);
-  text-align:center;
-  transition:.3s
-}
-.service:hover{transform:translateY(-6px)}
-
-/* COMPANY INFO */
-.info{
-  max-width:700px;
-  margin:auto;
-  display:flex;
-  flex-direction:column;
-  gap:14px
-}
-.info div{
-  background:#fff;
-  padding:18px 20px;
-  border-radius:18px;
-  box-shadow:0 10px 25px rgba(0,0,0,.12);
-  font-size:15px
-}
-
-/* FOOTER */
-.footer{
-  background:#0d47a1;
-  color:#fff;
-  padding:26px;
-  text-align:center
-}
-
-/* ================= MODALS ================= */
-.modal{
+/* SIDE MENU */
+.side-menu{
   position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.6);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  z-index:3000
-}
-.modal.active{display:flex}
-.modal-box{
+  top:0;
+  right:-280px;
+  width:260px;
+  height:100%;
   background:#fff;
-  width:100%;
-  max-width:420px;
-  padding:24px;
-  border-radius:22px;
-  animation:fadeUp .4s ease
+  box-shadow:-10px 0 30px rgba(0,0,0,.25);
+  transition:.35s cubic-bezier(.4,0,.2,1);
+  z-index:40;
+  display:flex;
+  flex-direction:column
 }
-.modal-box h3{text-align:center;margin-bottom:16px}
-.login-card{
-  padding:16px;
-  border-radius:16px;
-  background:#f4f6f9;
-  margin-bottom:12px;
-  cursor:pointer;
-  text-align:center;
+.side-menu.show{right:0}
+
+/* USER BOX */
+.user-box{
+  padding:18px;
+  background:#f1f5ff;
+  border-bottom:1px solid #ddd
+}
+.user-box b{font-size:13px;color:var(--muted)}
+.user-box span{font-size:14px;color:var(--primary);font-weight:bold}
+
+/* MENU */
+.menu{flex:1;padding:12px}
+.menu a{
+  display:block;
+  padding:14px 16px;
+  margin-bottom:6px;
+  border-radius:14px;
+  text-decoration:none;
+  color:var(--text);
+  font-weight:500;
   transition:.25s
 }
-.login-card:hover{
+.menu a:hover{
   background:#e3f2fd;
-  transform:scale(1.03)
+  transform:translateX(6px)
 }
-.cancel{
-  text-align:center;
-  color:#666;
-  cursor:pointer;
-  margin-top:6px
-}
-.modal-box input{
-  width:100%;
-  padding:14px;
-  margin-bottom:12px;
-  border-radius:14px;
-  border:1px solid #ccc
-}
-.modal-box button{
-  width:100%;
-  padding:14px;
+
+/* LOGOUT */
+.logout{
+  margin:14px;
+  padding:12px;
   border:none;
-  border-radius:24px;
-  background:#1976d2;
+  border-radius:25px;
+  background:var(--danger);
   color:#fff;
   font-size:15px;
   cursor:pointer
 }
+
+/* CONTENT */
+.container{padding:18px}
+
+/* CARDS */
+.cards{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:16px
+}
+.card{
+  background:var(--card);
+  padding:20px;
+  border-radius:18px;
+  box-shadow:0 10px 25px rgba(0,0,0,.12);
+  transition:.25s;
+  cursor:pointer
+}
+.card:hover{
+  transform:translateY(-6px);
+  box-shadow:0 14px 35px rgba(0,0,0,.18)
+}
+.card h3{font-size:14px;color:var(--muted);margin-bottom:8px}
+.card p{font-size:26px;font-weight:bold;color:var(--primary)}
+
+/* SECTION */
+.section{margin-top:26px}
+.section h4{
+  font-size:16px;
+  margin-bottom:10px;
+  color:var(--text)
+}
+
+/* LIST */
+.list{
+  background:#fff;
+  border-radius:16px;
+  overflow:hidden;
+  box-shadow:0 8px 20px rgba(0,0,0,.12)
+}
+.item{
+  padding:14px 16px;
+  border-bottom:1px solid #eee
+}
+.item:last-child{border-bottom:none}
+.small{font-size:13px;color:var(--muted)}
+
+/* UPCOMING */
+.upcoming{
+  background:#fff;
+  border-radius:18px;
+  padding:18px;
+  box-shadow:0 8px 20px rgba(0,0,0,.12)
+}
+.venue{
+  font-size:18px;
+  font-weight:bold;
+  color:var(--primary)
+}
+.countdown{
+  font-size:20px;
+  font-weight:bold;
+  color:var(--danger);
+  margin-top:6px
+}
+.blink{
+  animation:blink 1s infinite
+}
+@keyframes blink{
+  0%{opacity:1}
+  50%{opacity:.2}
+  100%{opacity:1}
+}
+
+/* ACTIONS */
+.actions{
+  display:flex;
+  gap:12px
+}
+.actions button{
+  flex:1;
+  padding:14px;
+  border:none;
+  border-radius:22px;
+  color:#fff;
+  font-size:15px;
+  cursor:pointer
+}
+.addA{background:linear-gradient(45deg,#2e7d32,#43a047)}
+.addS{background:linear-gradient(45deg,#1565c0,#1e88e5)}
+.addV{background:linear-gradient(45deg,#6a1b9a,#8e24aa)}
 </style>
 </head>
 
 <body>
 
-<!-- HEADER -->
 <div class="header">
+  <h2>RCEM Dashboard</h2>
   <div class="menu-btn" onclick="openMenu()">☰</div>
-  <div class="logo">RCEM</div>
-</div>
-
-<!-- SIDE MENU -->
-<div class="side-menu" id="menu">
-  <h3>RCEM Menu</h3>
-  <a href="#home" onclick="closeMenu()">Home</a>
-  <a href="#services" onclick="closeMenu()">Services</a>
-  <a href="about.html">About Us</a>
-  <a href="javascript:openLogin()">Login</a>
-  <a href="#contact" onclick="closeMenu()">Contact</a>
 </div>
 
 <div class="overlay" id="overlay" onclick="closeMenu()"></div>
 
-<!-- HERO -->
-<div class="hero" id="home">
-  <div class="notice">
-    <div class="blink">পরীক্ষামূলক সংস্করণ...</div>
-    <div class="sub">প্রকল্প সচিব – JH Simul </div>
-    <div class="sub">emergency contact +8801632688798 </div>
-    <div class="sub">বাস্তবায়নের: রাজশাহী ক্যাটারিং এন্ড ইভেন্ট ম্যানেজমেন্ট</div>
-    <div class="sub">প্রকল্প বাস্তবায়নের নির্ধারিত সময় ১৪/০২/২০২৫</div>
-    
+<div class="side-menu" id="sideMenu">
+  <div class="user-box">
+    <b>Logged in as</b>
+    <span id="userEmail">Loading...</span>
   </div>
 
-  <div class="hero-content">
-    <h1>Rajshahi Catering & Event Management</h1>
-    <p>Professional Catering • Event Planning • Trusted Service</p>
-    <div class="buttons">
-      <button class="login-btn" onclick="openLogin()">Login</button>
-      <button class="call-btn" onclick="location.href='tel:+8801926627000'">Call Now</button>
+  <div class="menu">
+    <a href="admin.html">Dashboard</a>
+    <a href="assignments.html">Assignments</a>
+    <a href="staff.html">Staff</a>
+    <a href="venues.html">Venues</a>
+    <a href="monthly-accounts.html">Monthly Accounts</a>
+    <a href="admin-users.html">Admin Users</a>
+  </div>
+
+  <button class="logout" onclick="logout()">Logout</button>
+</div>
+
+<div class="container">
+
+  <div class="cards">
+    <div class="card" onclick="location.href='assignments.html'">
+      <h3>Total Assignments</h3><p id="totalAssignments">0</p>
+    </div>
+    <div class="card" onclick="location.href='staff.html'">
+      <h3>Total Staff</h3><p id="totalStaff">0</p>
+    </div>
+    <div class="card" onclick="location.href='assignments.html?status=pending'">
+      <h3>Pending</h3><p id="pendingAssignments">0</p>
+    </div>
+    <div class="card" onclick="location.href='assignments.html?status=completed'">
+      <h3>Completed</h3><p id="completedAssignments">0</p>
     </div>
   </div>
-</div>
 
-<!-- SERVICES -->
-<div class="section" id="services">
-  <h2>Our Services</h2>
-  <div class="services">
-    <div class="service">Wedding Catering</div>
-    <div class="service">Corporate Events</div>
-    <div class="service">Birthday Party</div>
-    <div class="service">Decoration</div>
-    <div class="service">Manpower Supply</div>
-    <div class="service">Outdoor Catering</div>
+  <div class="section">
+    <h4>⏳ Upcoming Assignment</h4>
+    <div class="upcoming">
+      <div class="venue" id="upVenue">Loading...</div>
+      <div class="countdown" id="upCountdown">--</div>
+      <div class="small" id="upTotal"></div>
+    </div>
   </div>
-</div>
 
-<!-- COMPANY INFO -->
-<div class="section" id="contact">
-  <h2>Company Information</h2>
-  <div class="info">
-    <div>📍 Shah Makhdum Thana Mor, West of Biman Chottor, SM Academy School (3rd Floor), Rajshahi</div>
-    <div>☎ +8801926627000</div>
-    <div>📧 info.rajshahicatering.com</div>
-    <div>👥 140+ Staff</div>
+  <div class="section">
+    <h4>📅 Today’s Assignments</h4>
+    <div class="list" id="todayList">Loading...</div>
   </div>
-</div>
 
-<div class="footer">
-  © 2025 Rajshahi Catering & Event Management
-</div>
-
-<!-- LOGIN MODALS -->
-<div class="modal" id="loginModal">
-  <div class="modal-box">
-    <h3>Select Login</h3>
-    <div class="login-card" onclick="openAdmin()">Admin Login</div>
-    <div class="login-card" onclick="window.location.href='staff-dashboard.html'">Staff Login</div>
-    <div class="login-card">Customer Login</div>
-    <div class="cancel" onclick="closeLogin()">Cancel</div>
+  <div class="section">
+    <h4>⚡ Quick Actions</h4>
+    <div class="actions">
+      <button class="addA" onclick="location.href='create-assignment.html'">+ Assignment</button>
+      <button class="addS" onclick="location.href='staff.html'">+ Staff</button>
+      <button class="addV" onclick="location.href='venues.html'">+ Venue</button>
+    </div>
   </div>
-</div>
 
-<div class="modal" id="adminModal">
-  <div class="modal-box">
-    <h3>Admin Login</h3>
-    <input type="email" id="email" placeholder="Email">
-    <input type="password" id="password" placeholder="Password">
-    <button onclick="adminLogin()">Login</button>
-    <div class="cancel" onclick="closeAdmin()">Cancel</div>
-  </div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
 firebase.initializeApp({
@@ -336,44 +281,84 @@ firebase.initializeApp({
   authDomain:"rcem-system.firebaseapp.com",
   projectId:"rcem-system"
 });
-const auth=firebase.auth();
 
-const menu=document.getElementById("menu");
-const overlay=document.getElementById("overlay");
-const loginModal=document.getElementById("loginModal");
-const adminModal=document.getElementById("adminModal");
+const auth=firebase.auth();
+const db=firebase.firestore();
 
 function openMenu(){
-  menu.classList.add("active");
-  overlay.classList.add("active");
+  sideMenu.classList.add("show");
+  overlay.classList.add("show");
 }
 function closeMenu(){
-  menu.classList.remove("active");
-  overlay.classList.remove("active");
+  sideMenu.classList.remove("show");
+  overlay.classList.remove("show");
 }
-function openLogin(){
-  closeMenu();
-  loginModal.classList.add("active");
+function logout(){
+  auth.signOut().then(()=>location.href="index.html");
 }
-function closeLogin(){
-  loginModal.classList.remove("active");
-}
-function openAdmin(){
-  loginModal.classList.remove("active");
-  adminModal.classList.add("active");
-}
-function closeAdmin(){
-  adminModal.classList.remove("active");
-}
-function adminLogin(){
-  const e=email.value.trim();
-  const p=password.value.trim();
-  if(!e||!p){alert("Email & Password required");return;}
-  auth.signInWithEmailAndPassword(e,p)
-    .then(()=>location.href="admin.html")
-    .catch(err=>alert(err.message));
-}
+
+auth.onAuthStateChanged(u=>{
+  if(!u){location.href="index.html";return;}
+  userEmail.innerText=u.email;
+});
+
+/* STAFF COUNT */
+db.collection("staffs").onSnapshot(s=>totalStaff.innerText=s.size);
+
+/* ASSIGNMENTS + TODAY + UPCOMING */
+let timer;
+db.collection("assignments").onSnapshot(snap=>{
+  let total=0,p=0,c=0;
+  let todayHTML="";
+  const today=new Date().toISOString().split("T")[0];
+  const now=new Date();
+  const upcoming=[];
+
+  snap.forEach(d=>{
+    const a=d.data();
+    total++;
+    if(a.status==="completed") c++; else p++;
+
+    if(a.duty_date===today){
+      todayHTML+=`<div class="item">${a.venue_name}<div class="small">${a.shift}</div></div>`;
+    }
+
+    let t;
+    if(a.shift==="day") t=new Date(a.duty_date+"T11:00:00");
+    else t=new Date(a.duty_date+"T18:00:00");
+
+    if(t>now) upcoming.push({...a,t});
+  });
+
+  totalAssignments.innerText=total;
+  pendingAssignments.innerText=p;
+  completedAssignments.innerText=c;
+  todayList.innerHTML=todayHTML||"<div class='item small'>No assignments today</div>";
+
+  if(upcoming.length===0){
+    upVenue.innerText="No upcoming assignment";
+    upCountdown.innerText="--";
+    upTotal.innerText="";
+    return;
+  }
+
+  upcoming.sort((a,b)=>a.t-b.t);
+  const n=upcoming[0];
+  upVenue.innerText=n.venue_name;
+  upTotal.innerText="Total upcoming: "+upcoming.length;
+
+  clearInterval(timer);
+  timer=setInterval(()=>{
+    const diff=n.t-new Date();
+    if(diff<=0){upCountdown.innerText="Starting now";return;}
+    const h=Math.floor(diff/36e5);
+    const m=Math.floor(diff%36e5/6e4);
+    const s=Math.floor(diff%6e4/1000);
+    upCountdown.innerText=`${h}h ${m}m ${s}s`;
+    if(diff<=3600000) upVenue.classList.add("blink");
+  },1000);
+});
 </script>
 
 </body>
-      </html>
+</html>
