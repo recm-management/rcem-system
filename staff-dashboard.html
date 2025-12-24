@@ -1,16 +1,99 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>Staff Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;font-family:Arial,Helvetica,sans-serif}
+    body{
+      background:#f4f6f9;
+      padding:20px;
+      color:#333
+    }
+    h2{
+      margin-bottom:12px;
+      color:#0d47a1
+    }
+    .card{
+      background:#fff;
+      padding:16px;
+      border-radius:14px;
+      box-shadow:0 8px 20px rgba(0,0,0,.1);
+      margin-bottom:14px
+    }
+    .empty{
+      color:#777;
+      font-size:14px
+    }
+  </style>
 </head>
+
 <body>
 
   <h2>My Today Status</h2>
-  <div id="status">Loading...</div>
+  <div class="card" id="status">
+    Loading status...
+  </div>
 
   <h2>Available Programs</h2>
-  <div id="programs">Loading...</div>
+  <div id="programs">
+    <div class="card">Loading programs...</div>
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+  <script>
+    // Firebase Init
+    firebase.initializeApp({
+      apiKey: "AIzaSyDK3dqXZuWaH3gctxURdOZc_Q1UfioesaA",
+      authDomain: "rcem-system.firebaseapp.com",
+      projectId: "rcem-system"
+    });
+
+    const db = firebase.firestore();
+
+    const statusDiv = document.getElementById("status");
+    const programsDiv = document.getElementById("programs");
+
+    // ---------- MY TODAY STATUS (STATIC FOR NOW) ----------
+    statusDiv.innerHTML = "No program assigned yet";
+
+    // ---------- LOAD AVAILABLE PROGRAMS ----------
+    db.collection("assignments")
+      .where("status", "==", "pending")
+      .get()
+      .then(snapshot => {
+        programsDiv.innerHTML = "";
+
+        if (snapshot.empty) {
+          programsDiv.innerHTML =
+            `<div class="card empty">No available programs today</div>`;
+          return;
+        }
+
+        snapshot.forEach(doc => {
+          const d = doc.data();
+
+          programsDiv.innerHTML += `
+            <div class="card">
+              <b>${d.venue_name}</b><br><br>
+              📅 Date: ${d.date}<br>
+              ⏱ Shift: ${d.shift}<br>
+              👥 Required Staff: ${d.total_staff}
+            </div>
+          `;
+        });
+      })
+      .catch(err => {
+        programsDiv.innerHTML =
+          `<div class="card">Error loading programs</div>`;
+        console.error(err);
+      });
+  </script>
 
 </body>
 </html>
